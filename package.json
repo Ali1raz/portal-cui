@@ -10,7 +10,8 @@
     "lint": "eslint",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
-    "format:write": "prettier --write ."
+    "format:write": "prettier --write .",
+    "prepare": "husky"
   },
   "dependencies": {
     "next": "16.0.7",
@@ -24,8 +25,15 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --max-warnings=0 --fix --cache"
+    ]
   }
 }
