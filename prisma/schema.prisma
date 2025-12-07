@@ -18,6 +18,14 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
+  role    Role     @default(USER)
+  student Student?
+
+  hod        Hod?
+  professor  Professor?
+  director   Director?
+  accountant Accountant?
+
   @@unique([email])
   @@map("user")
 }
@@ -68,4 +76,105 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+enum Role {
+  SUPERADMIN
+  ACCOUNTANT
+  DIRECTOR
+  ADMIN
+  HOD
+  PROFESSOR
+  STUDENT
+  USER
+}
+
+enum Department {
+  CS
+  EN
+  SE
+  MATH
+  BA
+}
+
+enum Batch {
+  SP
+  FA
+}
+
+enum Program {
+  B
+  M
+}
+
+model Student {
+  id             String @id @default(uuid())
+  registrationNo String @unique // FA22-BSE-001
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  program    Program
+  year       Int // 22, 23
+  batch      Batch
+  department Department
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([program, batch, department, registrationNo])
+  @@map("student")
+}
+
+model Hod {
+  id         String     @id @default(uuid())
+  department Department @unique // Each department can have only one HOD
+  year       DateTime // date of appointment
+  endYear    DateTime // End date of appointment
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([department])
+  @@map("hod")
+}
+
+model Professor {
+  id         String @id @default(uuid())
+  employeeNo String @unique // EMP-001
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  department Department // Professors belong to a specific department
+  programs   Program[] // Professors can be associated with a specific program or multiple programs
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([department, employeeNo])
+  @@map("professor")
+}
+
+model Director {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("director")
+}
+
+model Accountant {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("accountant")
 }
