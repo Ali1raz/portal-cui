@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && pnpm db:generate",
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint . --fix",
@@ -15,7 +15,8 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:studio": "prisma studio --browser none",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "pnpm db:generate"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
