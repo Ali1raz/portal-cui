@@ -1,16 +1,21 @@
-import prisma from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import Link from "next/link";
 
 export default async function Home() {
-  const user = await prisma.user.findFirst({
-    select: { id: true, name: true },
+  const user = await auth.api.getSession({
+    headers: await headers(),
   });
 
   return (
-    <div className="">
-      {user && (
-        <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100">
-          Welcome, {user.name}!
-        </h1>
+    <div>
+      {user ? (
+        <pre>{JSON.stringify(user.user, null, 2)}</pre>
+      ) : (
+        <div>
+          Not Logged In
+          <Link href="/login">go to login</Link>
+        </div>
       )}
     </div>
   );
