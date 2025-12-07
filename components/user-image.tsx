@@ -5,7 +5,7 @@ export function UserImage({
   name,
   className,
 }: {
-  image?: string;
+  image?: string | null;
   name: string;
   className?: string;
 }) {

@@ -1,0 +1,102 @@
+"use client";
+
+import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { z } from "zod";
+import { requestPasswordReset } from "@/lib/auth-client";
+
+const formSchema = z.object({
+  email: z.email({ message: "Please provide a valid email address" }),
+});
+
+export type FormSchemaType = z.infer<typeof formSchema>;
+
+export function ForgotPasswordForm() {
+  const [isPending, setIsPending] = useState(false);
+
+  const form = useForm<FormSchemaType>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
+  const router = useRouter();
+
+  async function sendResetPasswordLink({ email }: { email: string }) {
+    await requestPasswordReset({
+      email,
+      redirectTo: "/reset-password",
+      fetchOptions: {
+        onRequest: () => {
+          setIsPending(true);
+        },
+        onResponse: () => {
+          setIsPending(false);
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error.message);
+        },
+        onSuccess: () => {
+          toast.success("Password reset link sent successfully.");
+          router.push("/forgot-password/success");
+        },
+      },
+    });
+  }
+
+  return (
+    <div className="w-full space-y-8">
+      <div>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(sendResetPasswordLink)}
+            className="mt-4 space-y-6"
+          >
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled={isPending}
+                      placeholder="you@example.com"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" disabled={isPending} className="w-full">
+              {isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  &nbsp;Loading...
+                </>
+              ) : (
+                "Send reset link"
+              )}
+            </Button>
+          </form>
+        </Form>
+      </div>
+    </div>
+  );
+}
