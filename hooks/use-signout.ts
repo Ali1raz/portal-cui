@@ -11,7 +11,7 @@ export function useSignOut() {
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          router.push("/login");
+          router.refresh();
           toast.success("Successfully signed out!");
         },
         onError: () => {

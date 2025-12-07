@@ -2,11 +2,13 @@ import { betterAuth } from "better-auth";
 import prisma from "./prisma";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { SendEmail } from "@/app/actions/send-email";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
 
   emailAndPassword: {
     enabled: true,
@@ -19,9 +21,9 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       const link = new URL(url);
-      link.searchParams.set("callbackURL", "/verify");
-      // send Email to user.email
-      console.log({
+      link.searchParams.set("callbackURL", "/");
+
+      await SendEmail({
         to: user.email,
         subject: "Verify your email address",
         meta: {

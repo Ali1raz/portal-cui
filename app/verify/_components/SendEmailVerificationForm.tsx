@@ -37,7 +37,7 @@ export function SendEmailVerificationForm() {
 
   const router = useRouter();
 
-  async function sendVerificationEmailLink({ email }: { email: string }) {
+  async function sendVerificationEmailLink({ email }: FormSchemaType) {
     await sendVerificationEmail({
       email,
       callbackURL: "/verify",
