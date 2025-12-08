@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { ErrorCode } from "@/lib/auth-client";
 import { errorMessage } from "@/lib/error-message";
+import { Role } from "@/lib/generated/prisma/enums";
 import {
   loginSchema,
   LoginSchemaType,
@@ -16,7 +17,7 @@ import { redirect } from "next/navigation";
 
 export async function signUp(
   values: RegisterSchemaType
-): Promise<ApiResponseType> {
+): Promise<ApiResponseType & { role?: Role | null | undefined }> {
   try {
     const validated = registerSchema.safeParse(values);
     if (!validated.success) {
@@ -26,7 +27,7 @@ export async function signUp(
       };
     }
 
-    await auth.api.signUpEmail({
+    const result = await auth.api.signUpEmail({
       body: {
         name: values.name,
         email: values.email,
@@ -38,6 +39,7 @@ export async function signUp(
     return {
       status: "success",
       message: "Signup successful",
+      role: result.user.role as Role | null | undefined,
     };
   } catch (error: unknown) {
     return {
@@ -47,7 +49,9 @@ export async function signUp(
   }
 }
 
-export async function login(values: LoginSchemaType): Promise<ApiResponseType> {
+export async function login(
+  values: LoginSchemaType
+): Promise<ApiResponseType & { role?: Role | null | undefined }> {
   try {
     const validated = loginSchema.safeParse(values);
     if (!validated.success) {
@@ -57,7 +61,7 @@ export async function login(values: LoginSchemaType): Promise<ApiResponseType> {
       };
     }
 
-    await auth.api.signInEmail({
+    const result = await auth.api.signInEmail({
       body: {
         email: validated.data.email,
         password: validated.data.password,
@@ -68,6 +72,7 @@ export async function login(values: LoginSchemaType): Promise<ApiResponseType> {
     return {
       status: "success",
       message: "Login successful",
+      role: result.user.role as Role | null | undefined,
     };
   } catch (error: unknown) {
     if (error instanceof APIError) {
@@ -85,7 +90,7 @@ export async function login(values: LoginSchemaType): Promise<ApiResponseType> {
           };
       }
     }
-
+    console.log(error);
     return {
       status: "error",
       message: errorMessage(error),

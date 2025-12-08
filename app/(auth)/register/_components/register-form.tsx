@@ -27,12 +27,14 @@ import { signUp } from "../../actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
+import { Role } from "@/lib/generated/prisma/enums";
 
 export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const [isEmailPending, startEmailTransition] = useTransition();
+  const router = useRouter();
 
   const form = useForm<RegisterSchemaType>({
     resolver: zodResolver(registerSchema),
@@ -42,8 +44,6 @@ export function RegisterForm({
       password: "",
     },
   });
-
-  const router = useRouter();
 
   function onSubmit(values: RegisterSchemaType) {
     startEmailTransition(async () => {
@@ -58,6 +58,10 @@ export function RegisterForm({
         toast.error(result.message);
       } else if (result.status === "success") {
         toast.success(result.message);
+        if (result.role === Role.DIRECTOR) {
+          router.push("/director");
+          return;
+        }
         router.push("/");
       }
     });

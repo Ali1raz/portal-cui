@@ -3,6 +3,7 @@ import prisma from "./prisma";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { SendEmail } from "@/app/actions/send-email";
+import { Role } from "./generated/prisma/enums";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -22,6 +23,17 @@ export const auth = betterAuth({
           link: url,
         },
       });
+    },
+  },
+
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+        input: false,
+        defaultValue: Role.USER,
+      },
     },
   },
 

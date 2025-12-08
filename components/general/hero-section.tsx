@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { TextEffect } from "@/components/ui/text-effect";
-import { HeroHeader } from "./Header";
+import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 import {
   Git,
   GitHub,
@@ -13,7 +12,8 @@ import {
   Prisma,
   TailwindCSS,
   Vercel,
-} from "./companies";
+} from "../companies";
+import { HeroHeader } from "./Header";
 
 // const transitionVariants = {
 //   item: {

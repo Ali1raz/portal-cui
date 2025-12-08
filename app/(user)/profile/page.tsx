@@ -1,6 +1,6 @@
 import { requireSession } from "@/app/data/session/require-session";
+import { UserImage } from "@/components/general/user-image";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserImage } from "@/components/user-image";
 
 export default async function ProfilePage() {
   const { user } = await requireSession();

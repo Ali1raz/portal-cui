@@ -1,19 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import React from "react";
-import { cn } from "@/lib/utils";
-import Image from "next/image";
 import { useSession } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
+import { Menu, X } from "lucide-react";
+import Link from "next/link";
+import React from "react";
+import { UrlObject } from "url";
+import { CUILogo } from "./cui-logo";
 import { SignOutButton } from "./signout-button";
 
-const menuItems = [
-  { name: "Features", href: "#link" },
-  { name: "Solution", href: "#link" },
-  { name: "Pricing", href: "#link" },
-  { name: "About", href: "#link" },
+const menuItems: {
+  name: string;
+  href: UrlObject | __next_route_internal_types__.RouteImpl<string>;
+}[] = [
+  { name: "Features", href: "/" },
+  { name: "Solution", href: "/" },
+  { name: "Pricing", href: "/" },
+  { name: "About", href: "/" },
 ];
 
 export const HeroHeader = () => {
@@ -43,18 +47,10 @@ export const HeroHeader = () => {
         >
           <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
             <div className="flex w-full justify-between lg:w-auto">
-              <Link
-                href="/"
-                aria-label="home"
-                className="flex items-center space-x-2 "
-              >
-                <Image src="/image.png" alt="CUI" width={44} height={44} />
-                <div className="text-xl no-underline font-bold uppercase">
-                  comsats university
-                  <br />
-                  <span className="text-balance">islamabad</span>
-                </div>
-              </Link>
+              <CUILogo
+                textClasses="block max-[490px]:hidden"
+                className="flex items-center gap-1"
+              />
 
               <button
                 onClick={() => setMenuState(!menuState)}

@@ -2,7 +2,9 @@
 
 import { ChevronDownIcon, Home, LogOutIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { useSignOut } from "@/hooks/use-signout";
+import Link from "next/link";
+import { Button } from "../ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,9 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import Link from "next/link";
-import { useSignOut } from "@/hooks/use-signout";
+} from "../ui/dropdown-menu";
 import { UserImage } from "./user-image";
 
 interface UserAvatarProps {

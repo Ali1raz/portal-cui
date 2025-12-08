@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { tryCatch } from "@/hooks/tryCatch";
-import { useRouter } from "next/navigation";
 import { loginSchema, LoginSchemaType } from "@/lib/schema";
 import { Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,12 +28,16 @@ import {
 import { login } from "../../actions";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { Role } from "@/lib/generated/prisma/enums";
+import { useRouter } from "next/navigation";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const [isEmailPending, startEmailTransition] = useTransition();
+
+  const router = useRouter();
 
   const form = useForm<LoginSchemaType>({
     resolver: zodResolver(loginSchema),
@@ -43,8 +46,6 @@ export function LoginForm({
       password: "",
     },
   });
-
-  const router = useRouter();
 
   function onSubmit(values: LoginSchemaType) {
     startEmailTransition(async () => {
@@ -59,7 +60,11 @@ export function LoginForm({
         toast.error(result.message);
       } else if (result.status === "success") {
         toast.success(result.message);
-        router.push("/");
+        if (result.role === Role.DIRECTOR) {
+          router.push("/director");
+        } else {
+          router.push("/");
+        }
       }
     });
   }

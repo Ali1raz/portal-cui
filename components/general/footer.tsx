@@ -1,35 +1,42 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { UrlObject } from "url";
+import { CUILogo } from "./cui-logo";
 
-const links = [
+const links: {
+  group: string;
+  items: {
+    title: string;
+    href: UrlObject | __next_route_internal_types__.RouteImpl<string>;
+  }[];
+}[] = [
   {
     group: "Product",
     items: [
       {
         title: "Features",
-        href: "#",
+        href: "/",
       },
       {
         title: "Solution",
-        href: "#",
+        href: "/",
       },
       {
         title: "Customers",
-        href: "#",
+        href: "/",
       },
       {
         title: "Pricing",
-        href: "#",
+        href: "/",
       },
       {
         title: "Help",
-        href: "#",
+        href: "/",
       },
       {
         title: "About",
-        href: "#",
+        href: "/",
       },
     ],
   },
@@ -38,31 +45,31 @@ const links = [
     items: [
       {
         title: "Startup",
-        href: "#",
+        href: "/",
       },
       {
         title: "Freelancers",
-        href: "#",
+        href: "/",
       },
       {
         title: "Organizations",
-        href: "#",
+        href: "/",
       },
       {
         title: "Students",
-        href: "#",
+        href: "/",
       },
       {
         title: "Collaboration",
-        href: "#",
+        href: "/",
       },
       {
         title: "Design",
-        href: "#",
+        href: "/",
       },
       {
         title: "Management",
-        href: "#",
+        href: "/",
       },
     ],
   },
@@ -71,27 +78,27 @@ const links = [
     items: [
       {
         title: "About",
-        href: "#",
+        href: "/",
       },
       {
         title: "Careers",
-        href: "#",
+        href: "/",
       },
       {
         title: "Blog",
-        href: "#",
+        href: "/",
       },
       {
         title: "Press",
-        href: "#",
+        href: "/",
       },
       {
         title: "Contact",
-        href: "#",
+        href: "/",
       },
       {
         title: "Help",
-        href: "#",
+        href: "/",
       },
     ],
   },
@@ -100,19 +107,19 @@ const links = [
     items: [
       {
         title: "Licence",
-        href: "#",
+        href: "/",
       },
       {
         title: "Privacy",
-        href: "#",
+        href: "/",
       },
       {
         title: "Cookies",
-        href: "#",
+        href: "/",
       },
       {
         title: "Security",
-        href: "#",
+        href: "/",
       },
     ],
   },
@@ -123,16 +130,21 @@ export default function FooterSection() {
     <footer className="border-b bg-white pt-20 dark:bg-transparent">
       <div className="mb-8 border-b md:mb-12">
         <div className="mx-auto flex max-w-5xl flex-wrap items-end justify-between gap-6 px-6 pb-6">
-          <Link
+          <CUILogo
+            width={90}
+            height={90}
+            className="flex flex-col items-start sm:items-center sm:flex-row"
+          />
+          {/* <Link
             href="/"
             aria-label="Go to homepage"
             className="block relative size-26"
           >
             <Image src="/image.png" alt="CUI" fill />
-          </Link>
+          </Link> */}
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <Link
-              href="#"
+              href="/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="X/Twitter"
@@ -152,7 +164,7 @@ export default function FooterSection() {
               </svg>
             </Link>
             <Link
-              href="#"
+              href="/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn"
@@ -172,7 +184,7 @@ export default function FooterSection() {
               </svg>
             </Link>
             <Link
-              href="#"
+              href="/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook"
@@ -192,7 +204,7 @@ export default function FooterSection() {
               </svg>
             </Link>
             <Link
-              href="#"
+              href="/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Threads"
@@ -217,7 +229,7 @@ export default function FooterSection() {
               </svg>
             </Link>
             <Link
-              href="#"
+              href="/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
@@ -237,7 +249,7 @@ export default function FooterSection() {
               </svg>
             </Link>
             <Link
-              href="#"
+              href="/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="TikTok"
@@ -278,8 +290,8 @@ export default function FooterSection() {
             ))}
           </div>
         </div>
-        <div className="mt-12 flex flex-wrap w-full items-end justify-between gap-6 border-t py-6">
-          <small className="text-muted-foreground  block text-center text-sm">
+        <div className="mt-12 flex items-center justify-around w-full border-t py-6">
+          <small className="text-muted-foreground block text-center text-sm">
             © {new Date().getFullYear()} Copyright COMSATS University Islamabad.
             All Rights Reserved.
             <br /> Designed by ITCenter
