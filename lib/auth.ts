@@ -1,15 +1,17 @@
+import { SendEmail } from "@/app/actions/send-email";
 import { betterAuth } from "better-auth";
-import prisma from "./prisma";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
-import { SendEmail } from "@/app/actions/send-email";
 import { Role } from "./generated/prisma/enums";
+import prisma from "./prisma";
+
+import { admin } from "better-auth/plugins";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL: process.env.BETTER_AUTH_URL,
 
   emailAndPassword: {
     enabled: true,
@@ -56,5 +58,12 @@ export const auth = betterAuth({
     },
   },
 
-  plugins: [nextCookies()],
+  plugins: [
+    admin({
+      adminRoles: [Role.DIRECTOR, Role.ADMIN, Role.DIRECTOR],
+    }),
+    nextCookies(),
+  ],
 });
+
+export type User = typeof auth.$Infer.Session.user;

@@ -6,13 +6,13 @@ import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-import { UrlObject } from "url";
 import { CUILogo } from "./cui-logo";
 import { SignOutButton } from "./signout-button";
+import { URL } from "@/lib/types";
 
 const menuItems: {
   name: string;
-  href: UrlObject | __next_route_internal_types__.RouteImpl<string>;
+  href: URL;
 }[] = [
   { name: "Features", href: "/" },
   { name: "Solution", href: "/" },

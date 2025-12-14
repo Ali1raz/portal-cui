@@ -1,7 +1,38 @@
-export default function DirectorLayout({
+import { AppSidebar } from "./_components/app-sidebar";
+
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Role } from "@/lib/generated/prisma/enums";
+import { redirect } from "next/navigation";
+import { SiteHeader } from "./_components/site-header";
+import { requireSession } from "../data/session/require-session";
+
+export default async function DirectorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  const session = await requireSession();
+
+  if (session.user.role !== Role.DIRECTOR) {
+    return redirect("/unauthorized");
+  }
+
+  return (
+    <main>
+      <SidebarProvider
+        style={
+          {
+            "--sidebar-width": "calc(var(--spacing) * 72)",
+            "--header-height": "calc(var(--spacing) * 12)",
+          } as React.CSSProperties
+        }
+      >
+        <AppSidebar variant="inset" user={session.user} />
+        <SidebarInset>
+          <SiteHeader user={session.user} />
+          {children}
+        </SidebarInset>
+      </SidebarProvider>
+    </main>
+  );
 }

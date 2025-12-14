@@ -19,7 +19,7 @@ import { UserImage } from "./user-image";
 interface UserAvatarProps {
   name: string;
   email: string;
-  image: string;
+  image: string | null | undefined;
 }
 
 export default function UserAvatarDropdown({

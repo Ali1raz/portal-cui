@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { UrlObject } from "url";
 import { CUILogo } from "./cui-logo";
+import { URL } from "@/lib/types";
 
 const links: {
   group: string;
   items: {
     title: string;
-    href: UrlObject | __next_route_internal_types__.RouteImpl<string>;
+    href: URL;
   }[];
 }[] = [
   {
@@ -77,12 +77,12 @@ const links: {
     group: "Company",
     items: [
       {
-        title: "About",
-        href: "/",
+        title: "Director",
+        href: "/director",
       },
       {
-        title: "Careers",
-        href: "/",
+        title: "HOd",
+        href: "/hod",
       },
       {
         title: "Blog",

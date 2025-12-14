@@ -14,7 +14,7 @@ export function UserImage({
       <AvatarImage
         src={
           image ??
-          `https://avatar.vercel.sh/${name && name.length > 0 ? name[0] : "U"}`
+          `https://avatar.vercel.sh/${name && name.length > 0 ? name : "U"}`
         }
         alt="Profile image"
       />

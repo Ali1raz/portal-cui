@@ -6,9 +6,6 @@ import { redirect } from "next/navigation";
 
 export const requireSession = cache(async () => {
   const session = await auth.api.getSession({
-    query: {
-      disableCookieCache: true,
-    },
     headers: await headers(),
   });
 
