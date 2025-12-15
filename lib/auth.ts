@@ -56,11 +56,30 @@ export const auth = betterAuth({
         },
       });
     },
+
+    afterEmailVerification: async (user) => {
+      const DIRECTOR_EMAILS: string[] =
+        process.env.DIRECTOR_EMAILS?.split(";") ?? [];
+      if (DIRECTOR_EMAILS.includes(user.email)) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { role: Role.DIRECTOR },
+        });
+      }
+      await SendEmail({
+        to: user.email,
+        subject: "You're now a Director!",
+        meta: {
+          description: `Your email is verified and you've been granted Director access.`,
+        },
+      });
+    },
   },
 
   plugins: [
     admin({
-      adminRoles: [Role.DIRECTOR, Role.ADMIN, Role.DIRECTOR],
+      defaultRole: Role.USER,
+      adminRoles: [Role.DIRECTOR, Role.ADMIN],
     }),
     nextCookies(),
   ],

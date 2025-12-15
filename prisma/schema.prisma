@@ -85,7 +85,6 @@ model Verification {
 }
 
 enum Role {
-  SUPERADMIN
   ACCOUNTANT
   DIRECTOR
   ADMIN
