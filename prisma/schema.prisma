@@ -119,15 +119,14 @@ model Student {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
   program    Program
-  year       Int // 22, 23
-  batch      Batch
   department Department
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  registration Registration?
+  enrollments  Enrollment[]
 
-  @@index([program, batch, department, registrationNo])
   @@map("student")
 }
 
@@ -157,8 +156,9 @@ model Professor {
   department Department // Professors belong to a specific department
   programs   Program[] // Professors can be associated with a specific program or multiple programs
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  teachingAssignments TeachingAssignment[]
 
   @@index([department, employeeNo])
   @@map("professor")
@@ -182,4 +182,99 @@ model Accountant {
   updatedAt DateTime @updatedAt
 
   @@map("accountant")
+}
+
+model Subject {
+  id          String @id @default(uuid())
+  name        String
+  code        String @unique // CS101
+  creditHours Int    @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  offerings SubjectOffering[]
+
+  @@map("subject")
+}
+
+model SubjectOffering {
+  id String @id @default(uuid())
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+
+  semester Int
+  year     Int // 2024
+  section  String
+
+  department Department
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enrollments         Enrollment[]
+  teachingAssignments TeachingAssignment[]
+
+  @@unique([subjectId, semester, year])
+  @@map("subject_offering")
+}
+
+model Enrollment {
+  id String @id @default(uuid())
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  offeringId String
+  offering   SubjectOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, offeringId])
+  @@map("enrollment")
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+model Registration {
+  id String @id @default(uuid())
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  semester Int
+  year     Int
+
+  status RegistrationStatus @default(PENDING)
+  batch  Batch
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId])
+  @@map("registration")
+}
+
+model TeachingAssignment {
+  id String @id @default(uuid())
+
+  professorId String
+  professor   Professor @relation(fields: [professorId], references: [id], onDelete: Cascade)
+
+  offeringId String
+  offering   SubjectOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([professorId, offeringId])
+  @@unique([offeringId]) // Ensures a section can only have one professor
+  @@map("teaching_assignment")
 }

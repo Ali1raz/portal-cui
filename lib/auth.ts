@@ -40,7 +40,7 @@ export const auth = betterAuth({
   },
 
   emailVerification: {
-    sendOnSignUp: true,
+    sendOnSignUp: process.env.NODE_ENV === "production",
     expiresIn: 60 * 5,
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
@@ -65,14 +65,15 @@ export const auth = betterAuth({
           where: { id: user.id },
           data: { role: Role.DIRECTOR },
         });
+
+        await SendEmail({
+          to: user.email,
+          subject: "You're now a Director!",
+          meta: {
+            description: `Your email is verified and you've been granted Director access.`,
+          },
+        });
       }
-      await SendEmail({
-        to: user.email,
-        subject: "You're now a Director!",
-        meta: {
-          description: `Your email is verified and you've been granted Director access.`,
-        },
-      });
     },
   },
 

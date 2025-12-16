@@ -81,12 +81,12 @@ const links: {
         href: "/director",
       },
       {
-        title: "HOd",
+        title: "HOD",
         href: "/hod",
       },
       {
-        title: "Blog",
-        href: "/",
+        title: "Students",
+        href: "/student",
       },
       {
         title: "Press",
