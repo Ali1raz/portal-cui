@@ -54,6 +54,7 @@ export async function seedOfferings() {
           id: offeringId,
           subjectId: subject.id,
           semester,
+          totalLectures: 32,
           year: currentYear,
           section,
           department: primaryDept,

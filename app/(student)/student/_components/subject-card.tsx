@@ -1,6 +1,7 @@
 import { StudentSubject } from "@/app/data/student/get-student-subjects";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 
 export function SubjectCard({ course }: { course: StudentSubject }) {
@@ -31,22 +32,30 @@ export function SubjectCard({ course }: { course: StudentSubject }) {
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Attendance</span>
-            {/* <span
+            <span
               className={`text-sm font-bold ${
-                (course.attendance ?? 70) < 80
-                  ? "text-red-600"
-                  : "text-green-600"
+                course.attendancePercentage < 80
+                  ? "text-red-500/50"
+                  : "text-green-500/50"
               }`}
             >
-              {course.attendance}%
-            </span> */}
+              {course.attendancePercentage}%
+            </span>
           </div>
+          <Progress
+            value={course.attendancePercentage}
+            className={`h-2 ${
+              course.attendancePercentage < 80
+                ? "[&>div]:bg-red-500"
+                : "[&>div]:bg-green-500"
+            }`}
+          />
 
-          {/* {(course.attendance ?? 70) < 80 && (
-            <p className="text-xs text-red-600 font-medium">
+          {course.attendancePercentage < 80 && (
+            <p className="text-xs text-red-500 font-medium">
               ⚠️ Below minimum requirement
             </p>
-          )} */}
+          )}
         </div>
       </CardContent>
     </Card>

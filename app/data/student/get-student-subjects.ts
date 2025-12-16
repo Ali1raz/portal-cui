@@ -1,17 +1,30 @@
 import prisma from "@/lib/prisma";
 import { requireStudentSession } from "./require-student-session";
+import { AttendanceStatus } from "@/lib/generated/prisma/enums";
 
 export async function getStudentSubjects() {
   const session = await requireStudentSession();
 
+  // 1. Get student and enrollments (without attendance records)
   const student = await prisma.student.findUnique({
     where: { userId: session.user.id },
     select: {
+      id: true,
       enrollments: {
         include: {
           offering: {
-            include: {
-              subject: true,
+            select: {
+              id: true,
+              totalLectures: true,
+              section: true,
+              department: true,
+              subject: {
+                select: {
+                  code: true,
+                  name: true,
+                  creditHours: true,
+                },
+              },
               teachingAssignments: {
                 include: {
                   professor: {
@@ -32,22 +45,45 @@ export async function getStudentSubjects() {
     return [];
   }
 
-  return student.enrollments.map((enrollment) => {
+  // 2. For each offering, get attendance records for this student
+  const results = [];
+  for (const enrollment of student.enrollments) {
     const offering = enrollment.offering;
-    const subject = offering.subject;
-
-    // Now using the [0] index safely because we enforced single-professor per section in schema
     const teacher =
       offering.teachingAssignments[0]?.professor.user.name ?? "TBA";
 
-    return {
-      code: subject.code,
-      name: subject.name,
-      creditHours: subject.creditHours,
+    // Query attendance records for this offering and student
+    const attendanceRecords = await prisma.attendanceRecord.findMany({
+      where: { offeringId: offering.id },
+      select: {
+        attendances: {
+          where: { studentId: student.id },
+          select: { status: true },
+        },
+      },
+    });
+
+    const totalLectures = attendanceRecords.length;
+    const attendedLectures = attendanceRecords.filter(
+      (record) =>
+        record.attendances.length > 0 &&
+        record.attendances[0].status === AttendanceStatus.PRESENT
+    ).length;
+    const attendancePercentage =
+      totalLectures > 0
+        ? Math.round((attendedLectures / totalLectures) * 100)
+        : 0;
+
+    results.push({
+      code: offering.subject.code,
+      name: offering.subject.name,
+      creditHours: offering.subject.creditHours,
       teacherName: teacher,
-      className: `${offering.department}-${offering.section}`, // "CS-A"
-    };
-  });
+      className: `${offering.department}-${offering.section}`,
+      attendancePercentage,
+    });
+  }
+  return results;
 }
 
 export type StudentSubject = Awaited<

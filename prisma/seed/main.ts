@@ -4,6 +4,7 @@ import { seedProfessors, seedProfessorAssignments } from "./professors";
 import { seedHODs } from "./hods";
 import { seedSubjects, seedOfferings } from "./subjects";
 import { seedStudents, seedStudentEnrollments } from "./students";
+import { seedAttendance } from "./attendance";
 
 async function main() {
   console.log("🌱 Starting Database Seed...");
@@ -27,6 +28,9 @@ async function main() {
     // 5. Students & Enrollments
     await seedStudents();
     await seedStudentEnrollments(); // Depends on Students AND Offerings
+
+    // 6. Attendance
+    await seedAttendance();
   } catch (e) {
     console.error("❌ Seeding failed:", e);
     process.exit(1);
