@@ -23,7 +23,7 @@ function LeaveRequestsTableSkeleton() {
 export default async function LeaveRequestsPage() {
   const requests = await getStudentLeaveRequests();
   return (
-    <div className="max-w-3xl mx-auto py-8">
+    <div className="p-8">
       <div className="flex sm:justify-between sm:flex-row flex-col gap-4">
         <h2 className="text-2xl font-bold mb-6">My Leave Requests</h2>
         <Link href="/student/request-leave">Create a new Leave Request</Link>

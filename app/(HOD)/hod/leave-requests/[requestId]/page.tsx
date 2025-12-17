@@ -32,7 +32,7 @@ export default async function LeaveRequestsPage(
           <Card>
             <CardHeader>
               <CardTitle className="text-xl">Leave Request Details</CardTitle>
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-y-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center max-w-2xl gap-y-4">
                 <Card className="flex flex-col gap-2 p-4 border-primary ">
                   <CardTitle className="font-bold text-lg">
                     Date of Leave:
