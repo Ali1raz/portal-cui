@@ -62,6 +62,8 @@ export function LoginForm({
         toast.success(result.message);
         if (result.role === Role.DIRECTOR) {
           router.push("/director");
+        } else if (result.role === Role.STUDENT) {
+          router.push("/student");
         } else {
           router.push("/");
         }

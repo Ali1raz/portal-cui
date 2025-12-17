@@ -3,6 +3,10 @@ use react 19
 use naming convention with dashes for files and folders
 use typescript
 
+use next 16 app router read https://context7.com/vercel/next.js/llms.txt?topic=app+router&tokens=10000,
+read https://context7.com/vercel/next.js/llms.txt?tokens=10000,
+for navigation read https://context7.com/vercel/next.js/llms.txt?topic=routing&tokens=10000 and https://context7.com/vercel/next.js/llms.txt?topic=navigation&tokens=10000
+
 i am using resend for sending emails see lib/send.ts
 using shadcn components https://context7.com/websites/ui_shadcn/llms.txt?tokens=10000
 better-auth for authentication https://context7.com/better-auth/better-auth/llms.txt?tokens=10000, see lib/auth.ts for auth checks on server side and lib/auth-client.ts for client side auth checks
@@ -10,8 +14,19 @@ use zod for schema validation https://context7.com/websites/v3_zod_dev/llms.txt?
 use or create utils in lib/utils/\*.ts for common functions like formateDate.ts,
 check authentcation on server side using requireSession imported from app/data/session/require-session.ts
 
+use shadcn/ui for components read https://context7.com/websites/ui_shadcn/llms.txt?tokens=10000
+dont use html table tags use shadcn table component for tables, read https://context7.com/websites/ui_shadcn/llms.txt?topic=table&tokens=10000, for modal use shadcn dialog component read https://context7.com/websites/ui_shadcn/llms.txt?topic=dialog&tokens=10000
+use react hooks from hooks/ for example hooks/use-try-catch.ts for async try catch
+use lib/prisma.ts to import prisma client for db operations,
+
+- Validation: forms use `react-hook-form` + `zod` via `zodResolver`. Zod schemas live in `lib/zod-schema.ts` (follow existing schema shapes like `loginSchema` and `registerSchema`).
+- Notifications: use `sonner`'s `toast` consistently for user feedback (success/error flows in forms).
+- Transitions: UI uses React `startTransition` / `useTransition` for async UX when submitting forms.
+
 get data from db using prisma inside data/
 add check on admin routes for admin role using requireAdmin() imported from app/data/admin/require-admin.ts
+
+use formatDate() imported from "@/lib/utils" for date formating
 
 use feature based file structure.
 use route grouping for example: (auth)/login/page.tsx
@@ -56,6 +71,7 @@ see lib/auth.ts and lib/auth-client.ts for reference of better-auth usage.
 
 use data/session/require-session.ts for server side auth check and
 data/admin/require-admin.ts for admin role check on server side.
+
 always get db data in data/ for example data/admin/get-users.ts
 use lib/error-message.ts to get error message from error object inside server actions, see app/(auth)/actions.ts for reference.
 
@@ -132,3 +148,53 @@ export default async function UsersPage() {
   );
 }
 ```
+
+---
+
+## Seeding:
+
+for prisma docs read https://context7.com/prisma/docs/llms.txt?tokens=10000,
+read https://context7.com/prisma/docs/llms.txt?topic=seed&tokens=10000
+and https://context7.com/prisma/docs/llms.txt?topic=relations&tokens=10000
+and https://context7.com/microsoft/typescript/llms.txt?tokens=10000
+seed scripts are in prisma/seed/{filename}.ts
+and use/create utils that can be used in seed scripts inside prisma/seed/utils.ts
+
+use upsert method for all entities conditioned on their unique keys to avoid duplicate
+entries during seeding.
+schema file is in prisma/schema.prisma and seed file is in prisma/seed/{filename}.ts
+when creating new users use signUpEmail, from lib/auth.ts and then use prisma.user.update to update user things like user role for example:
+
+```ts
+const user = await auth.api.signUpEmail({
+  body: {
+    email: email,
+    password: "12345678",
+    name,
+    image: `https://avatar.vercel.sh/${name.split(" ")[0]}`,
+  },
+});
+// update user role
+const prismaUser = await prisma.user.update({
+  where: { email: user.user.email },
+  data: {
+    emailVerified: true,
+    role,
+  },
+});
+```
+
+to run seed script ask me to run `pnpm db:seed` which uses `bun ./prisma/seed/{filename}.ts`
+always use fake images in format image: `https://avatar.vercel.sh/${student.name.toLowerCase().split(" ")[0]}`,
+
+Hardcoded IDs: assign specific string IDs (e.g., user-admin-01, prof-cs-01) to all seed entities. This ensures upsert works perfectly on IDs and relationships are stable.
+HOD Rule: HODs should be selected from the seeded Professors. One HOD per Department.
+Enums: use Object.values() for enum iteration where applicable.
+
+## file structure:
+
+use next.js route groups for example (admin), (student), (professor)
+use \_components folder inside route groups for components used only in that route group
+use components/ for common components used across route groups
+see app\(student)\*\*.tsx for reference.
+use shadcn components for UI https://context7.com/websites/ui_shadcn/llms.txt?tokens=10000

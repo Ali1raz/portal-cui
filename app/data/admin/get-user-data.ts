@@ -15,11 +15,7 @@ export async function adminGetUserData(userId: string) {
       createdAt: true,
       student: {
         select: {
-          program: true,
-          batch: true,
-          department: true,
           registrationNo: true,
-          year: true,
           createdAt: true,
         },
       },

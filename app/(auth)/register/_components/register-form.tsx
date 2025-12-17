@@ -27,7 +27,6 @@ import { signUp } from "../../actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
-import { Role } from "@/lib/generated/prisma/enums";
 
 export function RegisterForm({
   className,
@@ -58,11 +57,7 @@ export function RegisterForm({
         toast.error(result.message);
       } else if (result.status === "success") {
         toast.success(result.message);
-        if (result.role === Role.DIRECTOR) {
-          router.push("/director");
-          return;
-        }
-        router.push("/");
+        router.push("/register/success");
       }
     });
   }

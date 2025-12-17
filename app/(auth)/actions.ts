@@ -17,7 +17,7 @@ import { redirect } from "next/navigation";
 
 export async function signUp(
   values: RegisterSchemaType
-): Promise<ApiResponseType & { role?: Role | null | undefined }> {
+): Promise<ApiResponseType> {
   try {
     const validated = registerSchema.safeParse(values);
     if (!validated.success) {
@@ -27,7 +27,7 @@ export async function signUp(
       };
     }
 
-    const result = await auth.api.signUpEmail({
+    await auth.api.signUpEmail({
       body: {
         name: values.name,
         email: values.email,
@@ -39,7 +39,6 @@ export async function signUp(
     return {
       status: "success",
       message: "Signup successful",
-      role: result.user.role as Role | null | undefined,
     };
   } catch (error: unknown) {
     return {

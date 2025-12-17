@@ -45,9 +45,6 @@ export default async function UsersPage(
             {user.student && (
               <div className="flex flex-col gap-2">
                 {[
-                  { label: "Program", value: user.student.program },
-                  { label: "Batch", value: user.student.batch },
-                  { label: "Department", value: user.student.department },
                   {
                     label: "Registration Nr",
                     value: user.student.registrationNo,
