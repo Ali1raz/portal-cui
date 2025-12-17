@@ -9,6 +9,7 @@ export async function getProfessorSectionStudents({
 }) {
   const session = await requireProfessorSession();
 
+  // Step 1: Get all students for the professor and section
   const students = await prisma.student.findMany({
     where: {
       enrollments: {
@@ -26,23 +27,12 @@ export async function getProfessorSectionStudents({
         },
       },
     },
+    orderBy: {
+      registrationNo: "asc",
+    },
     select: {
       id: true,
       registrationNo: true,
-      program: true,
-      department: true,
-      studentAttendances: {
-        select: {
-          status: true,
-        },
-      },
-      registration: {
-        select: {
-          year: true,
-          semester: true,
-          batch: true,
-        },
-      },
       user: {
         select: {
           name: true,
@@ -52,7 +42,49 @@ export async function getProfessorSectionStudents({
     },
   });
 
-  return students;
+  // Step 2: For each student, get attendance records for offerings in this section taught by this professor
+  // Get all relevant offeringIds
+  const offerings = await prisma.subjectOffering.findMany({
+    where: {
+      section: section,
+      teachingAssignments: {
+        some: {
+          professor: {
+            userId: session.user.id,
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      totalLectures: true,
+    },
+  });
+
+  const offeringIds = offerings.map((o) => o.id);
+  const totalLectures = offerings.reduce((sum, o) => sum + o.totalLectures, 0);
+
+  const result = await Promise.all(
+    students.map(async (student) => {
+      const presentCount = await prisma.studentAttendance.count({
+        where: {
+          studentId: student.id,
+          record: {
+            offeringId: { in: offeringIds },
+          },
+          status: "PRESENT",
+        },
+      });
+      const percentage =
+        totalLectures > 0 ? (presentCount / totalLectures) * 100 : 0;
+      return {
+        ...student,
+        attendancePercentage: Math.round(percentage * 100) / 100, // 2 decimal places
+      };
+    })
+  );
+
+  return result;
 }
 
 export type ProfessorSectionStudents = Awaited<

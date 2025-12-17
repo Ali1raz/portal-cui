@@ -292,8 +292,8 @@ model AttendanceRecord {
   id String @id @default(uuid())
 
   date      DateTime
-  startTime DateTime
-  endTime   DateTime
+  startTime String
+  endTime   String
   topic     String
 
   offeringId String
