@@ -1,18 +1,15 @@
-import { auth } from "@/lib/auth";
 import { LoginForm } from "./_components/login-form";
 import { redirect } from "next/navigation";
 import { Role } from "@/lib/generated/prisma/enums";
-import { headers } from "next/headers";
+import { requireSession } from "@/app/data/session/require-session";
 
 export default async function Page() {
-  const data = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const data = await requireSession();
 
-  if (data?.session && data?.user.role === Role.DIRECTOR) {
+  if (data.user.role === Role.DIRECTOR) {
     return redirect("/director");
-  } else if (data?.session) {
-    return redirect("/");
+  } else if (data.user.role === Role.STUDENT) {
+    return redirect("/student");
   }
 
   return (
