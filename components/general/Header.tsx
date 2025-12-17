@@ -2,22 +2,22 @@
 
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
+import { URL } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { CUILogo } from "./cui-logo";
 import { SignOutButton } from "./signout-button";
-import { URL } from "@/lib/types";
 
 const menuItems: {
   name: string;
   href: URL;
 }[] = [
-  { name: "Features", href: "/" },
-  { name: "Solution", href: "/" },
-  { name: "Pricing", href: "/" },
-  { name: "About", href: "/" },
+  { name: "HOD", href: "/hod" },
+  { name: "Professor", href: "/professor" },
+  { name: "Student", href: "/student" },
+  { name: "Director", href: "/director" },
 ];
 
 export const HeroHeader = () => {
