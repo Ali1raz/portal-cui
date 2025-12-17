@@ -277,7 +277,7 @@ model TeachingAssignment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([professorId, offeringId])
+  @@unique([professorId, offeringId]) // no professor can be assigned to the same section 
   @@unique([offeringId]) // Ensures a section can only have one professor
   @@map("teaching_assignment")
 }

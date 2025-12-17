@@ -3,6 +3,10 @@ use react 19
 use naming convention with dashes for files and folders
 use typescript
 
+use next 16 app router read https://context7.com/vercel/next.js/llms.txt?topic=app+router&tokens=10000,
+read https://context7.com/vercel/next.js/llms.txt?tokens=10000,
+for navigation read https://context7.com/vercel/next.js/llms.txt?topic=routing&tokens=10000 and https://context7.com/vercel/next.js/llms.txt?topic=navigation&tokens=10000
+
 i am using resend for sending emails see lib/send.ts
 using shadcn components https://context7.com/websites/ui_shadcn/llms.txt?tokens=10000
 better-auth for authentication https://context7.com/better-auth/better-auth/llms.txt?tokens=10000, see lib/auth.ts for auth checks on server side and lib/auth-client.ts for client side auth checks
