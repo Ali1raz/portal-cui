@@ -47,8 +47,8 @@ export async function seedAttendance() {
       const record = await prisma.attendanceRecord.create({
         data: {
           date: lectureDate,
-          startTime: startTime,
-          endTime: endTime,
+          startTime: "09:00",
+          endTime: "10:30",
           topic: `Lecture ${i}: Topic ${i}`,
           offeringId: offering.id,
         },

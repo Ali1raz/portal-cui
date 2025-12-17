@@ -14,6 +14,10 @@ use zod for schema validation https://context7.com/websites/v3_zod_dev/llms.txt?
 use or create utils in lib/utils/\*.ts for common functions like formateDate.ts,
 check authentcation on server side using requireSession imported from app/data/session/require-session.ts
 
+- Validation: forms use `react-hook-form` + `zod` via `zodResolver`. Zod schemas live in `lib/zod-schema.ts` (follow existing schema shapes like `loginSchema` and `registerSchema`).
+- Notifications: use `sonner`'s `toast` consistently for user feedback (success/error flows in forms).
+- Transitions: UI uses React `startTransition` / `useTransition` for async UX when submitting forms.
+
 get data from db using prisma inside data/
 add check on admin routes for admin role using requireAdmin() imported from app/data/admin/require-admin.ts
 

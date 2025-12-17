@@ -127,6 +127,7 @@ model Student {
   registration       Registration?
   enrollments        Enrollment[]
   studentAttendances StudentAttendance[]
+  leaveRequests      LeaveRequest[]
 
   @@map("student")
 }
@@ -218,6 +219,7 @@ model SubjectOffering {
   enrollments         Enrollment[]
   teachingAssignments TeachingAssignment[]
   attendanceRecords   AttendanceRecord[]
+  leaveRequests       LeaveRequest[]
 
   @@unique([subjectId, semester, year])
   @@map("subject_offering")
@@ -288,6 +290,12 @@ enum AttendanceStatus {
   LEAVE
 }
 
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model AttendanceRecord {
   id String @id @default(uuid())
 
@@ -323,4 +331,29 @@ model StudentAttendance {
 
   @@unique([recordId, studentId])
   @@map("student_attendance")
+}
+
+model LeaveRequest {
+  id String @id @default(uuid())
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  offeringId String
+  offering   SubjectOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+
+  date          DateTime
+  reasonTitle   String
+  reasonDetails String
+
+  imageKey String?
+
+  status LeaveStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([offeringId])
+  @@map("leave_request")
 }
