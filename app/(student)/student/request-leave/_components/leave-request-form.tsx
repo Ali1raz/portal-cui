@@ -1,8 +1,8 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { StudentEnrolledSubject } from "@/app/data/student/get-subjects-enrolled";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -13,29 +13,29 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useTransition } from "react";
-import { tryCatch } from "@/hooks/tryCatch";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { LeaveRequestFormType, leaveRequestSchema } from "../schema";
-import { sendLeaveRequest } from "../actions";
 import { Textarea } from "@/components/ui/textarea";
 import Uploader from "@/components/uploader";
-import { StudentEnrolledSubject } from "@/app/data/student/get-subjects-enrolled";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
+import { tryCatch } from "@/hooks/tryCatch";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { sendLeaveRequest } from "../actions";
+import { LeaveRequestFormType, leaveRequestSchema } from "../schema";
 
 export function LeaveRequestForm({
   subjects,
@@ -76,8 +76,8 @@ export function LeaveRequestForm({
         toast.error(result.message);
       } else if (result.status === "success") {
         toast.success(result.message);
-        router.refresh();
         form.reset();
+        router.refresh();
       }
     });
   }
@@ -94,13 +94,13 @@ export function LeaveRequestForm({
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Category" />
+                    <SelectValue placeholder="Select Subject" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {subjects.map((s) => (
+                  {subjects.map((s, i) => (
                     <SelectItem key={s.id} value={s.id}>
-                      {s.name}
+                      {i + 1}. {s.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

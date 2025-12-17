@@ -1,3 +1,4 @@
+import { getStudentEnrolledSubjects } from "@/app/data/student/get-subjects-enrolled";
 import { requireStudentSession } from "@/app/data/student/require-student-session";
 import {
   Card,
@@ -6,8 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Link from "next/link";
 import { LeaveRequestForm } from "./_components/leave-request-form";
-import { getStudentEnrolledSubjects } from "@/app/data/student/get-subjects-enrolled";
 
 export default async function LeaveRequestPage() {
   const session = await requireStudentSession();
@@ -33,6 +34,14 @@ export default async function LeaveRequestPage() {
                 This will be sent to your respective Head of Department for
                 further review, so make sure to provide valid reasons to support
                 your leave application.
+                <div>
+                  <Link
+                    className="text-primary visited:underline my-4"
+                    href="/student/past-leave-requests"
+                  >
+                    View Past Leave Requests
+                  </Link>
+                </div>
               </CardDescription>
             </CardHeader>
             <CardContent>

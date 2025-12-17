@@ -14,12 +14,19 @@ use zod for schema validation https://context7.com/websites/v3_zod_dev/llms.txt?
 use or create utils in lib/utils/\*.ts for common functions like formateDate.ts,
 check authentcation on server side using requireSession imported from app/data/session/require-session.ts
 
+use shadcn/ui for components read https://context7.com/websites/ui_shadcn/llms.txt?tokens=10000
+dont use html table tags use shadcn table component for tables, read https://context7.com/websites/ui_shadcn/llms.txt?topic=table&tokens=10000, for modal use shadcn dialog component read https://context7.com/websites/ui_shadcn/llms.txt?topic=dialog&tokens=10000
+use react hooks from hooks/ for example hooks/use-try-catch.ts for async try catch
+use lib/prisma.ts to import prisma client for db operations,
+
 - Validation: forms use `react-hook-form` + `zod` via `zodResolver`. Zod schemas live in `lib/zod-schema.ts` (follow existing schema shapes like `loginSchema` and `registerSchema`).
 - Notifications: use `sonner`'s `toast` consistently for user feedback (success/error flows in forms).
 - Transitions: UI uses React `startTransition` / `useTransition` for async UX when submitting forms.
 
 get data from db using prisma inside data/
 add check on admin routes for admin role using requireAdmin() imported from app/data/admin/require-admin.ts
+
+use formatDate() imported from "@/lib/utils" for date formating
 
 use feature based file structure.
 use route grouping for example: (auth)/login/page.tsx

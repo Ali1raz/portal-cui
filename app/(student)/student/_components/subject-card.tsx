@@ -8,7 +8,7 @@ export function SubjectCard({ course }: { course: StudentSubject }) {
   return (
     <Card className="mx-auto w-full max-w-xl">
       <CardHeader className="flex items-center justify-between">
-        <CardTitle>{course.name}</CardTitle>
+        <CardTitle className="text-base">{course.name}</CardTitle>
         <Badge variant="primary" className="px-2 text-xs">
           {course.creditHours} Credits
         </Badge>

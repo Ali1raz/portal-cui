@@ -1,5 +1,7 @@
 "use client";
 
+import { IconHome, IconUsers } from "@tabler/icons-react";
+
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -9,53 +11,25 @@ import {
 } from "@/components/ui/sidebar";
 import { URL } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import {
-  IconCreditCard,
-  IconHome,
-  IconUser,
-  IconUserCheck,
-} from "@tabler/icons-react";
-import { GraduationCap } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const data = {
   navMain: [
     {
-      title: "Dashboard",
-      url: "/student" as URL,
+      title: "Home",
+      url: "/hod" as URL,
       icon: IconHome,
     },
     {
-      title: "Registration",
-      url: "/student/registration" as URL,
-      icon: IconUserCheck,
-    },
-
-    {
-      title: "Fees",
-      url: "/student/fee" as URL,
-      icon: IconCreditCard,
-    },
-    {
-      title: "Result card",
-      url: "/students/fee" as URL,
-      icon: GraduationCap,
-    },
-    {
-      title: "Request leave",
-      url: "/student/request-leave" as URL,
-      icon: IconUserCheck,
+      title: "Leave Requests",
+      url: "/hod/leave-requests" as URL,
+      icon: IconUsers,
     },
     {
       title: "Past leave Requests",
-      url: "/student/past-leave-requests" as URL,
-      icon: IconUserCheck,
-    },
-    {
-      title: "Profile",
-      url: "/student/profile" as URL,
-      icon: IconUser,
+      url: "/hod/past-leave-requests" as URL,
+      icon: IconUsers,
     },
   ],
 };
