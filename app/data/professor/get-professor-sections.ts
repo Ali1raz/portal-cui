@@ -1,8 +1,8 @@
 import "server-only";
 
 import prisma from "@/lib/prisma";
-import { requireProfessorSession } from "./require-professor-session";
 import { redirect } from "next/navigation";
+import { requireProfessorSession } from "./require-professor-session";
 
 export async function getProfessorSections() {
   const session = await requireProfessorSession();
@@ -13,10 +13,15 @@ export async function getProfessorSections() {
     },
     select: {
       id: true,
+      employeeNo: true,
+      createdAt: true,
       user: {
         select: {
           name: true,
+          role: true,
           image: true,
+          id: true,
+          email: true,
         },
       },
     },

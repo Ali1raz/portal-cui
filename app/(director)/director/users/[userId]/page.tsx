@@ -1,5 +1,5 @@
 import { adminGetUserData } from "@/app/data/admin/get-user-data";
-import { UserImage } from "@/components/general/user-image";
+import { UserImage } from "@/components/user/user-image";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,

@@ -12,16 +12,17 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { User } from "@/lib/auth";
-import { NavUser } from "./nav-user";
-import { NavMain } from "./nav-main";
 import Link from "next/link";
+import { NavUser } from "@/components/sidebar/nav-user";
+import { NavMain } from "./nav-main";
+import { Role } from "@/lib/generated/prisma/enums";
 
-export function ProfessorSidebar({
+export function AppSidebar({
   user,
   ...props
 }: React.ComponentProps<typeof Sidebar> & { user: User }) {
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -38,7 +39,7 @@ export function ProfessorSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain />
+        <NavMain role={user.role as Role} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

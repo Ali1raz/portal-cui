@@ -1,18 +1,14 @@
 import { requireSession } from "@/app/data/session/require-session";
-import { UserImage } from "@/components/general/user-image";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { UserDetailsSection } from "@/components/user/user-details-section";
 
 export default async function ProfilePage() {
   const { user } = await requireSession();
 
   return (
-    <Card className="max-w-xl mx-auto pt-18">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-4">
-          <UserImage name={user.name} image={user.image} className="size-24" />
-          <div className="mt-4 text-2xl font-bold">{user.name}</div>
-        </CardTitle>
-      </CardHeader>
-    </Card>
+    <div className="flex flex-1 flex-col">
+      <div className="@container/main flex flex-1 flex-col gap-4 p-4 md:gap-6 md:py-6">
+        <UserDetailsSection user={user} />
+      </div>
+    </div>
   );
 }
