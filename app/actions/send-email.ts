@@ -21,6 +21,11 @@ export async function SendEmail({
     link?: string;
   };
 }) {
+  if (process.env.NODE_ENV !== "production") {
+    console.log({ link: meta.link });
+    return { success: true };
+  }
+
   const mailOptions = {
     from: process.env.NODEMAILER_USER,
     to,
