@@ -16,7 +16,7 @@ export function RequestActions({ leaveRequestId }: { leaveRequestId: string }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon">
-          <MoreHorizontal />
+          <MoreHorizontal aria-label="More Actions" />
         </Button>
       </DropdownMenuTrigger>
 
@@ -25,7 +25,7 @@ export function RequestActions({ leaveRequestId }: { leaveRequestId: string }) {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href={`/hod/leave-requests/${leaveRequestId}` as Route}>
-            <EyeIcon className="size-4" />
+            <EyeIcon className="size-4" aria-label="View Details" />
             View Details
           </Link>
         </DropdownMenuItem>
