@@ -1,5 +1,5 @@
 import { Role } from "@/lib/generated/prisma/enums";
-import { IconCreditCard, IconHome, IconUserCheck } from "@tabler/icons-react";
+import { IconHome, IconUserCheck } from "@tabler/icons-react";
 import { GraduationCap, Home, User, Users } from "lucide-react";
 import { Route } from "next";
 
@@ -32,12 +32,7 @@ export function getNavLinks({
       {
         title: "Dashboard",
         href: "/professor",
-        icon: Home,
-      },
-      {
-        title: "Students",
-        href: "/professor/students",
-        icon: Users,
+        icon: IconHome,
       },
       {
         title: "Sections",
@@ -53,7 +48,7 @@ export function getNavLinks({
       },
       {
         title: "Leave Requests",
-        href: "/hod/",
+        href: "/hod/leave-requests",
         icon: Users,
       },
       {
@@ -78,7 +73,7 @@ export function getNavLinks({
       {
         title: "Dashboard",
         href: "/student",
-        icon: IconHome,
+        icon: GraduationCap,
       },
       {
         title: "Registration",
@@ -86,16 +81,16 @@ export function getNavLinks({
         icon: IconUserCheck,
       },
 
-      {
-        title: "Fees",
-        href: "/student/fee",
-        icon: IconCreditCard,
-      },
-      {
-        title: "Result card",
-        href: "/student/result",
-        icon: GraduationCap,
-      },
+      // {
+      //   title: "Fees",
+      //   href: "/student/fee",
+      //   icon: IconCreditCard,
+      // },
+      // {
+      //   title: "Result card",
+      //   href: "/student/result",
+      //   icon: GraduationCap,
+      // },
       {
         title: "Request leave",
         href: "/student/request-leave",
