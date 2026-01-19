@@ -6,18 +6,15 @@ export function UserImage({
   className,
 }: {
   image?: string | null;
-  name: string;
+  name?: string | null;
   className?: string;
 }) {
+  const imageUrl =
+    image ?? `https://avatar.vercel.sh/${name && name.length > 0 ? name : "U"}`;
+
   return (
     <Avatar className={className}>
-      <AvatarImage
-        src={
-          image ??
-          `https://avatar.vercel.sh/${name && name.length > 0 ? name : "U"}`
-        }
-        alt="Profile image"
-      />
+      <AvatarImage src={imageUrl} alt="Profile image" />
       <AvatarFallback>{name && name.length > 0 ? name[0] : "U"}</AvatarFallback>
     </Avatar>
   );

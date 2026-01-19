@@ -1,10 +1,9 @@
-import { AppSidebar } from "./_components/app-sidebar";
-
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Role } from "@/lib/generated/prisma/enums";
 import { redirect } from "next/navigation";
-import { SiteHeader } from "./_components/site-header";
 import { requireSession } from "../data/session/require-session";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { SiteHeader } from "@/components/sidebar/site-header";
 
 export default async function DirectorLayout({
   children,

@@ -2,8 +2,8 @@ import { Role } from "@/lib/generated/prisma/enums";
 import { requireSession } from "../data/session/require-session";
 import { redirect } from "next/navigation";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { ProfessorSidebar } from "./_components/professor-sidebar";
-import { SiteHeader } from "./_components/site-header";
+import { SiteHeader } from "@/components/sidebar/site-header";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
 
 export default async function ProfessorLayout({
   children,
@@ -25,7 +25,7 @@ export default async function ProfessorLayout({
           } as React.CSSProperties
         }
       >
-        <ProfessorSidebar variant="inset" user={session.user} />
+        <AppSidebar variant="inset" user={session.user} />
         <SidebarInset>
           <SiteHeader user={session.user} />
           {children}

@@ -22,7 +22,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AttendanceStatus } from "@/lib/generated/prisma/enums";
-import { UserImage } from "@/components/general/user-image";
+import { UserImage } from "@/components/user/user-image";
 import { Input } from "@/components/ui/input";
 import {
   Popover,

@@ -1,9 +1,9 @@
-import { Role } from "@/lib/generated/prisma/enums";
-import { requireSession } from "../data/session/require-session";
-import { redirect } from "next/navigation";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { SiteHeader } from "@/components/sidebar/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { StudentSidebar } from "./_components/student-sidebar";
-import { SiteHeader } from "./_components/site-header";
+import { Role } from "@/lib/generated/prisma/enums";
+import { redirect } from "next/navigation";
+import { requireSession } from "../data/session/require-session";
 
 export default async function StudentLayout({
   children,
@@ -25,7 +25,7 @@ export default async function StudentLayout({
           } as React.CSSProperties
         }
       >
-        <StudentSidebar variant="inset" user={session.user} />
+        <AppSidebar variant="inset" user={session.user} />
         <SidebarInset>
           <SiteHeader user={session.user} />
           {children}
