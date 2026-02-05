@@ -13,6 +13,7 @@ export default async function DirectorLayout({
   const session = await requireSession();
 
   if (session.user.role !== Role.DIRECTOR) {
+    console.log(session.user.role);
     return redirect("/unauthorized");
   }
 

@@ -6,6 +6,7 @@ import { Role } from "./generated/prisma/enums";
 import prisma from "./prisma";
 
 import { admin } from "better-auth/plugins";
+import { roles } from "./permissions";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -82,7 +83,9 @@ export const auth = betterAuth({
   plugins: [
     admin({
       defaultRole: Role.USER,
-      adminRoles: [Role.DIRECTOR, Role.ADMIN],
+      // adminRoles: [Role.ADMIN],
+      roles,
+      adminRoles: [Role.ADMIN, Role.DIRECTOR],
     }),
     nextCookies(),
   ],

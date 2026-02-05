@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,11 +9,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EyeIcon, MoreHorizontal } from "lucide-react";
-import { Route } from "next";
+import { Cog, EyeIcon, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
+import { UpdateStatusDialog } from "../[requestId]/_components/update-status";
+import { LeaveStatus } from "@/lib/generated/prisma/enums";
 
-export function RequestActions({ leaveRequestId }: { leaveRequestId: string }) {
+export function RequestActions({
+  leaveRequestId,
+  status,
+}: {
+  status: LeaveStatus;
+  leaveRequestId: string;
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -24,11 +33,17 @@ export function RequestActions({ leaveRequestId }: { leaveRequestId: string }) {
         <DropdownMenuLabel>User Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={`/hod/leave-requests/${leaveRequestId}` as Route}>
+          <Link href={`/hod/leave-requests/${leaveRequestId}`}>
             <EyeIcon className="size-4" aria-label="View Details" />
             View Details
           </Link>
         </DropdownMenuItem>
+        <UpdateStatusDialog requestId={leaveRequestId} prevStatus={status}>
+          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+            <Cog className="size-4" aria-label="View Details" />
+            Update Status
+          </DropdownMenuItem>
+        </UpdateStatusDialog>
       </DropdownMenuContent>
     </DropdownMenu>
   );

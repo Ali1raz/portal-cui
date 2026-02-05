@@ -9,9 +9,17 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { LeaveRequestForm } from "./_components/leave-request-form";
+import { redirect } from "next/navigation";
+import { requirePermission } from "@/app/data/permission/require-permission";
 
 export default async function LeaveRequestPage() {
   const session = await requireStudentSession();
+  const can = await requirePermission({
+    leaveRequest: ["create"],
+  });
+  if (!can) {
+    return redirect("/unauthorized");
+  }
 
   const { subjects, studentId } = await getStudentEnrolledSubjects();
 

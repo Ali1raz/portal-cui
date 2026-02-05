@@ -36,7 +36,7 @@ export function getNavLinks({
       },
       {
         title: "Sections",
-        href: "/professor/section",
+        href: "/professor/sections",
         icon: Users,
       },
     ],

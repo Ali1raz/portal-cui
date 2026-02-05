@@ -1,5 +1,6 @@
 "use server";
 
+import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireProfessorSession } from "@/app/data/professor/require-professor-session";
 import type { AttendanceStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
@@ -18,7 +19,16 @@ export async function markAttendance(data: {
   attendances: AttendanceRecord[];
 }): Promise<ApiResponseType> {
   try {
-    console.log(data.date, data.startTime, data.endTime);
+    const can = await requirePermission({
+      attendance: ["mark", "view"],
+    });
+
+    if (!can) {
+      return {
+        status: "error",
+        message: "You are not allowed to mark attendance",
+      };
+    }
     const session = await requireProfessorSession();
 
     const teachingAssignment = await prisma.teachingAssignment.findFirst({

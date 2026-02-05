@@ -5,6 +5,7 @@ import { Role } from "@/lib/generated/prisma/enums";
 import { errorMessage } from "@/lib/error-message";
 import { ApiResponseType } from "@/lib/types";
 import prisma from "@/lib/prisma";
+import { requirePermission } from "@/app/data/permission/require-permission";
 
 export async function setUserRole(
   userId: string,
@@ -13,8 +14,16 @@ export async function setUserRole(
   await requireSession();
 
   try {
-    // Check permissions (if throws, will be caught below)
-    // future
+    const can = await requirePermission({
+      user: ["set-role"],
+    });
+
+    if (!can) {
+      return {
+        status: "error",
+        message: "You are not allowed to set-role",
+      };
+    }
 
     // Do role change + sequential ID assignment in a single transaction
     await prisma.user.update({

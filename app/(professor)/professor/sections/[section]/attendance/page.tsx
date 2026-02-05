@@ -3,7 +3,7 @@ import { getProfessorSectionStudents } from "@/app/data/professor/get-professor-
 import { AttendanceTable } from "./_components/attendence-table";
 
 export default async function AttendencePage(
-  props: PageProps<"/professor/section/[section]/attendance">
+  props: PageProps<"/professor/sections/[section]/attendance">
 ) {
   const section = (await props.params).section;
   const students = await getProfessorSectionStudents({ section });
