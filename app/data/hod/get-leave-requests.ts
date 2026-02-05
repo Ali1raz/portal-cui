@@ -1,9 +1,19 @@
 import "server-only";
-import { requireHodSession } from "./require-hod-session";
+
 import prisma from "@/lib/prisma";
+import { requireSession } from "../session/require-session";
+import { requirePermission } from "../permission/require-permission";
+import { redirect } from "next/navigation";
 
 export async function getLeaveRequests() {
-  const session = await requireHodSession();
+  const session = await requireSession();
+  const can = await requirePermission({
+    leaveRequest: ["list", "get"],
+  });
+
+  if (!can) {
+    return redirect("/unauthorized");
+  }
 
   const hod = await prisma.hod.findUnique({
     where: { userId: session.user.id },
@@ -56,3 +66,7 @@ export async function getLeaveRequests() {
 
   return requests;
 }
+
+export type GetLeaveRequestsType = Awaited<
+  ReturnType<typeof getLeaveRequests>
+>[number];

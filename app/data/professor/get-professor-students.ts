@@ -1,5 +1,7 @@
 import prisma from "@/lib/prisma";
 import { requireProfessorSession } from "./require-professor-session";
+import { requirePermission } from "../permission/require-permission";
+import { redirect } from "next/navigation";
 
 // Get students for a specific section assigned to the current professor
 export async function getProfessorSectionStudents({
@@ -8,6 +10,13 @@ export async function getProfessorSectionStudents({
   section: string;
 }) {
   const session = await requireProfessorSession();
+  const can = await requirePermission({
+    user: ["list", "get"],
+  });
+
+  if (!can) {
+    return redirect("/unauthorized");
+  }
 
   // Step 1: Get all students for the professor and section
   const students = await prisma.student.findMany({

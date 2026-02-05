@@ -1,7 +1,7 @@
-import { requireSession } from "@/app/data/session/require-session";
+import { requireHodSession } from "@/app/data/hod/require-hod-session";
 
 export default async function HODPage() {
-  const user = await requireSession();
+  const user = await requireHodSession();
 
   return (
     <div className="flex flex-1 flex-col">
@@ -12,7 +12,6 @@ export default async function HODPage() {
             <span className="font-bold text-primary">{user.user.name}</span>{" "}
             Here is your department overview.
           </h1>
-          <div className="my-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"></div>
         </div>
       </div>
     </div>

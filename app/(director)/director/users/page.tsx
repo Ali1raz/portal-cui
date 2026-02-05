@@ -10,9 +10,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { requirePermission } from "@/app/data/permission/require-permission";
+import { redirect } from "next/navigation";
 
 async function UsersTableWrapper() {
+  const has = await requirePermission({
+    user: ["list", "get"],
+  });
+  if (!has) {
+    return redirect("/unauthorized");
+  }
   const users = await getAllUsers();
+
   return <UsersTable users={users} />;
 }
 

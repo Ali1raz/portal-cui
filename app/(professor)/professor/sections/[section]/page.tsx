@@ -1,11 +1,10 @@
 import { getSectionDetails } from "@/app/data/professor/get-section-details";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconAsset, IconNotes, IconUser } from "@tabler/icons-react";
-import { Route } from "next";
 import Link from "next/link";
 
 export default async function SectionPage(
-  props: PageProps<"/professor/section/[section]">
+  props: PageProps<"/professor/sections/[section]">
 ) {
   const section = (await props.params).section;
 
@@ -42,7 +41,7 @@ export default async function SectionPage(
               </div>
               <div className="mt-4 grid max-[460px]:grid-cols-1 grid-cols-2 lg:grid-cols-3 gap-8">
                 <Link
-                  href={`/professor/section/${section}/attendance` as Route}
+                  href={`/professor/sections/${section}/attendance`}
                   className="no-underline"
                 >
                   <Card className="border-2 border-dashed group rounded border-primary/50 hover:border-primary transition-colors duration-200 flex flex-col items-start gap-2 p-4">
@@ -53,7 +52,7 @@ export default async function SectionPage(
                   </Card>
                 </Link>
                 <Link
-                  href={`/professor/section/${section}/marks` as Route}
+                  href={`/professor/sections/${section}`}
                   className="no-underline"
                 >
                   <Card className="border-2 group border-dashed rounded hover:border-primary transition-colors duration-200 flex flex-col items-start gap-2 p-4">
@@ -64,7 +63,7 @@ export default async function SectionPage(
                   </Card>
                 </Link>
                 <Link
-                  href={`/professor/section/${section}/assignments` as Route}
+                  href={`/professor/sections/${section}`}
                   className="no-underline"
                 >
                   <Card className="border-2 group border-dashed rounded hover:border-primary transition-colors duration-200 flex flex-col items-start gap-2 p-4">

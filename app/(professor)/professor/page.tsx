@@ -2,6 +2,8 @@ import { getProfessorSections } from "@/app/data/professor/get-professor-section
 import { UserImage } from "@/components/user/user-image";
 import { formatDate } from "@/lib/utils";
 import { SectionCard } from "./_components/section-card";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 export default async function ProfessorPage() {
   const { professor, assignments } = await getProfessorSections();
@@ -11,13 +13,13 @@ export default async function ProfessorPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col w-full max-w-6xl mx-auto">
       <div className="@container/main flex flex-1 flex-col gap-4 p-4 md:gap-6 md:py-6">
         <div className="flex flex-col">
           <div className="flex sm:items-start flex-col sm:flex-row gap-4">
             <div className="size-32">
               <UserImage
-                className="rounded-full w-full h-full"
+                className="rounded-full w-full h-full size-30"
                 name={professor.user.name}
                 image={professor.user.image}
               />
@@ -43,10 +45,20 @@ export default async function ProfessorPage() {
           </div>
         </div>
         <div className="my-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-          {assignments.map((assignment) => (
-            <SectionCard key={assignment.id} assignment={assignment} />
+          {assignments.slice(0, 2).map((assignment, i) => (
+            <SectionCard key={i} assignment={assignment} />
           ))}
         </div>
+
+        <Link
+          href="/professor/sections"
+          className={buttonVariants({
+            mode: "link",
+            className: "self-end mt-2",
+          })}
+        >
+          View all sections
+        </Link>
       </div>
     </div>
   );

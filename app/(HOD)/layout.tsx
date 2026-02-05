@@ -29,7 +29,7 @@ export default async function HODLayout({
         <AppSidebar variant="inset" user={session.user} />
         <SidebarInset>
           <SiteHeader user={session.user} />
-          {children}
+          <div className="max-w-6xl w-full">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </main>

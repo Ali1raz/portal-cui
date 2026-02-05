@@ -1,3 +1,4 @@
+"use client";
 import { getAllUsersType } from "@/app/data/admin/get-users";
 import {
   Table,

@@ -10,11 +10,21 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatDate } from "@/lib/utils";
+import { requirePermission } from "@/app/data/permission/require-permission";
+import { redirect } from "next/navigation";
 
 export default async function UsersPage(
   props: PageProps<"/director/users/[userId]">
 ) {
   const userId = (await props.params).userId;
+  const canSeeUser = await requirePermission({
+    user: ["get"],
+  });
+
+  if (!canSeeUser) {
+    redirect("/unauthorized");
+  }
+
   const user = await adminGetUserData(userId);
 
   return (

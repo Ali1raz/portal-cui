@@ -3,12 +3,24 @@
 import { ApiResponseType } from "@/lib/types";
 import { LeaveRequestFormType, leaveRequestSchema } from "./schema";
 import prisma from "@/lib/prisma";
+import { requirePermission } from "@/app/data/permission/require-permission";
 
 export async function sendLeaveRequest(
   data: LeaveRequestFormType,
   studentId: string
 ): Promise<ApiResponseType> {
   try {
+    const can = await requirePermission({
+      leaveRequest: ["create"],
+    });
+
+    if (!can) {
+      return {
+        status: "error",
+        message: "You are not allowed to create leave requests",
+      };
+    }
+
     const validated = leaveRequestSchema.safeParse(data);
     if (!validated.success) {
       return {

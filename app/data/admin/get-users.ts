@@ -2,9 +2,17 @@ import "server-only";
 
 import prisma from "@/lib/prisma";
 import { requireSession } from "../session/require-session";
+import { requirePermission } from "../permission/require-permission";
 
 export async function getAllUsers() {
   const session = await requireSession();
+  const can = await requirePermission({
+    user: ["list", "get"],
+  });
+
+  if (!can) {
+    return [];
+  }
 
   const data = await prisma.user.findMany({
     orderBy: {
