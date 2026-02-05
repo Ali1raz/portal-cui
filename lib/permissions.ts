@@ -17,7 +17,7 @@ export const roles = {
     user: [],
     session: [],
     attendance: ["view"],
-    leaveRequest: ["create", "get"],
+    leaveRequest: ["create", "get", "list", "list:past"],
   }),
 
   ADMIN: access.newRole({
@@ -25,7 +25,7 @@ export const roles = {
     ...adminAc.statements,
     userProfiles: ["create", "update", "delete", "view"],
     attendance: ["view"],
-    leaveRequest: ["get", "list", "update"],
+    leaveRequest: ["get", "list", "update", "list:past"],
   }),
 
   PROFESSOR: access.newRole({
@@ -33,7 +33,7 @@ export const roles = {
     user: ["list", "get"],
     session: [],
     attendance: ["view", "mark"],
-    leaveRequest: ["get", "list"],
+    leaveRequest: ["get", "list", "list:past"],
   }),
   ACCOUNTANT: access.newRole({
     userProfiles: ["view"],
@@ -47,7 +47,7 @@ export const roles = {
     user: ["list", "set-role", "get", "update"],
     session: [],
     attendance: ["view"],
-    leaveRequest: ["get", "list"],
+    leaveRequest: ["get", "list", "list:past"],
   }),
   HOD: access.newRole({
     userProfiles: ["view", "update"],

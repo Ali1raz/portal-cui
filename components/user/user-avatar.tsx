@@ -32,7 +32,7 @@ export default function UserAvatarDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost">
+        <Button variant="ghost" className="rounded-full">
           <UserImage className="size-8" image={image} name={name} />
           <ChevronDownIcon size={16} aria-hidden="true" />
         </Button>

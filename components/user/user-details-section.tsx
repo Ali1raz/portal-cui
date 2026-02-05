@@ -16,7 +16,7 @@ export function UserDetailsSection({ user }: iAppProps) {
       <div className="flex sm:items-start gap-4 sm:flex-row">
         <div className="size-32">
           <UserImage
-            className="rounded-full size-32 object-cover w-full h-full"
+            className="rounded-full object-cover w-full h-full size-30"
             name={user.name}
             image={user.image}
           />
