@@ -69,11 +69,42 @@ use components/user-avatar for user avatar display. and components/user-image fo
 Dont edit package.json and tsconfig.json files until i mention.
 see lib/auth.ts and lib/auth-client.ts for reference of better-auth usage.
 
-use data/session/require-session.ts for server side auth check and
-data/admin/require-admin.ts for admin role check on server side.
+use data/session/require-session.ts for server side auth check
 
 always get db data in data/ for example data/admin/get-users.ts
 use lib/error-message.ts to get error message from error object inside server actions, see app/(auth)/actions.ts for reference.
+
+`actions.ts` for mutations, example:
+
+```ts
+export async function setUserRole(
+  userId: string,
+  role: Role
+): Promise<ApiResponseType> {
+  await requireSession();
+
+  try {
+    // check permission for action
+    const can = await requirePermission({
+      user: ["set-role"],
+    });
+
+    if (!can) {
+      // ...
+    }
+    // schema validation using safeparse
+
+    // mutation
+    await prisma.user.update({
+      // ...
+    });
+
+    return { status: "success", message: "Successfully Changed User role." };
+  } catch (error) {
+    return { status: "error", message: errorMessage(error) };
+  }
+}
+```
 
 Use suspense and loading UI skeleton for data fetching on server components for better UX.
 for example:
@@ -94,15 +125,7 @@ function UsersTableSkeleton() {
           <TableHead>
             <Skeleton className="h-6 w-[200px]" />
           </TableHead>
-          <TableHead>
-            <Skeleton className="h-6 w-[250px]" />
-          </TableHead>
-          <TableHead>
-            <Skeleton className="h-6 w-[220px]" />
-          </TableHead>
-          <TableHead>
-            <Skeleton className="h-6 w-[200px]" />
-          </TableHead>
+          // ...
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -111,15 +134,7 @@ function UsersTableSkeleton() {
             <TableCell>
               <Skeleton className="h-6 w-[150px]" />
             </TableCell>
-            <TableCell>
-              <Skeleton className="h-6 w-[250px]" />
-            </TableCell>
-            <TableCell>
-              <Skeleton className="h-6 w-[220px]" />
-            </TableCell>
-            <TableCell>
-              <Skeleton className="h-6 w-[150px]" />
-            </TableCell>
+            // ...
           </TableRow>
         ))}
       </TableBody>
@@ -130,19 +145,10 @@ function UsersTableSkeleton() {
 export default async function UsersPage() {
   return (
     <div className="w-full overflow-hidden flex flex-col gap-4 md:gap-6">
-      <div className="flex flex-1 flex-col py-4 md:py-6">
-        <div className="@container/main flex flex-1 flex-col gap-2">
-          <div className="flex flex-col gap-4 pb-4 md:gap-6 md:pb-6 px-4 lg:px-6">
-            <div>
-              <h2 className="font-bold text-2xl">Students</h2>
-            </div>
-            <div className="">
-              <Suspense fallback={<UsersTableSkeleton />}>
-                <UsersTableWrapper />
-              </Suspense>
-            </div>
-          </div>
-        </div>
+      <div>
+        <Suspense fallback={<UsersTableSkeleton />}>
+          <UsersTableWrapper />
+        </Suspense>
       </div>
     </div>
   );

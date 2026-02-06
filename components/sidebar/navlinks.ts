@@ -1,5 +1,11 @@
 import { Role } from "@/lib/generated/prisma/enums";
-import { IconHome, IconUserCheck } from "@tabler/icons-react";
+import {
+  IconBook,
+  IconBooks,
+  IconHome,
+  IconPlus,
+  IconUserCheck,
+} from "@tabler/icons-react";
 import { GraduationCap, Home, User, Users } from "lucide-react";
 import { Route } from "next";
 
@@ -103,7 +109,28 @@ export function getNavLinks({
       },
     ],
     ACCOUNTANT: [],
-    ADMIN: [],
+    ADMIN: [
+      {
+        title: "Dashboard",
+        href: "/admin",
+        icon: IconHome,
+      },
+      {
+        title: "Subjects",
+        href: "/admin/subjects",
+        icon: IconBooks,
+      },
+      {
+        title: "Create subject",
+        href: "/admin/subjects/create",
+        icon: IconPlus,
+      },
+      {
+        title: "Offering",
+        href: "/admin/offering",
+        icon: IconBook,
+      },
+    ],
     USER: [],
   };
   const roleSpecific = roleLinks[userRole] ?? [];
