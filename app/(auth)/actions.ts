@@ -1,19 +1,9 @@
 "use server";
 
 import { auth } from "@/lib/auth";
-import { ErrorCode } from "@/lib/auth-client";
 import { errorMessage } from "@/lib/error-message";
-import { Role } from "@/lib/generated/prisma/enums";
-import {
-  loginSchema,
-  LoginSchemaType,
-  registerSchema,
-  RegisterSchemaType,
-} from "@/lib/schema";
+import { registerSchema, RegisterSchemaType } from "@/lib/schema";
 import { ApiResponseType } from "@/lib/types";
-import { APIError } from "better-auth";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 
 export async function signUp(
   values: RegisterSchemaType
@@ -33,7 +23,6 @@ export async function signUp(
         email: values.email,
         password: values.password,
       },
-      headers: await headers(),
     });
 
     return {
@@ -41,55 +30,6 @@ export async function signUp(
       message: "Signup successful",
     };
   } catch (error: unknown) {
-    return {
-      status: "error",
-      message: errorMessage(error),
-    };
-  }
-}
-
-export async function login(
-  values: LoginSchemaType
-): Promise<ApiResponseType & { role?: Role | null | undefined }> {
-  try {
-    const validated = loginSchema.safeParse(values);
-    if (!validated.success) {
-      return {
-        status: "error",
-        message: "Invalid form data",
-      };
-    }
-
-    const result = await auth.api.signInEmail({
-      body: {
-        email: validated.data.email,
-        password: validated.data.password,
-      },
-      headers: await headers(),
-    });
-
-    return {
-      status: "success",
-      message: "Login successful",
-      role: result.user.role as Role | null | undefined,
-    };
-  } catch (error: unknown) {
-    if (error instanceof APIError) {
-      const errorCode = error.body
-        ? (error.body?.code as ErrorCode)
-        : "UNDEFINED";
-
-      switch (errorCode) {
-        case "EMAIL_NOT_VERIFIED":
-          redirect("/verify?error=email_not_verified");
-        default:
-          return {
-            status: "error",
-            message: errorMessage(error),
-          };
-      }
-    }
-    console.log(error);
     return {
       status: "error",
       message: errorMessage(error),

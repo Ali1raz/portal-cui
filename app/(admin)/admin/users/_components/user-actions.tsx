@@ -12,7 +12,7 @@ import {
 import { EyeIcon, MoreHorizontal, UserPen } from "lucide-react";
 import Link from "next/link";
 import { Role } from "@/lib/generated/prisma/enums";
-import { ChangeUserRoleModal } from "./change-role";
+import { ChangeUserRoleDialog } from "./change-role";
 
 export function UserActions({
   userId,
@@ -23,10 +23,6 @@ export function UserActions({
   name: string | null;
   userRole: Role;
 }) {
-  // const canSetRole = usePermission({
-  //   user: ["set-role"],
-  // });
-  // console.log(canSetRole);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -39,20 +35,18 @@ export function UserActions({
         <DropdownMenuLabel>User Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={`/director/users/${userId}`}>
+          <Link href={`/admin/users/${userId}`}>
             <EyeIcon className="size-4" />
             View Details
           </Link>
         </DropdownMenuItem>
 
-        {/* {canSetRole && ( */}
-        <ChangeUserRoleModal userRole={userRole} userId={userId} name={name}>
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+        <ChangeUserRoleDialog userRole={userRole} userId={userId} name={name}>
+          <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
             <UserPen className="size-4" />
             Update Role
           </DropdownMenuItem>
-        </ChangeUserRoleModal>
-        {/* )} */}
+        </ChangeUserRoleDialog>
       </DropdownMenuContent>
     </DropdownMenu>
   );

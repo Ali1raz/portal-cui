@@ -1,5 +1,12 @@
 import { Role } from "@/lib/generated/prisma/enums";
-import { IconHome, IconUserCheck } from "@tabler/icons-react";
+import {
+  IconBook,
+  IconBook2,
+  IconBooks,
+  IconHome,
+  IconPlus,
+  IconUserCheck,
+} from "@tabler/icons-react";
 import { GraduationCap, Home, User, Users } from "lucide-react";
 import { Route } from "next";
 
@@ -8,6 +15,56 @@ type NavLink<T extends string = string> = {
   href: T;
   icon: typeof Home | typeof IconUserCheck;
 };
+
+type RoleDashboardLink<T extends string = string> = NavLink<T> & {
+  role: Role;
+};
+
+const roleDashboardLinks: Record<Role, RoleDashboardLink<Route> | null> = {
+  PROFESSOR: {
+    title: "Dashboard",
+    href: "/professor",
+    icon: IconHome,
+    role: "PROFESSOR",
+  },
+  HOD: {
+    title: "Dashboard",
+    href: "/hod",
+    icon: Home,
+    role: "HOD",
+  },
+  DIRECTOR: {
+    title: "Dashboard",
+    href: "/director",
+    icon: Home,
+    role: "DIRECTOR",
+  },
+  STUDENT: {
+    title: "Dashboard",
+    href: "/student",
+    icon: GraduationCap,
+    role: "STUDENT",
+  },
+  ADMIN: {
+    title: "Dashboard",
+    href: "/admin",
+    icon: IconHome,
+    role: "ADMIN",
+  },
+  ACCOUNTANT: null,
+  USER: null,
+};
+
+/// Returns a role-based dashboard link when available.
+export function getDashboardLinkForRole(
+  userRole: Role | null | undefined
+): RoleDashboardLink<Route> | null {
+  if (!userRole) {
+    return null;
+  }
+
+  return roleDashboardLinks[userRole] ?? null;
+}
 
 /// Returns links for sidebar based on user role
 export function getNavLinks({
@@ -103,7 +160,38 @@ export function getNavLinks({
       },
     ],
     ACCOUNTANT: [],
-    ADMIN: [],
+    ADMIN: [
+      {
+        title: "Dashboard",
+        href: "/admin",
+        icon: IconHome,
+      },
+      {
+        title: "Subjects",
+        href: "/admin/subjects",
+        icon: IconBooks,
+      },
+      {
+        title: "Create subject",
+        href: "/admin/subjects/create",
+        icon: IconPlus,
+      },
+      {
+        title: "Offering",
+        href: "/admin/offering",
+        icon: IconBook,
+      },
+      {
+        title: "Create offering",
+        href: "/admin/offering/create",
+        icon: IconBook2,
+      },
+      {
+        title: "Users",
+        href: "/admin/users",
+        icon: Users,
+      },
+    ],
     USER: [],
   };
   const roleSpecific = roleLinks[userRole] ?? [];
