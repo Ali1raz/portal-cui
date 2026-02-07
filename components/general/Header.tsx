@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
-import { URL } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
@@ -12,10 +11,11 @@ import { CUILogo } from "./cui-logo";
 import { SignOutButton } from "./signout-button";
 import { getDashboardLinkForRole } from "@/components/sidebar/navlinks";
 import { Role } from "@/lib/generated/prisma/enums";
+import { Route } from "next";
 
 type MenuItem = {
   name: string;
-  href: URL;
+  href: Route;
   role?: Role;
 };
 

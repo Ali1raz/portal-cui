@@ -2,15 +2,9 @@
 
 import Link from "next/link";
 import { CUILogo } from "./cui-logo";
-import { URL } from "@/lib/types";
+import { Route } from "next";
 
-const links: {
-  group: string;
-  items: {
-    title: string;
-    href: URL;
-  }[];
-}[] = [
+const links = [
   {
     group: "Product",
     items: [
@@ -280,7 +274,7 @@ export default function FooterSection() {
                 {link.items.map((item, index) => (
                   <Link
                     key={index}
-                    href={item.href}
+                    href={item.href as Route}
                     className="text-muted-foreground hover:text-primary block duration-150"
                   >
                     <span>{item.title}</span>
