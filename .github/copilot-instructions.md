@@ -30,6 +30,7 @@ use formatDate() imported from "@/lib/utils" for date formating
 
 use feature based file structure.
 use route grouping for example: (auth)/login/page.tsx
+for creating/updating form use react-hook-form, see example in `login-form.tsx`,
 create actions.ts for creating server actions for form submissions in same directory as of page, for example:
 
 ```
@@ -153,6 +154,32 @@ export default async function UsersPage() {
     </div>
   );
 }
+```
+
+---
+
+never use types in Link href as:
+
+```tsx
+<Link
+  href={
+    `/admin/subjects/${row.original.id}` as ComponentProps<typeof Link>["href"] // <-- bad example
+  }
+  className="font-medium underline-offset-4 hover:underline"
+>
+  {row.original.name}
+</Link>
+```
+
+or as this:
+
+```tsx
+<Link
+  href={{
+    pathname: "/admin/users/[userId]", // <--bad example
+    query: { userId },
+  }}
+></Link>
 ```
 
 ---

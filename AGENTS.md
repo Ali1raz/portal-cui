@@ -20,6 +20,8 @@ Comprehensive performance optimization guide for React and Next.js applications,
 
 ## Table of Contents
 
+[IMPortant](#important)
+
 1. [Eliminating Waterfalls](#1-eliminating-waterfalls) — **CRITICAL**
    - 1.1 [Defer Await Until Needed](#11-defer-await-until-needed)
    - 1.2 [Dependency-Based Parallelization](#12-dependency-based-parallelization)
@@ -77,6 +79,12 @@ Comprehensive performance optimization guide for React and Next.js applications,
    - 8.2 [useLatest for Stable Callback Refs](#82-uselatest-for-stable-callback-refs)
 
 ---
+
+## IMPortant
+
+**Impact: CRITICAL**
+
+Read .github/copilot-instructions for project coding standards.
 
 ## 1. Eliminating Waterfalls
 
