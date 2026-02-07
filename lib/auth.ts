@@ -77,6 +77,25 @@ export const auth = betterAuth({
             description: `Your email is verified and you've been granted Director access.`,
           },
         });
+
+        return;
+      }
+      const ADMIN_EMAILS: string[] = process.env.ADMIN_EMAILS?.split(";") ?? [];
+      if (ADMIN_EMAILS.includes(user.email)) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { role: Role.ADMIN },
+        });
+
+        await SendEmail({
+          to: user.email,
+          subject: "You're now an Admin!",
+          meta: {
+            description: `Your email is verified and you've been granted ADMIN access.`,
+          },
+        });
+
+        return;
       }
     },
   },
@@ -84,7 +103,6 @@ export const auth = betterAuth({
   plugins: [
     admin({
       defaultRole: Role.USER,
-      // adminRoles: [Role.ADMIN],
       roles,
       adminRoles: [Role.ADMIN, Role.DIRECTOR],
     }),

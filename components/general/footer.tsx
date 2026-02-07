@@ -121,7 +121,7 @@ const links = [
 
 export default function FooterSection() {
   return (
-    <footer className="border-b bg-white pt-20 dark:bg-transparent">
+    <footer className="border-b pt-20">
       <div className="mb-8 border-b md:mb-12">
         <div className="mx-auto flex max-w-5xl flex-wrap items-end justify-between gap-6 px-6 pb-6">
           <CUILogo
