@@ -20,6 +20,24 @@ export async function getSubjectDetails(subjectId: string) {
           department: true,
           totalLectures: true,
           year: true,
+          teachingAssignments: {
+            select: {
+              professor: {
+                select: {
+                  id: true,
+                  employeeNo: true,
+                  department: true,
+                  user: {
+                    select: {
+                      name: true,
+                      email: true,
+                      image: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
 
           _count: {
             select: {

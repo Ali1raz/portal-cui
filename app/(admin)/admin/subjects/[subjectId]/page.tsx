@@ -11,6 +11,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import Link from "next/link";
+import { ComponentProps } from "react";
 
 export default async function SubjectPAge(
   props: PageProps<"/admin/subjects/[subjectId]">
@@ -70,6 +72,23 @@ export default async function SubjectPAge(
                       <div>Total Lectures: {offering.totalLectures}</div>
                       <div>Department: {offering.department}</div>
                       <div>Section: {offering.section}</div>
+                      {offering.teachingAssignments[0]?.professor ? (
+                        <div>
+                          Professor:{" "}
+                          {offering.teachingAssignments[0].professor.user.name}
+                        </div>
+                      ) : (
+                        <Link
+                          href={
+                            `/admin/offering/${offering.id}/assign` as ComponentProps<
+                              typeof Link
+                            >["href"]
+                          }
+                          className="underline"
+                        >
+                          Assign teacher to this offering
+                        </Link>
+                      )}
                     </AccordionContent>
                   </AccordionItem>
                 ))}
