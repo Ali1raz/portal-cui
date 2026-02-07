@@ -163,7 +163,18 @@ export function UsersTable({
       id: "email",
       header: "Email",
       accessorFn: (row) => row.email,
-      cell: ({ row }) => <div>{row.original.email}</div>,
+      cell: ({ row }) => (
+        <Tooltip>
+          <TooltipTrigger>
+            <div className="font-medium max-w-[20ch] text-ellipsis overflow-hidden">
+              {row.original.email}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent align="center" side="right">
+            <div>{row.original.email}</div>
+          </TooltipContent>
+        </Tooltip>
+      ),
     },
     {
       id: "role",
@@ -178,7 +189,7 @@ export function UsersTable({
       accessorFn: (row) =>
         row.professor?.department ?? row.hod?.department ?? "-",
       cell: ({ row }) => (
-        <div>
+        <div className="">
           {row.original.professor?.department ??
             row.original.hod?.department ??
             "-"}
@@ -190,7 +201,7 @@ export function UsersTable({
       header: "Actions",
       enableSorting: false,
       cell: ({ row }) => (
-        <div className="text-right">
+        <div className="text-center">
           <UserActions
             userId={row.original.id}
             name={row.original.name}
@@ -273,7 +284,7 @@ export function UsersTable({
   return (
     <div className="w-full" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="w-full max-w-md">
+        <div className="">
           <Label htmlFor="users-search" className="sr-only">
             Search users
           </Label>
