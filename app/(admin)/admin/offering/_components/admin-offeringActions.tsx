@@ -20,7 +20,7 @@ export function AdminOfferingActions({ offeringId }: iAppProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="outline" size="icon">
           <MoreHorizontal />
         </Button>
       </DropdownMenuTrigger>

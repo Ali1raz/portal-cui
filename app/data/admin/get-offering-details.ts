@@ -34,7 +34,6 @@ export async function adminGetOfferingDetails(offeringId: string) {
           id: true,
           createdAt: true,
           department: true,
-          section: true,
           semester: true,
           totalLectures: true,
           year: true,
@@ -54,12 +53,14 @@ export async function adminGetOfferingDetails(offeringId: string) {
         },
         select: {
           id: true,
+          section: true,
           professor: {
             select: {
               department: true,
               employeeNo: true,
               user: {
                 select: {
+                  id: true,
                   name: true,
                   image: true,
                 },
@@ -73,11 +74,9 @@ export async function adminGetOfferingDetails(offeringId: string) {
           },
         },
       }),
-      prisma.student.count({
+      prisma.enrollment.count({
         where: {
-          enrollments: {
-            some: {},
-          },
+          offeringId: offering.id,
         },
       }),
     ]);

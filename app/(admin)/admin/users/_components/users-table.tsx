@@ -74,6 +74,11 @@ import {
   usersSearchParamsParsers,
   type UsersRole,
 } from "../users-search-params";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function UsersTable({
   users,
@@ -125,7 +130,18 @@ export function UsersTable({
       id: "id",
       header: "Id",
       accessorFn: (row) => row.id,
-      cell: ({ row }) => <div className="font-medium">{row.original.id}</div>,
+      cell: ({ row }) => (
+        <Tooltip>
+          <TooltipTrigger>
+            <div className="font-medium max-w-[20ch] text-ellipsis overflow-hidden">
+              {row.original.id}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent align="center" side="right">
+            <div>{row.original.id}</div>
+          </TooltipContent>
+        </Tooltip>
+      ),
       enableSorting: false,
     },
     {

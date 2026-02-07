@@ -208,8 +208,7 @@ model SubjectOffering {
 
   semester      Int
   year          Int // 2024
-  section       String
-  totalLectures Int    @default(30)
+  totalLectures Int @default(30)
 
   department Department
 
@@ -221,13 +220,13 @@ model SubjectOffering {
   attendanceRecords   AttendanceRecord[]
   leaveRequests       LeaveRequest[]
 
-  @@unique([subjectId, semester, year])
+  @@unique([subjectId, semester, year, department])
   @@map("subject_offering")
 }
 
 model Enrollment {
-  id String @id @default(uuid())
-
+  id        String  @id @default(uuid())
+  section   String?
   studentId String
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
@@ -275,6 +274,7 @@ model TeachingAssignment {
 
   offeringId String
   offering   SubjectOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  section    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

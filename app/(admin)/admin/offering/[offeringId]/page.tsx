@@ -87,9 +87,6 @@ export default async function OfferingIdPage(
                 Semester: {offeringDetails?.semester}
               </Badge>
               <Badge variant="secondary">Year: {offeringDetails?.year}</Badge>
-              <Badge variant="secondary">
-                Class: {offeringDetails?.section}
-              </Badge>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -112,17 +109,21 @@ export default async function OfferingIdPage(
                         </h1>
                       </AccordionTrigger>
                       <AccordionContent className="space-y-2">
-                        <Link
-                          href={`/admin/subjects/${offeringDetails?.subject.id}`}
-                          className="underline flex items-center gap-2"
-                        >
-                          View Subject Details{" "}
-                          <ArrowUpRightIcon className="size-4" />
-                        </Link>
-                        <div>Subject Name: {offeringDetails?.subject.name}</div>
-                        <div>Subject Code: {offeringDetails?.subject.code}</div>
-                        <div>
-                          Credit Hrs: {offeringDetails?.subject.creditHours}
+                        <div className="*:not-first:text-muted-foreground *:not-first:text-sm *:not-first:my-2">
+                          <p> Subject Name</p>
+                          <Link
+                            href={`/admin/subjects/${offeringDetails?.subject.id}`}
+                            className="hover:underline hover:text-primary underline-offset-4 flex items-center gap-2"
+                          >
+                            {offeringDetails?.subject.name}
+                            <ArrowUpRightIcon className="size-4" />
+                          </Link>
+                          <div>
+                            Subject Code: {offeringDetails?.subject.code}
+                          </div>
+                          <div>
+                            Credit Hrs: {offeringDetails?.subject.creditHours}
+                          </div>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -153,7 +154,7 @@ export default async function OfferingIdPage(
                         </Link>
                       </div>
                     ) : (
-                      teachingAssignments.map(({ professor }) => (
+                      teachingAssignments.map(({ professor, section }) => (
                         <AccordionItem
                           key={professor.employeeNo}
                           value={professor.employeeNo}
@@ -169,10 +170,17 @@ export default async function OfferingIdPage(
                           </AccordionTrigger>
                           <AccordionContent className="space-y-2">
                             <div className="flex items-center gap-2">
-                              Name: {professor.user.name}{" "}
+                              Name:{" "}
+                              <Link
+                                href={`/admin/users/${professor.user.id}`}
+                                className="hover:text-primary hover:underline underline-offset-4"
+                              >
+                                {professor.user.name}
+                              </Link>{" "}
                               <ArrowUpRightIcon className="size-4" />
                             </div>
                             <div>Emp Nr: {professor.employeeNo}</div>
+                            <div>Class: {section ?? "A"}</div>
                             <div>
                               Total Subjects Teaching:{" "}
                               {professor._count.teachingAssignments}

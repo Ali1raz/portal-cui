@@ -59,7 +59,6 @@ export function AdminCreateOfferingForm({
       department: Department.CS,
       semester: 1,
       year,
-      section: "A",
       totalLectures: 30,
     },
     mode: "onChange",
@@ -86,7 +85,6 @@ export function AdminCreateOfferingForm({
 
       toast.success(result.message);
       router.push(`/admin/offering/${result.offeringId}`);
-      router.refresh();
     });
   }
 
@@ -188,14 +186,14 @@ export function AdminCreateOfferingForm({
                     <FormLabel>Year</FormLabel>
                     <FormControl>
                       <Input
+                        {...field}
                         type="number"
-                        min={2000}
-                        placeholder="2026"
                         value={field.value as number | string | undefined}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
+                        min={2000}
+                        onChange={(event) =>
+                          field.onChange(Number(event.target.value))
+                        }
+                        placeholder="2026"
                       />
                     </FormControl>
                     <FormMessage />
@@ -205,33 +203,20 @@ export function AdminCreateOfferingForm({
 
               <FormField
                 control={form.control}
-                name="section"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Section</FormLabel>
-                    <FormControl>
-                      <Input placeholder="A" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="totalLectures"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Total Lectures</FormLabel>
                     <FormControl>
                       <Input
+                        {...field}
                         type="number"
                         min={1}
-                        value={field.value as number | string | undefined}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
+                        step={1}
+                        aria-invalid={fieldState.invalid}
+                        onChange={(event) =>
+                          field.onChange(Number(event.target.value))
+                        }
                       />
                     </FormControl>
                     <FormMessage />

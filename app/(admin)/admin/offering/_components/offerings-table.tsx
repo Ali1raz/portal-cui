@@ -33,12 +33,14 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
+  CheckCheck,
   ChevronDown,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  Clock,
   GripVertical,
 } from "lucide-react";
 import type { AdminGetOfferingsType } from "@/app/data/admin/get-offerings";
@@ -73,6 +75,7 @@ import {
   offeringDepartmentValues,
   offeringSearchParamsParsers,
 } from "../offering-search-params";
+import Link from "next/link";
 
 export function OfferingsTable({
   offerings,
@@ -120,9 +123,7 @@ export function OfferingsTable({
       id: "srNo",
       header: "Sr No.",
       enableSorting: false,
-      cell: ({ row }) => (
-        <div>{pagination.pageIndex * pagination.pageSize + row.index + 1}</div>
-      ),
+      cell: ({ row }) => <div>{row.index + 1}</div>,
     },
     {
       id: "semester",
@@ -148,12 +149,16 @@ export function OfferingsTable({
     {
       id: "subject",
       header: "Subject",
-      accessorFn: (row) => row.subject.name,
+      accessorFn: ({ subject }) => subject.name,
       cell: ({ row }) => (
-        <div className="flex flex-col gap-2">
-          <span>
-            {row.original.subject.name} - {row.original.subject.code}
-          </span>
+        <div className="flex flex-col gap-2 ">
+          <Link
+            href={`/admin/subjects/${row.original.subject.id}`}
+            className="hover:text-primary hover:underline underline-offset-4"
+          >
+            <span>{row.original.subject.name}</span>
+          </Link>
+          <span>{row.original.subject.code}</span>
           <span>Credit hrs: {row.original.subject.creditHours}</span>
         </div>
       ),
@@ -180,13 +185,15 @@ export function OfferingsTable({
     },
     {
       id: "teachings",
-      header: "Teachings",
+      header: "Teacher Assigned",
       accessorFn: (row) => row._count.teachingAssignments,
       cell: ({ row }) => (
         <div className="text-center">
-          {row.original._count.teachingAssignments === 0
-            ? "-"
-            : row.original._count.teachingAssignments}
+          {row.original._count.teachingAssignments === 0 ? (
+            <Clock className="size-4" />
+          ) : (
+            <CheckCheck className="size-4" />
+          )}
         </div>
       ),
     },

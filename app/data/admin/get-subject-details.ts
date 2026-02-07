@@ -3,9 +3,20 @@ import { notFound } from "next/navigation";
 import "server-only";
 
 export async function getSubjectDetails(subjectId: string) {
-  const subject = await prisma.subject.findFirst({
+  const subj = await prisma.subject.findUnique({
     where: {
       id: subjectId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!subj) return notFound();
+
+  const subject = await prisma.subject.findFirst({
+    where: {
+      id: subj.id,
     },
     select: {
       id: true,
@@ -16,12 +27,13 @@ export async function getSubjectDetails(subjectId: string) {
         select: {
           id: true,
           semester: true,
-          section: true,
           department: true,
           totalLectures: true,
           year: true,
           teachingAssignments: {
+            // distinct: "section",
             select: {
+              section: true,
               professor: {
                 select: {
                   id: true,
@@ -29,8 +41,8 @@ export async function getSubjectDetails(subjectId: string) {
                   department: true,
                   user: {
                     select: {
+                      id: true,
                       name: true,
-                      email: true,
                       image: true,
                     },
                   },
@@ -50,24 +62,26 @@ export async function getSubjectDetails(subjectId: string) {
     },
   });
 
+  if (!subject) return notFound();
+
   const assignemnts = await prisma.teachingAssignment.findMany({
     where: {
       offering: {
-        subjectId: subjectId,
+        subjectId: subj.id,
       },
     },
     select: {
       id: true,
+      section: true,
       professor: {
         select: {
           id: true,
           employeeNo: true,
           department: true,
-
           user: {
             select: {
+              id: true,
               name: true,
-              email: true,
               image: true,
             },
           },
@@ -75,10 +89,6 @@ export async function getSubjectDetails(subjectId: string) {
       },
     },
   });
-
-  if (!subject) {
-    return notFound();
-  }
 
   return { subject, assignemnts };
 }

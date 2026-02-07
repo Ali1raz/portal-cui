@@ -33,13 +33,33 @@ export async function createOffering(
     }
 
     const result = validated.data;
+    const existing = await prisma.subjectOffering.count({
+      where: {
+        // AND: [
+        //   {
+        year: result.year,
+        department: result.department,
+        semester: result.semester,
+        subjectId: result.subjectId,
+        //   },
+        // ],
+      },
+    });
+
+    console.log(existing);
+
+    if (existing) {
+      return {
+        status: "error",
+        message: "This offering already exists",
+      };
+    }
 
     const offering = await prisma.subjectOffering.create({
       data: {
         subjectId: result.subjectId,
         semester: result.semester,
         year: result.year,
-        section: result.section,
         totalLectures: result.totalLectures,
         department: result.department,
       },

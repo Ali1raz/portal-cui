@@ -7,13 +7,9 @@ export const createOfferingSchema = z.object({
   department: z.nativeEnum(Department, {
     message: "Department is required.",
   }),
-  semester: z.coerce
-    .number()
-    .int()
-    .min(1, { message: "Semester is required." }),
-  year: z.coerce.number().int().min(2000, { message: "Year is required." }),
-  section: z.string().min(1, { message: "Section is required." }),
-  totalLectures: z.coerce
+  semester: z.number().int().min(1, { message: "Semester is required." }),
+  year: z.number().int().min(2000, { message: "Year is required." }),
+  totalLectures: z
     .number()
     .int()
     .min(1, { message: "Total lectures is required." }),

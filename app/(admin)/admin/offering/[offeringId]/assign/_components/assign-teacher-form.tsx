@@ -36,6 +36,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { assignTeacherToOffering } from "../actions";
 import { assignTeacherSchema, AssignTeacherSchemaType } from "../schema";
+import { Input } from "@/components/ui/input";
 
 /// Props for the assign teacher form.
 type AssignTeacherFormProps = {
@@ -55,6 +56,7 @@ export function AssignTeacherForm({
     resolver: zodResolver(assignTeacherSchema),
     defaultValues: {
       professorId: currentAssignment?.id ?? "",
+      section: "A",
     },
     mode: "onChange",
   });
@@ -121,6 +123,19 @@ export function AssignTeacherForm({
                     </SelectContent>
                   </Select>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="section"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Class</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="A" />
+                  </FormControl>
                 </FormItem>
               )}
             />

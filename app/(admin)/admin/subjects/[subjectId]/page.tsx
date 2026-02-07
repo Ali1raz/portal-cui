@@ -12,7 +12,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import Link from "next/link";
-import { ComponentProps } from "react";
+import { ArrowUpRight } from "lucide-react";
+import { UserImage } from "@/components/user/user-image";
 
 export default async function SubjectPAge(
   props: PageProps<"/admin/subjects/[subjectId]">
@@ -63,32 +64,65 @@ export default async function SubjectPAge(
                         <span>{offering.year}</span>
                       </h1>
                     </AccordionTrigger>
-                    <AccordionContent className="space-y-2">
-                      <div>Semester: {offering.semester}</div>
-                      <div>
-                        Total Enrollments: {offering._count.enrollments}
+                    <AccordionContent className="grid grid-cols-2 justify-baseline gap-5">
+                      <div className="*:not-first:text-muted-foreground *:not-first:text-sm *:not-first:my-2">
+                        <p>Semester </p>
+                        <p>{offering.semester}</p>
+                      </div>
+                      <div className="*:not-first:text-muted-foreground *:not-first:text-sm *:not-first:my-2">
+                        <p>Total Enrollments</p>
+                        <p>{offering._count.enrollments}</p>
                       </div>
                       <div>Year: {offering.year}</div>
-                      <div>Total Lectures: {offering.totalLectures}</div>
-                      <div>Department: {offering.department}</div>
-                      <div>Section: {offering.section}</div>
-                      {offering.teachingAssignments[0]?.professor ? (
+                      <div className="*:not-first:text-muted-foreground *:not-first:text-sm *:not-first:my-2">
+                        <p>Total Lectures</p> <p>{offering.totalLectures}</p>
+                      </div>
+                      <div className="*:not-first:text-muted-foreground *:not-first:text-sm *:not-first:my-2">
+                        <p>Department</p>
+                        <p>{offering.department}</p>
+                      </div>
+                      {offering.teachingAssignments.length === 0 ? (
+                        <Link
+                          href={`/admin/offering/${offering.id}/assign`}
+                          className="underline"
+                        >
+                          Assign teacher to this offering
+                        </Link>
+                      ) : (
+                        <div>
+                          {offering.teachingAssignments.map(
+                            ({ professor, section }, i) => (
+                              <div key={i}>
+                                <div className="group *:not-first:text-muted-foreground *:not-first:text-sm *:not-first:my-2">
+                                  <p>Teacher Assigned</p>
+                                  <p>
+                                    <Link
+                                      href={`/admin/users/${professor.user.id}`}
+                                      className="flex items-center gap-2 group-hover:text-primary hover:text-primary hover:underline underline-offset-2"
+                                    >
+                                      {professor.user.name}
+                                      <ArrowUpRight className="size-4" />
+                                    </Link>
+                                  </p>
+                                  <p>{professor.employeeNo}</p>
+                                </div>
+                                <div className="*:not-first:text-muted-foreground *:not-first:text-sm *:not-first:my-2">
+                                  <p>Class</p>
+                                  <p>{section ?? "A"}</p>
+                                </div>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
+                      {/* {offering.teachingAssignments[0]?.professor ? (
                         <div>
                           Professor:{" "}
                           {offering.teachingAssignments[0].professor.user.name}
                         </div>
                       ) : (
-                        <Link
-                          href={
-                            `/admin/offering/${offering.id}/assign` as ComponentProps<
-                              typeof Link
-                            >["href"]
-                          }
-                          className="underline"
-                        >
-                          Assign teacher to this offering
-                        </Link>
-                      )}
+                        
+                      )} */}
                     </AccordionContent>
                   </AccordionItem>
                 ))}
@@ -110,22 +144,30 @@ export default async function SubjectPAge(
             ) : (
               <Accordion type="single" collapsible className="w-full">
                 {assignemnts.map((assignment) => (
-                  <AccordionItem
-                    key={assignment.id}
-                    value={assignment.professor.id}
-                  >
+                  <AccordionItem key={assignment.id} value={assignment.id}>
                     <AccordionTrigger>
-                      <h1 className="text-lg font-semibold">
-                        Professor: {assignment.professor.user.name}
-                      </h1>
+                      <div className="flex items-center gap-4">
+                        <UserImage
+                          className="size-12"
+                          image={assignment.professor.user.image}
+                        />
+                        <h1 className="text-lg font-semibold">
+                          {assignment.professor.user.name}
+                        </h1>
+                      </div>
                     </AccordionTrigger>
                     <AccordionContent className="space-y-2">
-                      <div>
-                        Professor Name: {assignment.professor.user.name}
+                      <div className="group *:not-first:text-muted-foreground *:not-first:text-sm *:not-first:my-2">
+                        <p>Professor Details</p>
+                        <Link
+                          href={`/admin/users/${assignment.professor.user.id}`}
+                          className="hover:underline underline-offset-4 hover:text-primary group-hover:text-primary"
+                        >
+                          {assignment.professor.user.name}
+                        </Link>
+                        <p>{assignment.professor.employeeNo}</p>
+                        <p>Department: {assignment.professor.department}</p>
                       </div>
-                      <div>Employee No: {assignment.professor.employeeNo}</div>
-                      <div>Email: {assignment.professor.user.email}</div>
-                      <div>Department: {assignment.professor.department}</div>
                     </AccordionContent>
                   </AccordionItem>
                 ))}

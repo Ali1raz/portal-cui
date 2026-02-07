@@ -29,9 +29,7 @@ export default async function AdminUserDetailsPage(
 
   return (
     <div className="flex flex-col gap-4 md:gap-6 md:pb-6 px-4 lg:px-6 py-4 md:py-6">
-      <h2 className="font-bold text-2xl">User Details</h2>
-
-      <Card className="mx-auto max-w-3xl w-full">
+      <Card>
         <CardHeader>
           <CardTitle className="space-y-4">
             <UserImage
@@ -62,14 +60,14 @@ export default async function AdminUserDetailsPage(
                   { label: "Since", value: formatDate(user.student.createdAt) },
                 ].map((field) => (
                   <div key={field.label} className="flex gap-4">
-                    <h2 className="font-bold">{field.label}:</h2>
+                    <h2>{field.label}</h2>
                     <span>{field.value}</span>
                   </div>
                 ))}
               </div>
             )}
             {user.professor && (
-              <div className="flex flex-col gap-2 mt-4">
+              <div className="grid items-baseline grid-cols-2 gap-2 mt-4">
                 {[
                   { label: "Department", value: user.professor.department },
                   {
@@ -81,50 +79,10 @@ export default async function AdminUserDetailsPage(
                     value: formatDate(user.professor.createdAt),
                   },
                 ].map((field) => (
-                  <div key={field.label} className="flex gap-4">
-                    <h2 className="font-bold">{field.label}:</h2>
-                    <span>{field.value}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {user.hod && (
-              <div className="flex flex-col gap-2 mt-4">
-                {[
-                  { label: "Department", value: user.hod.department },
-                  { label: "Since", value: formatDate(user.hod.createdAt) },
-                ].map((field) => (
-                  <div key={field.label} className="flex gap-4">
-                    <h2 className="font-bold">{field.label}:</h2>
-                    <span>{field.value}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {user.director && (
-              <div className="flex flex-col gap-2 mt-4">
-                {[
-                  {
-                    label: "Since",
-                    value: formatDate(user.director.createdAt),
-                  },
-                ].map((field) => (
-                  <div key={field.label} className="flex gap-4">
-                    <h2 className="font-bold">{field.label}:</h2>
-                    <span>{field.value}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {user.accountant && (
-              <div className="flex flex-col gap-2 mt-4">
-                {[
-                  {
-                    label: "Since",
-                    value: formatDate(user.accountant.createdAt),
-                  },
-                ].map((field) => (
-                  <div key={field.label} className="flex gap-4">
+                  <div
+                    key={field.label}
+                    className="*:not-first:text-muted-foreground *:not-first:text-sm *:not-first:my-2"
+                  >
                     <h2 className="font-bold">{field.label}:</h2>
                     <span>{field.value}</span>
                   </div>

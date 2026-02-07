@@ -5,8 +5,7 @@ import { AttendanceTable } from "./_components/attendence-table";
 export default async function AttendencePage(
   props: PageProps<"/professor/sections/[section]/attendance">
 ) {
-  const section = (await props.params).section;
-  const students = await getProfessorSectionStudents({ section });
+  const { section } = await props.params;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -22,9 +21,17 @@ export default async function AttendencePage(
               </span>
             </h1>
           </div>
-          <AttendanceTable students={students} />
+          <Suspense>
+            <AttendenceTableInSuspense section={section} />
+          </Suspense>
         </div>
       </div>
     </div>
   );
+}
+
+async function AttendenceTableInSuspense({ section }: { section: string }) {
+  const students = await getProfessorSectionStudents({ section });
+
+  return <AttendanceTable students={students} />;
 }

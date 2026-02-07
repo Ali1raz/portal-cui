@@ -24,12 +24,9 @@ export async function getProfessorSectionStudents({
       enrollments: {
         some: {
           offering: {
-            section: section,
             teachingAssignments: {
               some: {
-                professor: {
-                  userId: session.user.id,
-                },
+                AND: [{ professorId: session.user.id }, { section: section }],
               },
             },
           },
@@ -55,12 +52,9 @@ export async function getProfessorSectionStudents({
   // Get all relevant offeringIds
   const offerings = await prisma.subjectOffering.findMany({
     where: {
-      section: section,
       teachingAssignments: {
         some: {
-          professor: {
-            userId: session.user.id,
-          },
+          AND: [{ professorId: session.user.id }, { section: section }],
         },
       },
     },

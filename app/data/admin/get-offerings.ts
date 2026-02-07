@@ -93,6 +93,7 @@ export async function getAdminOfferings({
         totalLectures: true,
         subject: {
           select: {
+            id: true,
             name: true,
             code: true,
             creditHours: true,
