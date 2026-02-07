@@ -25,12 +25,13 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { login } from "../../actions";
+import { authClient, signIn } from "@/lib/auth-client";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Role } from "@/lib/generated/prisma/enums";
 import { useRouter } from "next/navigation";
 
+/// Login form with session refresh after successful auth.
 export function LoginForm({
   className,
   ...props
@@ -49,24 +50,31 @@ export function LoginForm({
 
   function onSubmit(values: LoginSchemaType) {
     startEmailTransition(async () => {
-      const { data: result, error } = await tryCatch(login(values));
+      const { data: signInResult, error } = await tryCatch(
+        signIn.email({
+          email: values.email,
+          password: values.password,
+        })
+      );
 
-      if (error) {
-        toast.error("Something bad happened");
+      if (error || signInResult?.error) {
+        toast.error(signInResult?.error?.message ?? "Invalid credentials");
         return;
       }
 
-      if (result.status === "error") {
-        toast.error(result.message);
-      } else if (result.status === "success") {
-        toast.success(result.message);
-        if (result.role === Role.DIRECTOR) {
-          router.push("/director");
-        } else if (result.role === Role.STUDENT) {
-          router.push("/student");
-        } else {
-          router.push("/");
-        }
+      toast.success("Login successful");
+
+      const refreshed = await authClient.getSession({
+        query: { disableCookieCache: true },
+      });
+      const role = refreshed?.data?.user?.role as Role | undefined;
+
+      if (role === Role.DIRECTOR) {
+        router.push("/director");
+      } else if (role === Role.STUDENT) {
+        router.push("/student");
+      } else {
+        router.push("/");
       }
     });
   }

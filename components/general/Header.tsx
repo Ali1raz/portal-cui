@@ -6,24 +6,36 @@ import { URL } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import React from "react";
 import { CUILogo } from "./cui-logo";
 import { SignOutButton } from "./signout-button";
+import { getDashboardLinkForRole } from "@/components/sidebar/navlinks";
+import { Role } from "@/lib/generated/prisma/enums";
 
-const menuItems: {
+type MenuItem = {
   name: string;
   href: URL;
-}[] = [
-  { name: "HOD", href: "/hod" },
-  { name: "Professor", href: "/professor" },
-  { name: "Student", href: "/student" },
-  { name: "Director", href: "/director" },
-];
+  role?: Role;
+};
 
 export const HeroHeader = () => {
   const [menuState, setMenuState] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
   const session = useSession();
+  const pathName = usePathname();
+  const userRole = session.data?.user?.role as Role | undefined;
+  const dashboardLink = getDashboardLinkForRole(userRole);
+
+  const menuItems: MenuItem[] = [
+    ...(dashboardLink
+      ? [{ name: "Dashboard", href: dashboardLink.href, role: userRole }]
+      : []),
+    { name: "HOD", href: "/hod", role: "HOD" },
+    { name: "Professor", href: "/professor", role: "PROFESSOR" },
+    { name: "Student", href: "/student", role: "STUDENT" },
+    { name: "Director", href: "/director", role: "DIRECTOR" },
+  ];
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -68,7 +80,11 @@ export const HeroHeader = () => {
                   <li key={index}>
                     <Link
                       href={item.href}
-                      className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                      className={cn(
+                        "text-muted-foreground hover:text-accent-foreground block duration-150",
+                        item.role && item.role === userRole && "text-primary",
+                        pathName === item.href && "text-primary font-semibold"
+                      )}
                     >
                       <span>{item.name}</span>
                     </Link>
@@ -84,7 +100,11 @@ export const HeroHeader = () => {
                     <li key={index}>
                       <Link
                         href={item.href}
-                        className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                        className={cn(
+                          "text-muted-foreground hover:text-accent-foreground block duration-150",
+                          item.role && item.role === userRole && "text-primary",
+                          pathName === item.href && "text-primary font-semibold"
+                        )}
                       >
                         <span>{item.name}</span>
                       </Link>
