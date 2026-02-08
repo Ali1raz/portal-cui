@@ -226,7 +226,7 @@ model SubjectOffering {
 
 model Enrollment {
   id        String  @id @default(uuid())
-  section   String?
+  section   String? @default("A") // Default section is "A"
   studentId String
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
@@ -274,7 +274,7 @@ model TeachingAssignment {
 
   offeringId String
   offering   SubjectOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
-  section    String?
+  section    String? @default("A") // Default section is "A"
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

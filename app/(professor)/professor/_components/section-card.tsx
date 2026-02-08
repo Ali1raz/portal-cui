@@ -12,7 +12,7 @@ export function SectionCard({
     <Card className="group">
       <CardHeader>
         <CardTitle>
-          <Link href={`/professor/sections/${assignment.offering.section}`}>
+          <Link href={`/professor/sections/${assignment.section ?? "A"}`}>
             <h2 className="text-lg font-semibold mb-2 line-clamp-2 group-hover:underline group-hover:text-primary">
               {assignment.offering.subject.code} -{" "}
               {assignment.offering.subject.name}
@@ -23,10 +23,10 @@ export function SectionCard({
       <CardContent>
         <Link
           key={assignment.id}
-          href={`/professor/sections/${assignment.offering.section}`}
+          href={`/professor/sections/${assignment.section ?? "A"}`}
         >
           <div className="">
-            <p>Section: {assignment.offering.section}</p>
+            <p>Class: {assignment.section ?? "A"}</p>
             <p>Semester: {assignment.offering.semester}</p>
             <p>Credit Hours: {assignment.offering.subject.creditHours}</p>
           </div>

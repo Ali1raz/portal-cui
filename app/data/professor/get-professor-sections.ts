@@ -37,6 +37,7 @@ export async function getProfessorSections() {
     },
     select: {
       id: true,
+      section: true,
       offering: {
         select: {
           subject: {
@@ -46,7 +47,6 @@ export async function getProfessorSections() {
               creditHours: true,
             },
           },
-          section: true,
           semester: true,
         },
       },

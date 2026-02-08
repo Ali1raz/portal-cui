@@ -18,6 +18,19 @@ export async function getProfessorSectionStudents({
     return redirect("/unauthorized");
   }
 
+  const professor = await prisma.professor.findUnique({
+    where: {
+      userId: session.user.id,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!professor) {
+    return redirect("/unauthorized");
+  }
+
   // Step 1: Get all students for the professor and section
   const students = await prisma.student.findMany({
     where: {
@@ -26,7 +39,7 @@ export async function getProfessorSectionStudents({
           offering: {
             teachingAssignments: {
               some: {
-                AND: [{ professorId: session.user.id }, { section: section }],
+                AND: [{ professorId: professor.id }, { section: section }],
               },
             },
           },
@@ -54,7 +67,7 @@ export async function getProfessorSectionStudents({
     where: {
       teachingAssignments: {
         some: {
-          AND: [{ professorId: session.user.id }, { section: section }],
+          AND: [{ professorId: professor.id }, { section: section }],
         },
       },
     },

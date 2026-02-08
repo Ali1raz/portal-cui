@@ -8,14 +8,10 @@ export async function getSectionDetails(section: string) {
 
   const teachingAssignment = await prisma.teachingAssignment.findFirst({
     where: {
-      professor: {
-        userId: session.user.id, // Match by user ID (professor's user)
-      },
-      offering: {
-        section: section, // Match by section name
-      },
+      AND: [{ professor: { userId: session.user.id } }, { section: section }],
     },
-    include: {
+    select: {
+      section: true,
       offering: {
         include: {
           subject: {
@@ -43,7 +39,7 @@ export async function getSectionDetails(section: string) {
   return {
     totalStudents: teachingAssignment.offering.enrollments.length,
     subject: teachingAssignment.offering.subject,
-    section: teachingAssignment.offering.section,
+    section: teachingAssignment.section,
     semester: teachingAssignment.offering.semester,
   };
 }
