@@ -1,14 +1,14 @@
 import { Suspense } from "react";
-import { getProfessorSections } from "@/app/data/professor/get-professor-sections";
-import { SectionCard, SectionCardSkeleton } from "../_components/section-card";
+import { CourseCard, SectionCardSkeleton } from "../_components/subject-card";
+import { getProfessorSubjects } from "@/app/data/professor/get-professor-courses";
 
 async function SectionsContent() {
-  const { assignments } = await getProfessorSections();
+  const { assignments } = await getProfessorSubjects();
 
   return (
     <div className="my-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
       {assignments.map((assignment) => (
-        <SectionCard key={assignment.id} assignment={assignment} />
+        <CourseCard key={assignment.id} assignment={assignment} />
       ))}
     </div>
   );

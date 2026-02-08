@@ -1,12 +1,13 @@
-import { getProfessorSections } from "@/app/data/professor/get-professor-sections";
 import { UserImage } from "@/components/user/user-image";
 import { formatDate } from "@/lib/utils";
-import { SectionCard } from "./_components/section-card";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { CourseCard } from "./_components/subject-card";
+import { getProfessorSubjects } from "@/app/data/professor/get-professor-courses";
 
 export default async function ProfessorPage() {
-  const { professor, assignments } = await getProfessorSections();
+  const { professor, assignments } = await getProfessorSubjects();
+  console.log(assignments.length);
 
   if (!assignments || assignments.length === 0) {
     return <div>You are not assigned to any sections YET.</div>;
@@ -14,7 +15,7 @@ export default async function ProfessorPage() {
 
   return (
     <div className="flex flex-1 flex-col w-full max-w-6xl mx-auto">
-      <div className="@container/main flex flex-1 flex-col gap-4 p-4 md:gap-6 md:py-6">
+      <div className="@container/main flex flex-1 flex-col p-4 ">
         <div className="flex flex-col">
           <div className="flex sm:items-start flex-col sm:flex-row gap-4">
             <div className="size-32">
@@ -44,21 +45,23 @@ export default async function ProfessorPage() {
             ))}
           </div>
         </div>
+        <div className="flex items-center justify-between ">
+          <h2 className="text-xl font-bold">Your classes</h2>
+          <Link
+            href="/professor/subject"
+            className={buttonVariants({
+              variant: "ghost",
+              className: "self-end underline hover:text-primary mt-2",
+            })}
+          >
+            View all sections
+          </Link>
+        </div>
         <div className="my-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-          {assignments.slice(0, 2).map((assignment, i) => (
-            <SectionCard key={i} assignment={assignment} />
+          {assignments.map((assignment, i) => (
+            <CourseCard key={i} assignment={assignment} />
           ))}
         </div>
-
-        <Link
-          href="/professor/sections"
-          className={buttonVariants({
-            mode: "link",
-            className: "self-end mt-2",
-          })}
-        >
-          View all sections
-        </Link>
       </div>
     </div>
   );

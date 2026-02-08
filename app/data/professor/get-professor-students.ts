@@ -3,43 +3,63 @@ import { requireProfessorSession } from "./require-professor-session";
 import { requirePermission } from "../permission/require-permission";
 import { redirect } from "next/navigation";
 
-// Get students for a specific section assigned to the current professor
+/// Get students for a specific offering assigned to the current professor
 export async function getProfessorSectionStudents({
-  section,
+  offeringId,
 }: {
-  section: string;
+  offeringId: string;
 }) {
   const session = await requireProfessorSession();
   const can = await requirePermission({
-    user: ["list", "get"],
+    user: ["list"],
+    attendance: ["mark"],
   });
 
   if (!can) {
     return redirect("/unauthorized");
   }
 
-  const professor = await prisma.professor.findUnique({
-    where: {
-      userId: session.user.id,
-    },
-    select: {
-      id: true,
-    },
+  const professor = await prisma.professor.findFirst({
+    where: { userId: session.user.id },
+    select: { id: true },
   });
 
   if (!professor) {
     return redirect("/unauthorized");
   }
 
-  // Step 1: Get all students for the professor and section
+  const [teachingAssignment, totalLectures] = await Promise.all([
+    prisma.teachingAssignment.findUnique({
+      where: {
+        professorId_offeringId: {
+          offeringId,
+          professorId: professor.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    }),
+    prisma.attendanceRecord.count({
+      where: {
+        offeringId,
+      },
+    }),
+  ]);
+
+  if (!teachingAssignment) {
+    return redirect("/unauthorized");
+  }
+
   const students = await prisma.student.findMany({
     where: {
       enrollments: {
         some: {
+          offeringId: offeringId,
           offering: {
             teachingAssignments: {
               some: {
-                AND: [{ professorId: professor.id }, { section: section }],
+                AND: [{ professorId: professor.id }],
               },
             },
           },
@@ -58,49 +78,60 @@ export async function getProfessorSectionStudents({
           image: true,
         },
       },
-    },
-  });
-
-  // Step 2: For each student, get attendance records for offerings in this section taught by this professor
-  // Get all relevant offeringIds
-  const offerings = await prisma.subjectOffering.findMany({
-    where: {
-      teachingAssignments: {
-        some: {
-          AND: [{ professorId: professor.id }, { section: section }],
+      leaveRequests: {
+        where: {
+          offeringId,
+          status: "PENDING",
         },
+        select: {
+          id: true,
+          date: true,
+          reasonTitle: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 1,
       },
     },
-    select: {
-      id: true,
-      totalLectures: true,
+  });
+
+  if (students.length === 0) {
+    return [];
+  }
+
+  const studentIds = students.map((student) => student.id);
+
+  const presentCounts = await prisma.studentAttendance.groupBy({
+    by: ["studentId"],
+    _count: {
+      _all: true,
+    },
+    where: {
+      studentId: { in: studentIds },
+      status: "PRESENT",
+      record: {
+        offeringId,
+      },
     },
   });
 
-  const offeringIds = offerings.map((o) => o.id);
-  const totalLectures = offerings.reduce((sum, o) => sum + o.totalLectures, 0);
-
-  const result = await Promise.all(
-    students.map(async (student) => {
-      const presentCount = await prisma.studentAttendance.count({
-        where: {
-          studentId: student.id,
-          record: {
-            offeringId: { in: offeringIds },
-          },
-          status: "PRESENT",
-        },
-      });
-      const percentage =
-        totalLectures > 0 ? (presentCount / totalLectures) * 100 : 0;
-      return {
-        ...student,
-        attendancePercentage: Math.round(percentage * 100) / 100, // 2 decimal places
-      };
-    })
+  const presentCountMap = new Map(
+    presentCounts.map((entry) => [entry.studentId, entry._count._all])
   );
 
-  return result;
+  return students.map((student) => {
+    const presentCount = presentCountMap.get(student.id) ?? 0;
+    const percentage =
+      totalLectures > 0 ? (presentCount / totalLectures) * 100 : 0;
+    const pendingLeaveRequest = student.leaveRequests[0] ?? null;
+
+    return {
+      ...student,
+      attendancePercentage: Math.round(percentage * 100) / 100,
+      pendingLeaveRequest,
+    };
+  });
 }
 
 export type ProfessorSectionStudents = Awaited<
