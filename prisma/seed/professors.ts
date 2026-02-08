@@ -95,6 +95,7 @@ export async function seedProfessorAssignments() {
           update: {}, // exists
           create: {
             professorId: professor.id,
+            section: "A", // Default section for seeding
             offeringId,
           },
         });

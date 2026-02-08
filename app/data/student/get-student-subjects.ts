@@ -16,7 +16,6 @@ export async function getStudentSubjects() {
             select: {
               id: true,
               totalLectures: true,
-              section: true,
               department: true,
               subject: {
                 select: {
@@ -26,7 +25,8 @@ export async function getStudentSubjects() {
                 },
               },
               teachingAssignments: {
-                include: {
+                select: {
+                  section: true,
                   professor: {
                     include: {
                       user: true,
@@ -79,7 +79,7 @@ export async function getStudentSubjects() {
       name: offering.subject.name,
       creditHours: offering.subject.creditHours,
       teacherName: teacher,
-      className: `${offering.department}-${offering.section}`,
+      className: `${offering.department}-${offering.teachingAssignments[0]?.section ?? "A"}`,
       attendancePercentage,
     });
   }

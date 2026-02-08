@@ -30,8 +30,6 @@ export async function seedOfferings() {
   for (const subject of SEED_SUBJECTS) {
     // Create an offering for EACH department that offers this subject
     for (const department of subject.departments) {
-      const section = "A"; // Default section
-
       const primaryDept = department; // Just take the current loop iteration?
 
       if (department !== subject.departments[0]) continue;
@@ -40,14 +38,15 @@ export async function seedOfferings() {
 
       await prisma.subjectOffering.upsert({
         where: {
-          subjectId_semester_year: {
+          subjectId_semester_year_department: {
             subjectId: subject.id,
             semester,
             year: currentYear,
+            department: primaryDept,
           },
         },
         update: {
-          section,
+          totalLectures: 32,
           department: primaryDept,
         },
         create: {
@@ -56,7 +55,6 @@ export async function seedOfferings() {
           semester,
           totalLectures: 32,
           year: currentYear,
-          section,
           department: primaryDept,
         },
       });
