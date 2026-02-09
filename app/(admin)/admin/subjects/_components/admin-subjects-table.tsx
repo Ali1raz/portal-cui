@@ -71,7 +71,7 @@ import { cn } from "@/lib/utils";
 import { useQueryStates } from "nuqs";
 import { subjectsSearchParamsParsers } from "@/app/(admin)/admin/subjects/subjects-search-params";
 
-export function SubjectsTable({
+export function AdminSubjectsTable({
   subjects,
   totalCount,
 }: {
@@ -168,7 +168,9 @@ export function SubjectsTable({
       header: "Actions",
       enableSorting: false,
       cell: ({ row }) => (
-        <AdminsubjectOptionsDropdown subjectId={row.original.id} />
+        <div className="text-center">
+          <AdminsubjectOptionsDropdown subjectId={row.original.id} />
+        </div>
       ),
     },
   ];

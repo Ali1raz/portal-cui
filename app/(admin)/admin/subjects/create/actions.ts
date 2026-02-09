@@ -23,6 +23,17 @@ export async function createSubject(
     if (!validated.success) {
       return { status: "error", message: "Invalid form data." };
     }
+    const subj = await prisma.subject.count({
+      where: {
+        code: values.code,
+      },
+    });
+
+    if (subj)
+      return {
+        status: "error",
+        message: `Subject code ${values.code} already exists`,
+      };
 
     await prisma.subject.create({
       data: {
