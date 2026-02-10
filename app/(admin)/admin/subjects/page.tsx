@@ -1,5 +1,5 @@
 import { adminGetAllSubjects } from "@/app/data/admin/get-all-subjects";
-import { SubjectsTable } from "./_components/subjects-table";
+import { AdminSubjectsTable } from "./_components/admin-subjects-table";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { Suspense } from "react";
@@ -42,7 +42,7 @@ async function SubjectsList({
     await subjectsSearchParamsCache.parse(searchParams);
   const { subjects, totalCount } = await adminGetAllSubjects(parsedParams);
 
-  return <SubjectsTable subjects={subjects} totalCount={totalCount} />;
+  return <AdminSubjectsTable subjects={subjects} totalCount={totalCount} />;
 }
 
 function SubjectsTableSkeleton() {

@@ -92,8 +92,8 @@ export function getNavLinks({
         icon: IconHome,
       },
       {
-        title: "Sections",
-        href: "/professor/sections",
+        title: "Subjects",
+        href: "/professor/subject",
         icon: Users,
       },
     ],
@@ -193,7 +193,7 @@ export function getNavLinks({
       },
     ],
     USER: [],
-  };
+  } satisfies Record<Role, NavLink<Route>[]>;
   const roleSpecific = roleLinks[userRole] ?? [];
 
   return [...roleSpecific, ...commonLinks];

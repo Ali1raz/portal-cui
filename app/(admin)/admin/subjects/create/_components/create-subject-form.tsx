@@ -10,13 +10,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { tryCatch } from "@/hooks/tryCatch";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { startTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { subjectSchema, SubjectSchemaType } from "../../../schema";
 import { createSubject } from "../actions";
+import { useTransition } from "react";
 
 export function CreateSubjectForm() {
+  const [isPending, startTransition] = useTransition();
+
   const form = useForm<SubjectSchemaType>({
     resolver: zodResolver(subjectSchema),
     defaultValues: {
@@ -120,8 +122,8 @@ export function CreateSubjectForm() {
         <Button type="button" variant="outline" onClick={() => form.reset()}>
           Reset
         </Button>
-        <Button type="submit" form="subject-form">
-          Submit
+        <Button disabled={isPending} type="submit" form="subject-form">
+          {isPending ? "Submiting..." : "Submit"}
         </Button>
       </Field>
     </div>

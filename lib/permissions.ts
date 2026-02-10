@@ -40,7 +40,7 @@ export const roles = {
     session: [],
     attendance: ["view", "mark"],
     leaveRequest: ["get", "list", "list:past"],
-    subject: ["list"],
+    subject: ["list", "get"],
     subjectOfferings: ["list"],
   }),
   ACCOUNTANT: access.newRole({

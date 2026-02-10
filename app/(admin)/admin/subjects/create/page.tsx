@@ -2,7 +2,13 @@ import { CreateSubjectForm } from "./_components/create-subject-form";
 
 export default function CreateSubject() {
   return (
-    <div>
+    <div className="max-w-3xl w-full">
+      <div className="mb-8 space-y-2">
+        <h1 className="text-xl font-medium">Create Subject</h1>
+        <p className="text-muted-foreground">
+          Add following details to create a new subject.
+        </p>
+      </div>
       <CreateSubjectForm />
     </div>
   );

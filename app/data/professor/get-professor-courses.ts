@@ -3,9 +3,17 @@ import "server-only";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { requireProfessorSession } from "./require-professor-session";
+import { requirePermission } from "../permission/require-permission";
 
-export async function getProfessorSections() {
+export async function getProfessorSubjects() {
   const session = await requireProfessorSession();
+  const can = await requirePermission({
+    subject: ["list"],
+  });
+
+  if (!can) {
+    return redirect("/unauthorized");
+  }
 
   const professor = await prisma.professor.findUnique({
     where: {
@@ -40,8 +48,15 @@ export async function getProfessorSections() {
       section: true,
       offering: {
         select: {
+          id: true,
+          _count: {
+            select: {
+              enrollments: true,
+            },
+          },
           subject: {
             select: {
+              id: true,
               code: true,
               name: true,
               creditHours: true,
@@ -56,10 +71,9 @@ export async function getProfessorSections() {
   return {
     assignments: assignments,
     professor: professor,
-    subjects: assignments.map((assignment) => assignment.offering.subject),
   };
 }
 
-export type ProfessorSections = NonNullable<
-  Awaited<ReturnType<typeof getProfessorSections>>
+export type ProfessorSubjects = NonNullable<
+  Awaited<ReturnType<typeof getProfessorSubjects>>
 >;

@@ -12,6 +12,7 @@ type AttendanceRecord = {
 };
 
 export async function markAttendance(data: {
+  offeringId: string;
   topic: string;
   date: Date;
   startTime: string;
@@ -30,20 +31,34 @@ export async function markAttendance(data: {
       };
     }
     const session = await requireProfessorSession();
-
-    const teachingAssignment = await prisma.teachingAssignment.findFirst({
-      where: {
-        professor: { userId: session.user.id },
-      },
-      include: { offering: true },
+    const professor = await prisma.professor.findFirst({
+      where: { userId: session.user.id },
+      select: { id: true },
     });
+
+    if (!professor) {
+      return {
+        status: "error",
+        message: "No professor record found for this user.",
+      };
+    }
+
+    const teachingAssignment = await prisma.teachingAssignment.findUnique({
+      where: {
+        professorId_offeringId: {
+          offeringId: data.offeringId,
+          professorId: professor.id,
+        },
+      },
+      select: { id: true },
+    });
+
     if (!teachingAssignment) {
       return {
         status: "error",
-        message: "No teaching assignment found for this professor.",
+        message: "No teaching assignment found for this offering.",
       };
     }
-    const offeringId = teachingAssignment.offeringId;
 
     // Create AttendanceRecord
     const attendanceRecord = await prisma.attendanceRecord.create({
@@ -52,7 +67,7 @@ export async function markAttendance(data: {
         startTime: data.startTime,
         endTime: data.endTime,
         topic: data.topic,
-        offeringId,
+        offeringId: data.offeringId,
       },
     });
 
