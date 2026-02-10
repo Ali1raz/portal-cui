@@ -189,9 +189,10 @@ export function UsersTable({
       accessorFn: (row) =>
         row.professor?.department ?? row.hod?.department ?? "-",
       cell: ({ row }) => (
-        <div className="">
+        <div className="text-center">
           {row.original.professor?.department ??
             row.original.hod?.department ??
+            row.original.student?.department ??
             "-"}
         </div>
       ),

@@ -79,6 +79,11 @@ export async function getAdminUsers({
             department: true,
           },
         },
+        student: {
+          select: {
+            department: true,
+          },
+        },
         hod: {
           select: {
             department: true,
