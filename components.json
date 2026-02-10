@@ -23,6 +23,7 @@
     "@tailark": "https://tailark.com/r/{name}.json",
     "@reui": "https://reui.io/r/{name}.json",
     "@coss": "https://coss.com/ui/r/{name}.json",
-    "@magicui": "https://magicui.design/r/{name}.json"
+    "@magicui": "https://magicui.design/r/{name}.json",
+    "@manifest": "https://ui.manifest.build/r/{name}.json"
   }
 }
