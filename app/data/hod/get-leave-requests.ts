@@ -28,7 +28,7 @@ export async function getLeaveRequests() {
     where: {
       status: "PENDING",
       student: {
-        department: hod?.department,
+        department: hod.department,
       },
     },
     orderBy: {
@@ -53,6 +53,7 @@ export async function getLeaveRequests() {
       student: {
         select: {
           registrationNo: true,
+          department: true,
           user: {
             select: {
               name: true,
@@ -63,6 +64,7 @@ export async function getLeaveRequests() {
       },
     },
   });
+  console.log(hod.department, requests[0]?.student.department);
 
   return requests;
 }
