@@ -1,7 +1,7 @@
-use es modules
-use react 19
 use naming convention with dashes for files and folders
-use typescript
+
+you are expert full-stack engineer working on a Next.js 16 App Router web-based system building using nextjs, tailwindCSS, prisma ORM, nuqs, shadcn, tanstack table, typescript
+you are UI/UX, system designer, project/product manager, business analyst
 
 use next 16 app router read https://context7.com/vercel/next.js/llms.txt?topic=app+router&tokens=10000,
 read https://context7.com/vercel/next.js/llms.txt?tokens=10000,
@@ -19,31 +19,43 @@ dont use html table tags use shadcn table component for tables, read https://con
 use react hooks from hooks/ for example hooks/use-try-catch.ts for async try catch
 use lib/prisma.ts to import prisma client for db operations,
 
-- Validation: forms use `react-hook-form` + `zod` via `zodResolver`. Zod schemas live in `lib/zod-schema.ts` (follow existing schema shapes like `loginSchema` and `registerSchema`).
+- Validation: forms use `react-hook-form` + `zod` via `zodResolver`.
 - Notifications: use `sonner`'s `toast` consistently for user feedback (success/error flows in forms).
 - Transitions: UI uses React `startTransition` / `useTransition` for async UX when submitting forms.
+- for example implementation see `app\(admin)\admin\subjects\create\_components\create-subject-form.tsx`
+- use Field component from shadcn
+- for dates in form use DateTimePicker for example see app\(professor)\professor\subject\[offeringId]\attendance_components\attendance-form.tsx,
+- use Calender for calender instead of native date picker
 
 get data from db using prisma inside data/
-add check on admin routes for admin role using requireAdmin() imported from app/data/admin/require-admin.ts
 
 use formatDate() imported from "@/lib/utils" for date formating
 
 use feature based file structure.
 use route grouping for example: (auth)/login/page.tsx
-for creating/updating form use react-hook-form, see example in `login-form.tsx`,
+dont use throw new Error("..") inside actions.ts, use Promise<ApiResponseType> response, for example:
+
+```ts
+return {
+  status: "error",
+  message: "message.",
+};
+```
+
 create actions.ts for creating server actions for form submissions in same directory as of page, for example:
 
 ```
 (auth)
-  _components # for commom components for pages inside (auth) like forms, dialogs, modals
-  login
-    page.tsx
-  register
-    page.tsx
-  forgot-password
-    page.tsx
-  actions.ts # for server actions with "user server" at the top
-  layout.tsx
+\_components # for commom components for pages inside (auth) like forms, dialogs, modals
+login
+page.tsx
+register
+page.tsx
+forgot-password
+page.tsx
+actions.ts # for server actions with "user server" at the top
+layout.tsx
+
 ```
 
 create schema for forms in lib/zod-schema.ts
@@ -120,26 +132,8 @@ async function UsersTableWrapper() {
 /// Loading skeleton for users table
 function UsersTableSkeleton() {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>
-            <Skeleton className="h-6 w-[200px]" />
-          </TableHead>
-          // ...
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {Array.from({ length: 5 }).map((_, index) => (
-          <TableRow key={index}>
-            <TableCell>
-              <Skeleton className="h-6 w-[150px]" />
-            </TableCell>
-            // ...
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+
+    // ...
   );
 }
 
@@ -155,6 +149,14 @@ export default async function UsersPage() {
   );
 }
 ```
+
+when creating tables for displaying complex data, use tanstack table as used in app\(admin)\admin\offering_components\offerings-table.tsx, always add filters, dragable andles and sorting and pagination,
+when creating filters use nuqs, start with creating types for filtering that can be used in server and client side, then update query function to accept as arguments
+for reference example see following files:
+
+app\(admin)\admin\offering_components\offerings-table.tsx // <-- for data table, pagination, sorting, draggable columns
+app\(admin)\admin\offering\offering-search-params.ts // <-- for search params for nuqs
+app\(admin)\admin\offering\page.tsx // <-- for usage of search params, and also see respective data file to fetch data and usage of filtering
 
 ---
 
