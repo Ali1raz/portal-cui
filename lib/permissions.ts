@@ -5,9 +5,17 @@ import { Role } from "./generated/prisma/enums";
 export const statements = {
   ...defaultStatements,
   userProfiles: ["create", "update", "delete", "view"] as const,
-  attendance: ["mark", "view"] as const,
+  attendance: ["mark", "view", "list"] as const,
   leaveRequest: ["create", "list", "update", "get", "list:past"] as const,
-  subject: ["create", "list", "get", "update", "delete"] as const,
+  subject: [
+    "create",
+    "list",
+    "get",
+    "update",
+    "delete",
+    "list:registered",
+    "get:registered",
+  ] as const,
   subjectOfferings: ["create", "list", "get", "update", "delete"] as const,
 } as const;
 
@@ -18,9 +26,9 @@ export const roles = {
     userProfiles: ["view"],
     user: [],
     session: [],
-    attendance: ["view"],
+    attendance: ["view", "list"],
     leaveRequest: ["create", "get", "list", "list:past"],
-    subject: ["list"],
+    subject: ["list", "list:registered", "get:registered"],
     subjectOfferings: ["list"],
   }),
 
@@ -38,7 +46,7 @@ export const roles = {
     userProfiles: ["view"],
     user: ["list", "get"],
     session: [],
-    attendance: ["view", "mark"],
+    attendance: ["view", "mark", "list"],
     leaveRequest: ["get", "list", "list:past"],
     subject: ["list", "get"],
     subjectOfferings: ["list"],
