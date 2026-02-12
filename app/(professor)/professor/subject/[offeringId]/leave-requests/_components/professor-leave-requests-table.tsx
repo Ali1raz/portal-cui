@@ -1,9 +1,14 @@
 /* eslint-disable react-hooks/incompatible-library */
 "use client";
 
-import { useId, useState, useTransition, type CSSProperties } from "react";
+import {
+  useId,
+  useMemo,
+  useState,
+  useTransition,
+  type CSSProperties,
+} from "react";
 import type {
-  Cell,
   ColumnDef,
   Header,
   PaginationState,
@@ -32,7 +37,10 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { format } from "date-fns";
+import type { DateRange } from "react-day-picker";
 import {
+  CalendarIcon,
   ChevronDown,
   ChevronFirst,
   ChevronLast,
@@ -41,8 +49,10 @@ import {
   ChevronUp,
   GripVertical,
 } from "lucide-react";
-import type { AdminGetUsersType } from "@/app/data/admin/get-admin-users";
+import { ProfessorGetLeaveRequests } from "@/app/data/professor/get-leave-requests";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -50,6 +60,11 @@ import {
   PaginationContent,
   PaginationItem,
 } from "@/components/ui/pagination";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -65,162 +80,199 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { LeaveStatus } from "@/lib/generated/prisma/enums";
+import { cn, formatDate } from "@/lib/utils";
 import { useQueryStates } from "nuqs";
-import { UserActions } from "./user-actions";
 import {
-  usersRoleValues,
-  usersSearchParamsParsers,
-  type UsersRole,
-} from "../users-search-params";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  leaveRequestsSearchParamsParsers,
+  type LeaveRequestsSortBy,
+} from "../leave-requests-search-params";
+import { UserImage } from "@/components/user/user-image";
+import { MiddleTruncateText } from "@/components/general/truncated-text";
+import { ProfessorLeaveRequestDropdown } from "./leave-requst-actions-dropdown";
 
-export function UsersTable({
-  users,
-  totalCount,
-}: {
-  users: AdminGetUsersType[];
+/// Props for professor leave requests table.
+type ProfessorLeaveRequestsTableProps = {
+  requests: ProfessorGetLeaveRequests[];
   totalCount: number;
-}) {
+  offeringId: string;
+};
+
+const statusOptions = Object.values(LeaveStatus);
+
+function toDateKey(value: Date | undefined) {
+  return value ? format(value, "yyyy-MM-dd") : null;
+}
+
+function parseDateKey(value: string) {
+  if (!value) return undefined;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+/// Table for professor leave requests with filters, sorting, and pagination.
+export function ProfessorLeaveRequestsTable({
+  requests,
+  totalCount,
+  offeringId,
+}: ProfessorLeaveRequestsTableProps) {
   "use no memo";
   const tableId = useId();
   const [isPending, startTransition] = useTransition();
-  /// URL-synced sorting and pagination using nuqs.
-  const [queryState, setQueryState] = useQueryStates(usersSearchParamsParsers, {
-    history: "replace",
-    shallow: false,
-    limitUrlUpdates: {
-      method: "debounce",
-      timeMs: 1000,
-    },
-  });
+  const [columnOrder, setColumnOrder] = useState<string[]>([
+    "student",
+    "registrationNo",
+    "title",
+    "date",
+    "createdAt",
+    "status",
+  ]);
+
+  /// URL-synced sorting, pagination, and filters using nuqs.
+  const [queryState, setQueryState] = useQueryStates(
+    leaveRequestsSearchParamsParsers,
+    {
+      history: "replace",
+      shallow: false,
+      limitUrlUpdates: {
+        method: "throttle",
+        timeMs: 1500,
+      },
+    }
+  );
 
   const sorting: SortingState = queryState.sortBy
     ? [{ id: queryState.sortBy, desc: queryState.sortDir === "desc" }]
     : [];
-
-  const hasActiveParams =
-    queryState.page !== 1 ||
-    queryState.pageSize !== 10 ||
-    queryState.sortBy !== "name" ||
-    queryState.sortDir !== "asc" ||
-    queryState.query.length > 0 ||
-    queryState.role !== null;
 
   const pagination: PaginationState = {
     pageIndex: Math.max(queryState.page - 1, 0),
     pageSize: queryState.pageSize,
   };
 
-  const columns: ColumnDef<AdminGetUsersType>[] = [
+  const selectedStatuses = useMemo(() => {
+    if (!queryState.status) return [] as LeaveStatus[];
+    return queryState.status
+      .split(",")
+      .map((status) => status.trim())
+      .filter(Boolean) as LeaveStatus[];
+  }, [queryState.status]);
+
+  const leaveDateRange = useMemo<DateRange>(() => {
+    return {
+      from: parseDateKey(queryState.dateFrom),
+      to: parseDateKey(queryState.dateTo),
+    };
+  }, [queryState.dateFrom, queryState.dateTo]);
+
+  const createdDateRange = useMemo<DateRange>(() => {
+    return {
+      from: parseDateKey(queryState.createdFrom),
+      to: parseDateKey(queryState.createdTo),
+    };
+  }, [queryState.createdFrom, queryState.createdTo]);
+
+  const hasActiveParams =
+    queryState.page !== 1 ||
+    queryState.pageSize !== 10 ||
+    queryState.sortBy !== "createdAt" ||
+    queryState.sortDir !== "desc" ||
+    queryState.query.length > 0 ||
+    queryState.status.length > 0 ||
+    queryState.dateFrom.length > 0 ||
+    queryState.dateTo.length > 0 ||
+    queryState.createdFrom.length > 0 ||
+    queryState.createdTo.length > 0;
+
+  const columns: ColumnDef<ProfessorGetLeaveRequests>[] = [
     {
-      id: "srNo",
-      header: "Sr No.",
-      enableSorting: false,
+      id: "registrationNo",
+      header: "Registration No",
+      accessorFn: (row) => row.student.registrationNo,
       cell: ({ row }) => (
-        <div>{pagination.pageIndex * pagination.pageSize + row.index + 1}</div>
+        <span className="font-mono text-xs">
+          {row.original.student.registrationNo}
+        </span>
       ),
     },
     {
-      id: "id",
-      header: "Id",
-      accessorFn: (row) => row.id,
+      id: "student",
+      header: "Student",
+      accessorFn: (row) => row.student.user.name,
       cell: ({ row }) => (
-        <Tooltip>
-          <TooltipTrigger>
-            <div className="font-medium max-w-[20ch] text-ellipsis overflow-hidden">
-              {row.original.id}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent align="center" side="right">
-            <div>{row.original.id}</div>
-          </TooltipContent>
-        </Tooltip>
-      ),
-      enableSorting: false,
-    },
-    {
-      id: "name",
-      header: "Name",
-      accessorFn: (row) => row.name,
-      cell: ({ row }) => (
-        <Link
-          href={`/admin/users/${row.original.id}`}
-          className="hover:text-primary hover:underline hover:underline-offset-4 group-hover:text-primary"
-        >
-          {row.original.name}
-        </Link>
+        <div className="flex items-center gap-2">
+          <UserImage
+            name={row.original.student.user.name}
+            image={row.original.student.user.image}
+          />
+          <div className="flex flex-col">
+            <span className="font-bold">{row.original.student.user.name}</span>
+            <span className="text-xs text-muted-foreground">
+              {row.original.student.department}
+            </span>
+          </div>
+        </div>
       ),
       sortUndefined: "last",
       sortDescFirst: false,
     },
     {
-      id: "email",
-      header: "Email",
-      accessorFn: (row) => row.email,
-      cell: ({ row }) => (
-        <Tooltip>
-          <TooltipTrigger>
-            <div className="font-medium max-w-[20ch] text-ellipsis overflow-hidden">
-              {row.original.email}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent align="center" side="right">
-            <div>{row.original.email}</div>
-          </TooltipContent>
-        </Tooltip>
-      ),
+      id: "title",
+      header: "Reason",
+      accessorFn: (row) => row.reasonTitle,
+      cell: ({ row }) => <MiddleTruncateText text={row.original.reasonTitle} />,
     },
     {
-      id: "role",
-      header: "Role",
-      accessorFn: (row) => row.role,
-      cell: ({ row }) => <div>{row.original.role}</div>,
+      id: "date",
+      header: "Leave Date",
+      accessorFn: (row) => row.date,
+      cell: ({ row }) =>
+        row.original.date ? formatDate(row.original.date) : "-",
     },
     {
-      id: "department",
-      header: "Department",
-      enableSorting: false,
-      accessorFn: (row) =>
-        row.professor?.department ?? row.hod?.department ?? "-",
+      id: "createdAt",
+      header: "Created",
+      accessorFn: (row) => row.createdAt,
+      cell: ({ row }) => formatDate(row.original.createdAt),
+    },
+    {
+      id: "status",
+      header: "Status",
+      accessorFn: (row) => row.status,
       cell: ({ row }) => (
-        <div className="text-center">
-          {row.original.professor?.department ??
-            row.original.hod?.department ??
-            row.original.student?.department ??
-            "-"}
-        </div>
+        <Badge
+          variant={
+            row.original.status === "PENDING"
+              ? "secondary"
+              : row.original.status === "APPROVED"
+                ? "success"
+                : "destructive"
+          }
+        >
+          {row.original.status}
+        </Badge>
       ),
     },
     {
       id: "actions",
       header: "Actions",
       enableSorting: false,
+      accessorFn: (row) => row.createdAt,
       cell: ({ row }) => (
         <div className="text-center">
-          <UserActions
-            userId={row.original.id}
-            name={row.original.name}
-            userRole={row.original.role}
+          <ProfessorLeaveRequestDropdown
+            requestId={row.original.id}
+            offeringId={offeringId}
           />
         </div>
       ),
     },
   ];
 
-  const [columnOrder, setColumnOrder] = useState<string[]>(
-    columns.map((column) => column.id as string)
-  );
-
   const table = useReactTable({
-    data: users,
+    data: requests,
     columns,
-    columnResizeMode: "onChange",
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: (updater) => {
       const nextSorting =
@@ -229,7 +281,7 @@ export function UsersTable({
 
       startTransition(() => {
         void setQueryState({
-          sortBy: (next?.id ?? "name") as typeof queryState.sortBy,
+          sortBy: (next?.id ?? "createdAt") as LeaveRequestsSortBy,
           sortDir: next?.desc ? "desc" : "asc",
           page: 1,
         });
@@ -281,67 +333,169 @@ export function UsersTable({
     useSensor(KeyboardSensor, {})
   );
 
-  /// URL-synced users search filter.
-  return (
-    <div className="w-full" aria-busy={isPending}>
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="">
-          <Label htmlFor="users-search" className="sr-only">
-            Search users
-          </Label>
-          <Input
-            id="users-search"
-            placeholder="Search by name or email"
-            value={queryState.query}
-            onChange={(event) => {
-              const nextValue = event.target.value;
+  function handleStatusChange(values: string[]) {
+    startTransition(() => {
+      void setQueryState({
+        status: values.length ? values.join(",") : null,
+        page: 1,
+      });
+    });
+  }
 
-              startTransition(() => {
-                void setQueryState({
-                  query: nextValue.trim().length > 0 ? nextValue : null,
-                  page: 1,
+  function handleRangeChange(
+    range: DateRange | undefined,
+    keys: { from: "dateFrom" | "createdFrom"; to: "dateTo" | "createdTo" }
+  ) {
+    startTransition(() => {
+      void setQueryState({
+        [keys.from]: range?.from ? toDateKey(range.from) : null,
+        [keys.to]: range?.to ? toDateKey(range.to) : null,
+        page: 1,
+      });
+    });
+  }
+
+  return (
+    <div className="w-full space-y-4" aria-busy={isPending}>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="w-full max-w-md">
+            <Label htmlFor="leave-search" className="sr-only">
+              Search by student name or registration number
+            </Label>
+            <Input
+              id="leave-search"
+              placeholder="Search by student name or registration no"
+              value={queryState.query}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+
+                startTransition(() => {
+                  void setQueryState({
+                    query: nextValue.trim().length > 0 ? nextValue : null,
+                    page: 1,
+                  });
                 });
-              });
-            }}
-          />
+              }}
+            />
+          </div>
+
+          {hasActiveParams ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                startTransition(() => {
+                  void setQueryState(null);
+                });
+              }}
+            >
+              Clear
+            </Button>
+          ) : null}
         </div>
-        <Select
-          value={queryState.role ?? "all"}
-          onValueChange={(value) => {
-            startTransition(() => {
-              void setQueryState({
-                role: value === "all" ? null : (value as UsersRole),
-                page: 1,
-              });
-            });
-          }}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Roles</SelectItem>
-            {usersRoleValues.map((role) => (
-              <SelectItem key={role} value={role}>
-                {role}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {hasActiveParams ? (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              startTransition(() => {
-                void setQueryState(null);
-              });
-            }}
-          >
-            Clear
-          </Button>
-        ) : null}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col gap-2">
+            <Label>Status</Label>
+            <ToggleGroup
+              type="multiple"
+              variant="outline"
+              size="sm"
+              value={selectedStatuses}
+              onValueChange={handleStatusChange}
+              spacing={1}
+            >
+              {statusOptions.map((status) => (
+                <ToggleGroupItem key={status} value={status}>
+                  {status}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Leave Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="justify-start">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {leaveDateRange.from ? (
+                    leaveDateRange.to ? (
+                      <span>
+                        {format(leaveDateRange.from, "MMM dd, yyyy")} -{" "}
+                        {format(leaveDateRange.to, "MMM dd, yyyy")}
+                      </span>
+                    ) : (
+                      <span>
+                        From {format(leaveDateRange.from, "MMM dd, yyyy")}
+                      </span>
+                    )
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Pick date range
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="range"
+                  selected={leaveDateRange}
+                  onSelect={(range) =>
+                    handleRangeChange(range, {
+                      from: "dateFrom",
+                      to: "dateTo",
+                    })
+                  }
+                  numberOfMonths={1}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Created At</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="justify-start">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {createdDateRange.from ? (
+                    createdDateRange.to ? (
+                      <span>
+                        {format(createdDateRange.from, "MMM dd, yyyy")} -{" "}
+                        {format(createdDateRange.to, "MMM dd, yyyy")}
+                      </span>
+                    ) : (
+                      <span>
+                        From {format(createdDateRange.from, "MMM dd, yyyy")}
+                      </span>
+                    )
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Pick date range
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="range"
+                  selected={createdDateRange}
+                  onSelect={(range) =>
+                    handleRangeChange(range, {
+                      from: "createdFrom",
+                      to: "createdTo",
+                    })
+                  }
+                  numberOfMonths={1}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
       </div>
+
       <div className="rounded-md border">
         <DndContext
           id={tableId}
@@ -371,11 +525,7 @@ export function UsersTable({
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    className="group"
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
+                  <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (
                       <SortableContext
                         key={cell.id}
@@ -393,7 +543,7 @@ export function UsersTable({
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No users found.
+                    No leave requests found.
                   </TableCell>
                 </TableRow>
               )}
@@ -518,7 +668,7 @@ export function UsersTable({
 function DraggableTableHeader({
   header,
 }: {
-  header: Header<AdminGetUsersType, unknown>;
+  header: Header<ProfessorGetLeaveRequests, unknown>;
 }) {
   const {
     attributes,
@@ -566,7 +716,7 @@ function DraggableTableHeader({
           <GripVertical
             className={cn(
               "opacity-60 cursor-grab",
-              isDragging && " cursor-grabbing"
+              isDragging && "cursor-grabbing"
             )}
             aria-hidden="true"
           />
@@ -592,35 +742,44 @@ function DraggableTableHeader({
           }}
           aria-label="Toggle sorting"
         >
-          {{
-            asc: (
-              <ChevronUp
-                className="shrink-0 opacity-60"
-                size={16}
-                aria-hidden="true"
-              />
-            ),
-            desc: (
-              <ChevronDown
-                className="shrink-0 opacity-60"
-                size={16}
-                aria-hidden="true"
-              />
-            ),
-          }[header.column.getIsSorted() as string] ?? (
-            <ChevronUp
-              className="shrink-0 opacity-0 group-hover:opacity-60"
-              size={16}
-              aria-hidden="true"
-            />
-          )}
+          {header.column.getCanSort()
+            ? ({
+                asc: (
+                  <ChevronUp
+                    className="shrink-0 opacity-60"
+                    size={16}
+                    aria-hidden="true"
+                  />
+                ),
+                desc: (
+                  <ChevronDown
+                    className="shrink-0 opacity-60"
+                    size={16}
+                    aria-hidden="true"
+                  />
+                ),
+              }[header.column.getIsSorted() as string] ?? (
+                <ChevronUp
+                  className="shrink-0 opacity-0 group-hover:opacity-60"
+                  size={16}
+                  aria-hidden="true"
+                />
+              ))
+            : null}
         </Button>
       </div>
     </TableHead>
   );
 }
 
-function DragAlongCell({ cell }: { cell: Cell<AdminGetUsersType, unknown> }) {
+function DragAlongCell({
+  cell,
+}: {
+  cell: import("@tanstack/react-table").Cell<
+    ProfessorGetLeaveRequests,
+    unknown
+  >;
+}) {
   const { isDragging, setNodeRef, transform, transition } = useSortable({
     id: cell.column.id,
   });

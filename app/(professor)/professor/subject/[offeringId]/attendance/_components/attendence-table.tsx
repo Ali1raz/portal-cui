@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/tooltip";
 import { formatDate } from "@/lib/utils";
 import { AlertCircle } from "lucide-react";
+import Link from "next/link";
 
 type AttendanceTableData = ProfessorSectionStudents & {
   attendancePercentage: number;
@@ -40,9 +41,11 @@ export function AttendanceTable({
   students,
   attendanceMap,
   onStatusChange,
+  offeringId,
 }: {
   students: ProfessorSectionStudents[];
   attendanceMap: Record<string, AttendanceStatus>;
+  offeringId: string;
   onStatusChange: (studentId: string, status: AttendanceStatus) => void;
 }) {
   "use no memo"; // ← Add this directive
@@ -75,25 +78,32 @@ export function AttendanceTable({
         header: "Name",
         cell: ({ row }) => {
           const percentage = row.original.attendancePercentage;
-          const pendingLeaveRequest = row.original.pendingLeaveRequest;
+          const leaveRequest = row.original.pendingLeaveRequest;
+          const status = row.original.pendingLeaveRequest?.status;
           return (
             <div className="font-medium flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <span>{row.original.user.name}</span>
-                {pendingLeaveRequest ? (
+                {leaveRequest ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <AlertCircle className="size-4 text-primary/90" />
+                      {leaveRequest.status === "PENDING" && (
+                        <AlertCircle className="size-4 text-destructive animate-caret-blink duration-75" />
+                      )}
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs ">
+                    <TooltipContent className="max-w-xs">
                       <div className="space-y-1">
-                        <p className="font-medium">Pending leave request</p>
+                        <p className="font-medium">{status} leave request</p>
                         <p className="text-xs">
-                          {formatDate(pendingLeaveRequest.date)}
+                          {formatDate(leaveRequest.date)}
                         </p>
-                        <p className="text-xs">
-                          {pendingLeaveRequest.reasonTitle}
-                        </p>
+                        <p className="text-xs">{leaveRequest.reasonTitle}</p>
+                        <Link
+                          className="underline-offset-4 text-primary hover:underline"
+                          href={`/professor/subject/${offeringId}/leave-requests/${row.original.pendingLeaveRequest.id}`}
+                        >
+                          Click to see details
+                        </Link>
                       </div>
                     </TooltipContent>
                   </Tooltip>
@@ -148,7 +158,7 @@ export function AttendanceTable({
         },
       },
     ],
-    [attendanceMap, onStatusChange]
+    [attendanceMap, onStatusChange, offeringId]
   );
 
   const table = useReactTable({

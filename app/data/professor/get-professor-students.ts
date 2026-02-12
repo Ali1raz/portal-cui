@@ -81,12 +81,12 @@ export async function getProfessorSectionStudents({
       leaveRequests: {
         where: {
           offeringId,
-          status: "PENDING",
         },
         select: {
           id: true,
           date: true,
           reasonTitle: true,
+          status: true,
         },
         orderBy: {
           createdAt: "desc",

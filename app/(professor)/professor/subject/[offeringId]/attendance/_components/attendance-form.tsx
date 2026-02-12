@@ -235,6 +235,7 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
               </div>
 
               <AttendanceTable
+                offeringId={offeringId}
                 students={students}
                 attendanceMap={attendanceMap}
                 onStatusChange={handleStatusChange}

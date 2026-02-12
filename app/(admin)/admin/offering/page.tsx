@@ -33,7 +33,6 @@ async function OfferingList({
 }: {
   searchParams: PageProps<"/admin/offering">["searchParams"];
 }) {
-  await new Promise((resolve) => setTimeout(resolve, 2500)); // Simulate loading delay
   const parsedParams: OfferingSearchParams =
     await offeringSearchParamsCache.parse(searchParams);
   const { offerings, totalCount } = await getAdminOfferings(parsedParams);
