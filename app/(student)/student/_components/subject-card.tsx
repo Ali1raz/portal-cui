@@ -3,10 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { ArrowUpRight } from "lucide-react";
+import Link from "next/link";
 
 export function SubjectCard({ course }: { course: StudentSubject }) {
   return (
-    <Card className="mx-auto w-full max-w-xl">
+    <Card className="mx-auto w-full max-w-xl group">
       <CardHeader className="flex items-center justify-between">
         <CardTitle className="text-base">{course.name}</CardTitle>
         <Badge variant="primary" className="px-2 text-xs">
@@ -31,7 +33,14 @@ export function SubjectCard({ course }: { course: StudentSubject }) {
 
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Attendance</span>
+            <div>
+              <Link
+                href={`/student/subject/${course.offeringId}/attendance`}
+                className="flex items-center gap-1 text-sm group-hover:text-primary hover:underline underline-offset-4"
+              >
+                Attendance <ArrowUpRight className="size-4" />
+              </Link>
+            </div>
             <span
               className={`text-sm font-bold ${
                 course.attendancePercentage < 80
