@@ -76,6 +76,7 @@ export async function getStudentSubjects() {
 
     results.push({
       code: offering.subject.code,
+      offeringId: offering.id,
       name: offering.subject.name,
       creditHours: offering.subject.creditHours,
       teacherName: teacher,
@@ -83,6 +84,7 @@ export async function getStudentSubjects() {
       attendancePercentage,
     });
   }
+
   return results;
 }
 
