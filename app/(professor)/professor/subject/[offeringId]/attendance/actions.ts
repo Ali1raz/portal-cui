@@ -2,6 +2,7 @@
 
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireProfessorSession } from "@/app/data/professor/require-professor-session";
+import { errorMessage } from "@/lib/error-message";
 import type { AttendanceStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
@@ -11,6 +12,7 @@ type AttendanceRecord = {
   status: AttendanceStatus;
 };
 
+/// Marks attendance for a subject offering session and validates enrollment.
 export async function markAttendance(data: {
   offeringId: string;
   topic: string;
@@ -20,8 +22,16 @@ export async function markAttendance(data: {
   attendances: AttendanceRecord[];
 }): Promise<ApiResponseType> {
   try {
+    if (!data.attendances.length) {
+      return {
+        status: "error",
+        message: "No attendance entries provided.",
+      };
+    }
+    const session = await requireProfessorSession();
+
     const can = await requirePermission({
-      attendance: ["mark", "view"],
+      attendance: ["mark"],
     });
 
     if (!can) {
@@ -30,27 +40,14 @@ export async function markAttendance(data: {
         message: "You are not allowed to mark attendance",
       };
     }
-    const session = await requireProfessorSession();
-    const professor = await prisma.professor.findFirst({
-      where: { userId: session.user.id },
-      select: { id: true },
-    });
 
-    if (!professor) {
-      return {
-        status: "error",
-        message: "No professor record found for this user.",
-      };
-    }
-
-    const teachingAssignment = await prisma.teachingAssignment.findUnique({
+    // Fetch teaching assignment for this professor and offering in one query
+    const teachingAssignment = await prisma.teachingAssignment.findFirst({
       where: {
-        professorId_offeringId: {
-          offeringId: data.offeringId,
-          professorId: professor.id,
-        },
+        offeringId: data.offeringId,
+        professor: { userId: session.user.id },
       },
-      select: { id: true },
+      select: { id: true, section: true },
     });
 
     if (!teachingAssignment) {
@@ -60,50 +57,93 @@ export async function markAttendance(data: {
       };
     }
 
-    // Create AttendanceRecord
-    const attendanceRecord = await prisma.attendanceRecord.create({
-      data: {
-        date: new Date(data.date),
-        startTime: data.startTime,
-        endTime: data.endTime,
-        topic: data.topic,
+    const sessionDate = data.date; // already a Date
+
+    // For each student, verify enrollment in the offering and section
+    const regNos = Array.from(
+      new Set(data.attendances.map((a) => a.registrationNo))
+    );
+    const enrollments = await prisma.enrollment.findMany({
+      where: {
         offeringId: data.offeringId,
+        section: teachingAssignment.section,
+        student: { registrationNo: { in: regNos } },
+      },
+      select: {
+        studentId: true,
+        student: { select: { registrationNo: true } },
       },
     });
 
-    // For each student, find studentId by registrationNo
-    const regNos = data.attendances.map((a) => a.registrationNo);
-    const students = await prisma.student.findMany({
-      where: { registrationNo: { in: regNos } },
-      select: { id: true, registrationNo: true },
-    });
-    const regNoToId: Record<string, string> = {};
-    students.forEach((s) => {
-      regNoToId[s.registrationNo] = s.id;
-    });
-
-    // Create StudentAttendance for each
-    const studentAttendances = data.attendances.map((a) => ({
-      status: a.status,
-      recordId: attendanceRecord.id,
-      studentId: regNoToId[a.registrationNo],
-    }));
-
-    // Filter out any missing students
-    const validAttendances = studentAttendances.filter((a) => !!a.studentId);
-
-    await prisma.$transaction(
-      validAttendances.map((a) => prisma.studentAttendance.create({ data: a }))
+    const regNoToId = new Map(
+      enrollments.map((e) => [e.student.registrationNo, e.studentId])
     );
+
+    const validAttendances = data.attendances
+      .map((a) => ({
+        status: a.status,
+        studentId: regNoToId.get(a.registrationNo) ?? null,
+      }))
+      .filter((a) => !!a.studentId);
+
+    if (!validAttendances.length) {
+      return {
+        status: "error",
+        message: "No enrolled students found for this offering/section.",
+      };
+    }
+
+    const skipped = regNos.filter((regNo) => !regNoToId.has(regNo));
+
+    await prisma.$transaction(async (tx) => {
+      // check existing record inside the transaction to reduce race window
+      const existing = await tx.attendanceRecord.findFirst({
+        where: {
+          offeringId: data.offeringId,
+          date: sessionDate,
+          startTime: data.startTime,
+          endTime: data.endTime,
+        },
+        select: { id: true },
+      });
+
+      if (existing) {
+        return {
+          status: "error",
+          message: "Attendance already marked for this session.",
+        };
+      }
+
+      const attendanceRecord = await tx.attendanceRecord.create({
+        data: {
+          date: sessionDate,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          topic: data.topic,
+          offeringId: data.offeringId,
+        },
+      });
+
+      await tx.studentAttendance.createMany({
+        data: validAttendances.map((a) => ({
+          status: a.status,
+          recordId: attendanceRecord.id,
+          studentId: a.studentId as string,
+        })),
+      });
+    });
 
     return {
       status: "success",
-      message: `Attendance marked for ${validAttendances.length} students`,
+      message:
+        skipped.length > 0
+          ? `Attendance marked for ${validAttendances.length} students. Skipped: ${skipped.join(", ")}`
+          : `Attendance marked for ${validAttendances.length} students`,
     };
-  } catch {
+  } catch (error) {
     return {
       status: "error",
-      message: "Failed to mark attendance",
+      message: errorMessage(error),
     };
   }
 }
