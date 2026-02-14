@@ -1,4 +1,5 @@
 import { professorGetLeaveRequestDetails } from "@/app/data/professor/get-leave-request-details";
+import { GeneralImage } from "@/components/general/general-image";
 import { UserImage } from "@/components/user/user-image";
 import { formatDate } from "@/lib/utils";
 
@@ -72,9 +73,15 @@ export default async function ProfessorLeaveRequestDetailsPage(
               </div>
               <div className="*:first:text-lg *:not-first:text-muted-foreground">
                 <h1>Attachment</h1>
-                <div className="w-[650px] min-w-full aspect-video border mt-4">
+                <div className="max-w-[650px] relative border my-4">
                   {details.imageKey ? (
-                    <UserImage image={details.imageKey} />
+                    <GeneralImage
+                      src={details.imageKey}
+                      alt="Leave Request Image"
+                      width={600}
+                      height={400}
+                      className="object-cover rounded-md aspect-video"
+                    />
                   ) : (
                     <p className="w-full h-full flex items-center justify-center text-lg">
                       No attachment added.

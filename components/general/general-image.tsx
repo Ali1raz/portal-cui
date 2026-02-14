@@ -1,5 +1,7 @@
 import { useConstructImageUrl } from "@/hooks/use-construct-url";
+import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { ImageZoom } from "../kibo-ui/image-zoom";
 
 /**
  * GeneralImage component for rendering images with custom src, width, height, and className.
@@ -23,12 +25,19 @@ export function GeneralImage({
   alt?: string;
 }) {
   return (
-    <Image
-      src={useConstructImageUrl(src)}
-      width={width}
-      height={height}
-      className={className}
-      alt={alt}
-    />
+    <ImageZoom
+      canSwipeToUnzoom
+      backdropClassName={cn(
+        '[&_[data-rmiz-modal-overlay="visible"]]:bg-black/80'
+      )}
+    >
+      <Image
+        src={useConstructImageUrl(src)}
+        width={width}
+        height={height}
+        className={className}
+        alt={alt}
+      />
+    </ImageZoom>
   );
 }

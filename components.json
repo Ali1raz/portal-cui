@@ -24,6 +24,7 @@
     "@reui": "https://reui.io/r/{name}.json",
     "@coss": "https://coss.com/ui/r/{name}.json",
     "@magicui": "https://magicui.design/r/{name}.json",
-    "@manifest": "https://ui.manifest.build/r/{name}.json"
+    "@manifest": "https://ui.manifest.build/r/{name}.json",
+    "@kibo-ui": "https://www.kibo-ui.com/r/{name}.json"
   }
 }
