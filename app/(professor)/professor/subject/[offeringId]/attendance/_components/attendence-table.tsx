@@ -24,13 +24,19 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AttendanceStatus } from "@/lib/generated/prisma/enums";
 import { UserImage } from "@/components/user/user-image";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { formatDate } from "@/lib/utils";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 type AttendanceTableData = ProfessorSectionStudents & {
   attendancePercentage: number;
@@ -85,28 +91,48 @@ export function AttendanceTable({
               <div className="flex items-center gap-2">
                 <span>{row.original.user.name}</span>
                 {leaveRequest ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
+                  <Dialog>
+                    <DialogTrigger asChild>
                       {leaveRequest.status === "PENDING" && (
                         <AlertCircle className="size-4 text-destructive animate-caret-blink duration-75" />
                       )}
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <div className="space-y-1">
-                        <p className="font-medium">{status} leave request</p>
-                        <p className="text-xs">
-                          {formatDate(leaveRequest.date)}
-                        </p>
-                        <p className="text-xs">{leaveRequest.reasonTitle}</p>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Leave Request</DialogTitle>
+                        <DialogDescription>
+                          {status} leave request details
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-medium">Date</p>
+                          <p className="text-sm text-muted-foreground">
+                            {formatDate(leaveRequest.date)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Reason</p>
+                          <p className="text-sm text-muted-foreground">
+                            {leaveRequest.reasonTitle}
+                          </p>
+                        </div>
+                      </div>
+                      <DialogFooter className="sm:justify-start">
                         <Link
-                          className="underline-offset-4 text-primary hover:underline"
+                          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2"
                           href={`/professor/subject/${offeringId}/leave-requests/${row.original.pendingLeaveRequest.id}`}
                         >
-                          Click to see details
+                          View Details
                         </Link>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
+                        <DialogClose asChild>
+                          <Button type="button" variant="outline">
+                            Close
+                          </Button>
+                        </DialogClose>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 ) : null}
               </div>
               <span className="text-muted-foreground text-sm">

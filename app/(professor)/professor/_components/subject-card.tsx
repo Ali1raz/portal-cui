@@ -55,7 +55,7 @@ export function CourseCard({
         </div>
         <div className="mt-4">
           <Link
-            href={`/professor/subject/${assignment.offering.id}`}
+            href={`/professor/subject/${assignment.offering.id}/attendance`}
             className={buttonVariants({
               variant: "outline",
               className: "flex items-center gap-3 w-full",
