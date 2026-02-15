@@ -3,6 +3,7 @@
 
 import * as React from "react";
 import type {
+  Cell,
   ColumnDef,
   Header,
   PaginationState,
@@ -14,12 +15,31 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
+import {
+  arrayMove,
+  horizontalListSortingStrategy,
+  SortableContext,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   ChevronDown,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  GripVertical,
   CalendarIcon,
   XIcon,
 } from "lucide-react";
@@ -29,6 +49,7 @@ import type { DateRange } from "react-day-picker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Pagination,
@@ -59,15 +80,17 @@ import {
   ComplaintCategory,
   ComplaintStatus,
 } from "@/lib/generated/prisma/enums";
-import { formatDate, formatEnumLabel } from "@/lib/utils";
+import { cn, formatDate, formatEnumLabel } from "@/lib/utils";
 import { useQueryStates } from "nuqs";
 import {
   complaintAttachmentValues,
-  complaintsSearchParamsParsers,
+  hodComplaintsSearchParamsParsers,
   type ComplaintAttachmentFilter,
-  type ComplaintsSortBy,
+  type HodComplaintsSortBy,
 } from "../complaints-search-params";
+import type { HodComplaintRow } from "@/app/data/hod/get-complaints";
 import { ComplaintActions } from "./complaint-actions";
+import { MiddleTruncateText } from "@/components/general/truncated-text";
 
 const statusVariantMap: Record<
   ComplaintStatus,
@@ -92,22 +115,13 @@ function parseDateKey(value: string) {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }
 
-export type StudentComplaintRow = {
-  id: string;
-  title: string;
-  createdAt: Date;
-  status: ComplaintStatus;
-  category: ComplaintCategory;
-  imageKey: string | null;
-};
-
-/// Student complaints table with filters, sorting, and pagination.
-export function ComplaintsTable({
+/// HOD complaints table with filters, sorting, pagination, and DND.
+export function HodComplaintsTable({
   complaints,
   totalCount,
 }: {
   /// Complaint rows to display in the table.
-  complaints: StudentComplaintRow[];
+  complaints: HodComplaintRow[];
   /// Total complaints count for pagination.
   totalCount: number;
 }) {
@@ -116,7 +130,7 @@ export function ComplaintsTable({
   const [isPending, startTransition] = React.useTransition();
 
   const [queryState, setQueryState] = useQueryStates(
-    complaintsSearchParamsParsers,
+    hodComplaintsSearchParamsParsers,
     {
       history: "replace",
       shallow: false,
@@ -152,17 +166,29 @@ export function ComplaintsTable({
     queryState.category.length > 0 ||
     queryState.dateFrom.length > 0 ||
     queryState.dateTo.length > 0 ||
-    queryState.hasAttachment !== null;
+    queryState.hasAttachment !== "all" ||
+    queryState.query.length > 0;
 
-  const columns = React.useMemo<ColumnDef<StudentComplaintRow>[]>(
+  const columns = React.useMemo<ColumnDef<HodComplaintRow>[]>(
     () => [
       {
         id: "srNo",
         header: "Sr No.",
         enableSorting: false,
+        cell: ({ row }) => <div>{row.index + 1}</div>,
+      },
+      {
+        id: "studentName",
+        header: "Student",
+        accessorFn: (row) => row.student.user.name,
         cell: ({ row }) => (
-          <div>
-            {pagination.pageIndex * pagination.pageSize + row.index + 1}
+          <div className="flex flex-col">
+            <span className="font-medium">
+              {row.original.student.user.name}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {row.original.student.registrationNo}
+            </span>
           </div>
         ),
       },
@@ -171,9 +197,10 @@ export function ComplaintsTable({
         header: "Title",
         accessorFn: (row) => row.title,
         cell: ({ row }) => (
-          <span className="block max-w-[320px] truncate font-medium">
-            {row.original.title}
-          </span>
+          <MiddleTruncateText
+            text={row.original.title}
+            className="max-w-[300px]"
+          />
         ),
       },
       {
@@ -214,20 +241,22 @@ export function ComplaintsTable({
         enableSorting: false,
         cell: ({ row }) => (
           <div className="text-center">
-            <ComplaintActions
-              complaintId={row.original.id}
-              status={row.original.status}
-            />
+            <ComplaintActions complaintId={row.original.id} />
           </div>
         ),
       },
     ],
-    [pagination.pageIndex, pagination.pageSize]
+    []
+  );
+
+  const [columnOrder, setColumnOrder] = React.useState<string[]>(
+    columns.map((column) => column.id as string)
   );
 
   const table = useReactTable({
     data: complaints,
     columns,
+    columnResizeMode: "onChange",
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: (updater) => {
       const nextSorting =
@@ -236,7 +265,7 @@ export function ComplaintsTable({
 
       startTransition(() => {
         void setQueryState({
-          sortBy: (next?.id ?? "createdAt") as ComplaintsSortBy,
+          sortBy: (next?.id ?? "createdAt") as HodComplaintsSortBy,
           sortDir: next?.desc ? "desc" : "asc",
           page: 1,
         });
@@ -259,18 +288,39 @@ export function ComplaintsTable({
     },
     state: {
       sorting,
+      columnOrder,
       pagination,
     },
+    onColumnOrderChange: setColumnOrder,
     enableSortingRemoval: false,
     manualPagination: true,
     manualSorting: true,
     rowCount: totalCount,
   });
 
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (active && over && active.id !== over.id) {
+      setColumnOrder((currentOrder) => {
+        const oldIndex = currentOrder.indexOf(active.id as string);
+        const newIndex = currentOrder.indexOf(over.id as string);
+
+        return arrayMove(currentOrder, oldIndex, newIndex);
+      });
+    }
+  }
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, {}),
+    useSensor(TouchSensor, {}),
+    useSensor(KeyboardSensor, {})
+  );
+
   function handleStatusChange(value: string) {
     startTransition(() => {
       void setQueryState({
-        status: value === "all" ? null : value,
+        status: value === "all" ? "" : value,
         page: 1,
       });
     });
@@ -279,7 +329,7 @@ export function ComplaintsTable({
   function handleCategoryChange(value: string) {
     startTransition(() => {
       void setQueryState({
-        category: value === "all" ? null : value,
+        category: value === "all" ? "" : value,
         page: 1,
       });
     });
@@ -288,8 +338,8 @@ export function ComplaintsTable({
   function handleDateRangeChange(range: DateRange | undefined) {
     startTransition(() => {
       void setQueryState({
-        dateFrom: range?.from ? toDateKey(range.from) : null,
-        dateTo: range?.to ? toDateKey(range.to) : null,
+        dateFrom: range?.from ? toDateKey(range.from) : "",
+        dateTo: range?.to ? toDateKey(range.to) : "",
         page: 1,
       });
     });
@@ -298,173 +348,198 @@ export function ComplaintsTable({
   function handleAttachmentChange(value: string) {
     startTransition(() => {
       void setQueryState({
-        hasAttachment:
-          value === "all" ? null : (value as ComplaintAttachmentFilter),
+        hasAttachment: value as ComplaintAttachmentFilter,
         page: 1,
       });
     });
   }
 
+  /// URL-synced complaints search and filter.
   return (
-    <div className="space-y-6" aria-busy={isPending}>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="complaint-status">Status</Label>
-            <Select
-              value={queryState.status || "all"}
-              onValueChange={handleStatusChange}
-            >
-              <SelectTrigger id="complaint-status" className="w-44">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                {statusOptions.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {formatEnumLabel(status)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+    <div className="w-full" aria-busy={isPending}>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="flex-1 min-w-[200px]">
+          <Label htmlFor="complaints-search" className="sr-only">
+            Search complaints
+          </Label>
+          <Input
+            id="complaints-search"
+            placeholder="Search by title, details, or student..."
+            value={queryState.query}
+            onChange={(event) => {
+              const nextValue = event.target.value;
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="complaint-category">Category</Label>
-            <Select
-              value={queryState.category || "all"}
-              onValueChange={handleCategoryChange}
-            >
-              <SelectTrigger id="complaint-category" className="w-48">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                {categoryOptions.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {formatEnumLabel(category)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label>Created Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-start">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange.from ? (
-                    dateRange.to ? (
-                      <span>
-                        {format(dateRange.from, "MMM dd, yyyy")} -{" "}
-                        {format(dateRange.to, "MMM dd, yyyy")}
-                      </span>
-                    ) : (
-                      <span>From {format(dateRange.from, "MMM dd, yyyy")}</span>
-                    )
-                  ) : (
-                    <span className="text-muted-foreground">
-                      Pick date range
-                    </span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={handleDateRangeChange}
-                  numberOfMonths={1}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="complaint-attachment">Attachment</Label>
-            <Select
-              value={queryState.hasAttachment ?? "all"}
-              onValueChange={handleAttachmentChange}
-            >
-              <SelectTrigger id="complaint-attachment" className="w-44">
-                <SelectValue placeholder="Select attachment" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                {complaintAttachmentValues.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {value === "with"
-                      ? "With attachment"
-                      : "Without attachment"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              startTransition(() => {
+                void setQueryState({
+                  query: nextValue.trim().length > 0 ? nextValue : "",
+                  page: 1,
+                });
+              });
+            }}
+          />
         </div>
+        <Select
+          value={queryState.status || "all"}
+          onValueChange={handleStatusChange}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            {statusOptions.map((status) => (
+              <SelectItem key={status} value={status}>
+                {formatEnumLabel(status)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={queryState.category || "all"}
+          onValueChange={handleCategoryChange}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categoryOptions.map((category) => (
+              <SelectItem key={category} value={category}>
+                {formatEnumLabel(category)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-64 justify-start text-left font-normal",
+                !dateRange.from && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dateRange.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "LLL dd, y")} -{" "}
+                    {format(dateRange.to, "LLL dd, y")}
+                  </>
+                ) : (
+                  format(dateRange.from, "LLL dd, y")
+                )
+              ) : (
+                "Pick a date range"
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              defaultMonth={dateRange.from}
+              selected={dateRange}
+              onSelect={handleDateRangeChange}
+              //   numberOfMonths={2}
+            />
+          </PopoverContent>
+        </Popover>
+
+        <Select
+          value={queryState.hasAttachment}
+          onValueChange={handleAttachmentChange}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Attachment" />
+          </SelectTrigger>
+          <SelectContent>
+            {complaintAttachmentValues.map((value) => (
+              <SelectItem key={value} value={value}>
+                {formatEnumLabel(value)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="flex items-center gap-6">
-        <div>
-          <p className="text-sm text-muted-foreground">
-            {totalCount} result{totalCount !== 1 ? "s" : ""}
-          </p>
-        </div>
-        {hasActiveParams ? (
+      {hasActiveParams ? (
+        <div className="mb-4">
           <Button
-            variant="ghost"
+            type="button"
+            variant="outline"
+            size="sm"
             onClick={() => {
               startTransition(() => {
                 void setQueryState(null);
               });
             }}
-            className="hover:underline underline-offset-4"
           >
-            <XIcon className="size-4" />
-            Clear
+            <XIcon className="mr-2 h-4 w-4" />
+            Clear Filters
           </Button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="bg-muted/50">
-                {headerGroup.headers.map((header) => (
-                  <SortableTableHeader key={header.id} header={header} />
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
+        <DndContext
+          id={tableId}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToHorizontalAxis]}
+          onDragEnd={handleDragEnd}
+          sensors={sensors}
+        >
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow
+                  key={headerGroup.id}
+                  className="bg-muted/50 [&>th]:border-t-0"
                 >
-                  No complaints found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                  <SortableContext
+                    items={columnOrder}
+                    strategy={horizontalListSortingStrategy}
+                  >
+                    {headerGroup.headers.map((header) => (
+                      <DraggableTableHeader key={header.id} header={header} />
+                    ))}
+                  </SortableContext>
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    className="group"
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <SortableContext
+                        key={cell.id}
+                        items={columnOrder}
+                        strategy={horizontalListSortingStrategy}
+                      >
+                        <DragAlongCell cell={cell} />
+                      </SortableContext>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No complaints found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </DndContext>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4 py-4">
@@ -511,7 +586,10 @@ export function ComplaintsTable({
                 table.getRowCount()
               )}
             </span>{" "}
-            of <span className="text-foreground">{table.getRowCount()}</span>
+            of{" "}
+            <span className="text-foreground">
+              {table.getRowCount().toString()}
+            </span>
           </p>
         </div>
 
@@ -577,13 +655,37 @@ export function ComplaintsTable({
   );
 }
 
-function SortableTableHeader({
+function DraggableTableHeader({
   header,
 }: {
-  header: Header<StudentComplaintRow, unknown>;
+  header: Header<HodComplaintRow, unknown>;
 }) {
+  const {
+    attributes,
+    isDragging,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({
+    id: header.column.id,
+  });
+
+  const style: React.CSSProperties = {
+    opacity: isDragging ? 0.8 : 1,
+    position: "relative",
+    transform: CSS.Translate.toString(transform),
+    transition,
+    whiteSpace: "nowrap",
+    width: header.column.getSize(),
+    zIndex: isDragging ? 1 : 0,
+  };
+
   return (
     <TableHead
+      ref={setNodeRef}
+      className="before:bg-border relative h-10 border-t before:absolute before:inset-y-0 before:left-0 before:w-px first:before:bg-transparent"
+      style={style}
       aria-sort={
         header.column.getIsSorted() === "asc"
           ? "ascending"
@@ -592,20 +694,39 @@ function SortableTableHeader({
             : "none"
       }
     >
-      <div className="flex items-center gap-1">
+      <div className="flex items-center justify-start gap-0.5">
+        <Button
+          size="icon"
+          variant="ghost"
+          className="-ml-2 size-7"
+          {...attributes}
+          {...listeners}
+          aria-label="Drag to reorder"
+        >
+          <GripVertical
+            className={cn(
+              "opacity-60 cursor-grab",
+              isDragging && " cursor-grabbing"
+            )}
+            aria-hidden="true"
+          />
+        </Button>
         <span className="grow truncate">
           {header.isPlaceholder
             ? null
             : flexRender(header.column.columnDef.header, header.getContext())}
         </span>
-        {header.column.getCanSort() ? (
+        {header.column.getCanSort() && (
           <Button
             size="icon"
             variant="ghost"
             className="group -mr-1 size-7"
             onClick={header.column.getToggleSortingHandler()}
             onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
+              if (
+                header.column.getCanSort() &&
+                (event.key === "Enter" || event.key === " ")
+              ) {
                 event.preventDefault();
                 header.column.getToggleSortingHandler()?.(event);
               }
@@ -615,28 +736,49 @@ function SortableTableHeader({
             {{
               asc: (
                 <ChevronUp
-                  className="shrink-0 text-primary"
+                  className="shrink-0 opacity-60"
                   size={16}
                   aria-hidden="true"
                 />
               ),
               desc: (
                 <ChevronDown
-                  className="shrink-0 text-primary"
+                  className="shrink-0 opacity-60"
                   size={16}
                   aria-hidden="true"
                 />
               ),
             }[header.column.getIsSorted() as string] ?? (
               <ChevronUp
-                className="shrink-0 opacity-100 group-hover:opacity-60"
+                className="shrink-0 opacity-0 group-hover:opacity-60"
                 size={16}
                 aria-hidden="true"
               />
             )}
           </Button>
-        ) : null}
+        )}
       </div>
     </TableHead>
+  );
+}
+
+function DragAlongCell({ cell }: { cell: Cell<HodComplaintRow, unknown> }) {
+  const { isDragging, setNodeRef, transform, transition } = useSortable({
+    id: cell.column.id,
+  });
+
+  const style: React.CSSProperties = {
+    opacity: isDragging ? 0.8 : 1,
+    position: "relative",
+    transform: CSS.Translate.toString(transform),
+    transition,
+    width: cell.column.getSize(),
+    zIndex: isDragging ? 1 : 0,
+  };
+
+  return (
+    <TableCell ref={setNodeRef} className="truncate" style={style}>
+      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+    </TableCell>
   );
 }

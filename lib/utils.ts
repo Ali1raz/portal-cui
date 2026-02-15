@@ -24,3 +24,8 @@ export function formatDate(
 
   return format(parsedDate, dateFormat);
 }
+
+export function formatEnumLabel(value: string): string {
+  const label = value.toLowerCase().replaceAll("_", " ");
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}

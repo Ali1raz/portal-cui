@@ -115,6 +115,11 @@ export function getNavLinks({
         href: "/hod/past-leave-requests",
         icon: Users,
       },
+      {
+        title: "Complaints",
+        href: "/hod/complaints",
+        icon: IconFlag,
+      },
     ],
     DIRECTOR: [
       {
