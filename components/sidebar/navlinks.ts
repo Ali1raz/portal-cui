@@ -3,6 +3,8 @@ import {
   IconBook,
   IconBook2,
   IconBooks,
+  IconFlag,
+  IconFlagPlus,
   IconHome,
   IconPlus,
   IconUserCheck,
@@ -113,6 +115,11 @@ export function getNavLinks({
         href: "/hod/past-leave-requests",
         icon: Users,
       },
+      {
+        title: "Complaints",
+        href: "/hod/complaints",
+        icon: IconFlag,
+      },
     ],
     DIRECTOR: [
       {
@@ -157,6 +164,16 @@ export function getNavLinks({
         title: "Past leave Requests",
         href: "/student/past-leave-requests",
         icon: IconUserCheck,
+      },
+      {
+        title: "Complaints",
+        href: "/student/complaints",
+        icon: IconFlag,
+      },
+      {
+        title: "New Complaint",
+        href: "/student/complaints/new",
+        icon: IconFlagPlus,
       },
     ],
     ACCOUNTANT: [],

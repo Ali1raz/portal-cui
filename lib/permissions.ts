@@ -17,6 +17,16 @@ export const statements = {
     "get:registered",
   ] as const,
   subjectOfferings: ["create", "list", "get", "update", "delete"] as const,
+  complaints: [
+    "create",
+    "list:own",
+    "list",
+    "get",
+    "update:own",
+    "update",
+    "assign",
+    "delete:own",
+  ] as const,
 } as const;
 
 export const access = createAccessControl(statements);
@@ -30,6 +40,7 @@ export const roles = {
     leaveRequest: ["create", "get", "list", "list:past"],
     subject: ["list", "list:registered", "get:registered"],
     subjectOfferings: ["list"],
+    complaints: ["list:own", "get", "create", "update:own", "delete:own"],
   }),
 
   ADMIN: access.newRole({
@@ -40,6 +51,7 @@ export const roles = {
     leaveRequest: ["get", "list", "update", "list:past"],
     subject: ["create", "get", "list", "update", "delete"],
     subjectOfferings: ["list", "get", "update", "delete", "create"],
+    complaints: [],
   }),
 
   PROFESSOR: access.newRole({
@@ -50,6 +62,7 @@ export const roles = {
     leaveRequest: ["get", "list", "list:past"],
     subject: ["list", "get"],
     subjectOfferings: ["list"],
+    complaints: [],
   }),
   ACCOUNTANT: access.newRole({
     userProfiles: ["view"],
@@ -59,6 +72,7 @@ export const roles = {
     leaveRequest: [],
     subject: ["list"],
     subjectOfferings: ["list"],
+    complaints: [],
   }),
   DIRECTOR: access.newRole({
     userProfiles: ["create", "update", "view"],
@@ -68,6 +82,7 @@ export const roles = {
     leaveRequest: ["get", "list", "list:past"],
     subject: ["list", "get"],
     subjectOfferings: ["list", "get", "update"],
+    complaints: [],
   }),
   HOD: access.newRole({
     userProfiles: ["view", "update"],
@@ -77,6 +92,7 @@ export const roles = {
     leaveRequest: ["get", "list", "update", "list:past"],
     subject: ["list", "get", "update"],
     subjectOfferings: ["list", "get"],
+    complaints: ["list", "assign", "get", "update"],
   }),
   USER: access.newRole({
     userProfiles: ["view"],
@@ -86,6 +102,7 @@ export const roles = {
     leaveRequest: [],
     subject: [],
     subjectOfferings: [],
+    complaints: [],
   }),
 } satisfies Record<Role, ReturnType<typeof access.newRole>>;
 

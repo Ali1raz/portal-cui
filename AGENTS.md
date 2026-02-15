@@ -86,6 +86,10 @@ Comprehensive performance optimization guide for React and Next.js applications,
 
 Read .github/copilot-instructions for project coding standards.
 
+- IF YOU ARE UNSURE OF A FACT, SAY I DON'T KNOW DO NOT GUESS.
+- ASK ME FOR MISSING INFORMATION BEFORE YOU ANSWER.
+- PRIORITZE ACCURACY OVER SOUNDING CONFIDENT.
+
 ## 1. Eliminating Waterfalls
 
 **Impact: CRITICAL**
