@@ -1,16 +1,22 @@
+/// Generates available dates up to today, keeping recent weekdays for attendance.
 function generateAvailableDates(): Date[] {
   const dates: Date[] = [];
-  const now = new Date();
-  // Walk through current and next month, only keeping weekdays (Mon-Fri)
-  for (let m = 0; m <= 1; m++) {
-    for (let d = 1; d <= 28; d++) {
-      const date = new Date(now.getFullYear(), now.getMonth() + m, d);
-      const day = date.getDay();
-      if (day !== 0 && day !== 6) {
-        dates.push(date);
-      }
+  const today = new Date();
+  const endOfToday = new Date(today);
+  endOfToday.setHours(23, 59, 59, 999);
+  const daysBack = 60;
+
+  for (let i = daysBack; i >= 0; i -= 1) {
+    const date = new Date(endOfToday);
+    date.setDate(endOfToday.getDate() - i);
+    date.setHours(0, 0, 0, 0);
+    const day = date.getDay();
+    const isWeekday = day !== 0 && day !== 6;
+    if (isWeekday || i === 0) {
+      dates.push(date);
     }
   }
+
   return dates;
 }
 

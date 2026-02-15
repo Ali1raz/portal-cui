@@ -28,6 +28,15 @@ export async function markAttendance(data: {
         message: "No attendance entries provided.",
       };
     }
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+    if (data.date > todayEnd) {
+      return {
+        status: "error",
+        message: "Future dates are not allowed.",
+      };
+    }
     const session = await requireProfessorSession();
 
     const can = await requirePermission({

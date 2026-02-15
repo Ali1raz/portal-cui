@@ -89,6 +89,13 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
     [to24Hour]
   );
 
+  /// Guards against selecting future attendance dates.
+  const isFutureDate = React.useCallback((date: Date) => {
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+    return date > todayEnd;
+  }, []);
+
   const [attendanceMap, setAttendanceMap] = React.useState<
     Record<string, AttendanceStatus>
   >(() => {
@@ -171,6 +178,13 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
             }}
             actions={{
               onNext: (date, time) => {
+                if (isFutureDate(date)) {
+                  form.setError("date", {
+                    message: "Future dates are not allowed.",
+                  });
+                  toast.error("Future dates are not allowed.");
+                  return;
+                }
                 const { startTime, endTime } = parseTimeRange(time);
                 form.setValue("date", date, { shouldValidate: true });
                 form.setValue("startTime", startTime, {
