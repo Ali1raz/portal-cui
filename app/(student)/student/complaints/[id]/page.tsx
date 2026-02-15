@@ -18,16 +18,12 @@ const statusVariantMap: Record<
   REJECTED: "destructive",
 };
 
-function formatEnumLabel(value: string): string {
-  const label = value.toLowerCase().replaceAll("_", " ");
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
-
 export default async function ComplaintDetailsPage(
   props: PageProps<"/student/complaints/[id]">
 ) {
   const { id } = await props.params;
   const details = await studentGetComplaintDetails({ id });
+  const canEdit = details.status === "PENDING";
 
   return (
     <div className="flex w-full max-w-4xl flex-col gap-6 px-4 md:px-6 my-6">
@@ -38,9 +34,22 @@ export default async function ComplaintDetailsPage(
             Track your complaint status and response.
           </p>
         </div>
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/student/complaints">Back to complaints</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {canEdit ? (
+            <Button size="sm" asChild>
+              <Link href={`/student/complaints/${id}/edit`}>
+                Update Complaint
+              </Link>
+            </Button>
+          ) : (
+            <Button size="sm" disabled>
+              Update Complaint
+            </Button>
+          )}
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/student/complaints">Back to complaints</Link>
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -56,7 +65,7 @@ export default async function ComplaintDetailsPage(
               variant={statusVariantMap[details.status]}
               appearance="light"
             >
-              {formatEnumLabel(details.status)}
+              {details.status}
             </Badge>
           </div>
         </CardHeader>
@@ -64,17 +73,15 @@ export default async function ComplaintDetailsPage(
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <p className="text-sm text-muted-foreground">Category</p>
-              <p className="font-medium">{formatEnumLabel(details.category)}</p>
+              <p className="font-medium">{details.category}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Status</p>
-              <p className="font-medium">{formatEnumLabel(details.status)}</p>
+              <p className="font-medium">{details.status}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Target Department</p>
-              <p className="font-medium">
-                {formatEnumLabel(details.targetDepartment)}
-              </p>
+              <p className="font-medium">{details.targetDepartment}</p>
             </div>
           </div>
 
@@ -103,7 +110,7 @@ export default async function ComplaintDetailsPage(
               Attachment
             </h2>
             {details.imageKey ? (
-              <div className="relative max-w-[650px] rounded-md border">
+              <div className="relative max-w-[650px] rounded-md border p-2">
                 <GeneralImage
                   src={details.imageKey}
                   alt="Complaint attachment"

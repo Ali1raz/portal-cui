@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
-import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,6 +67,7 @@ import {
   type ComplaintAttachmentFilter,
   type ComplaintsSortBy,
 } from "../complaints-search-params";
+import { ComplaintActions } from "./complaint-actions";
 
 const statusVariantMap: Record<
   ComplaintStatus,
@@ -214,14 +214,15 @@ export function ComplaintsTable({
         cell: ({ row }) => (row.original.imageKey ? "Yes" : "No"),
       },
       {
-        id: "action",
-        header: () => <span className="block text-right">Action</span>,
+        id: "actions",
+        header: () => <span className="block text-center">Actions</span>,
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="text-right">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href={`/student/complaints/${row.original.id}`}>View</Link>
-            </Button>
+          <div className="text-center">
+            <ComplaintActions
+              complaintId={row.original.id}
+              status={row.original.status}
+            />
           </div>
         ),
       },

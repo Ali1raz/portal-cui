@@ -25,6 +25,7 @@ export const statements = {
     "update:own",
     "update",
     "assign",
+    "delete:own",
   ] as const,
 } as const;
 
@@ -39,7 +40,7 @@ export const roles = {
     leaveRequest: ["create", "get", "list", "list:past"],
     subject: ["list", "list:registered", "get:registered"],
     subjectOfferings: ["list"],
-    complaints: ["list:own", "get", "create", "update:own"],
+    complaints: ["list:own", "get", "create", "update:own", "delete:own"],
   }),
 
   ADMIN: access.newRole({
