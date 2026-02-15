@@ -15,7 +15,7 @@ use or create utils in lib/utils/\*.ts for common functions like formateDate.ts,
 check authentcation on server side using requireSession imported from app/data/session/require-session.ts
 
 use shadcn/ui for components read https://context7.com/websites/ui_shadcn/llms.txt?tokens=10000
-dont use html table tags use shadcn table component for tables, read https://context7.com/websites/ui_shadcn/llms.txt?topic=table&tokens=10000, for modal use shadcn dialog component read https://context7.com/websites/ui_shadcn/llms.txt?topic=dialog&tokens=10000
+
 use react hooks from hooks/ for example hooks/use-try-catch.ts for async try catch
 use lib/prisma.ts to import prisma client for db operations,
 
@@ -150,7 +150,7 @@ export default async function UsersPage() {
 }
 ```
 
-when creating tables for displaying complex data, use tanstack table as used in app\(admin)\admin\offering_components\offerings-table.tsx, always add filters, dragable andles and sorting and pagination,
+when creating tables for displaying complex data, always use tanstack table as used in app\(admin)\admin\offering_components\offerings-table.tsx, always add filters, dragable andles and sorting and pagination,
 when creating filters use nuqs, start with creating types for filtering that can be used in server and client side, then update query function to accept as arguments
 for reference example see following files:
 

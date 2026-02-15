@@ -128,6 +128,7 @@ model Student {
   enrollments        Enrollment[]
   studentAttendances StudentAttendance[]
   leaveRequests      LeaveRequest[]
+  complaints         Complaint[]
 
   @@map("student")
 }
@@ -274,7 +275,7 @@ model TeachingAssignment {
 
   offeringId String
   offering   SubjectOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
-  section    String? @default("A") // Default section is "A"
+  section    String?         @default("A") // Default section is "A"
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -356,4 +357,67 @@ model LeaveRequest {
   @@index([studentId])
   @@index([offeringId])
   @@map("leave_request")
+}
+
+// Complaint model:
+
+enum ComplaintCategory {
+  ACADEMIC // grade disputes, course issues
+  ADMINISTRATIVE // fee, registration, documents
+  FACULTY // professor conduct
+  FACILITY // labs, classrooms, equipment
+  HARASSMENT
+  OTHER
+}
+
+model Complaint {
+  id String @id @default(uuid())
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  // Current department HOD this sits with
+  // Starts as student's own department, updated on each assignment
+  targetDepartment Department
+
+  category ComplaintCategory // UC-9 Business Rule: must have valid category
+  title    String
+  details  String
+  imageKey String?
+
+  status     ComplaintStatus @default(PENDING)
+  hodRemarks String? // HOD's response on accept/reject
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignments ComplaintAssignment[] // renamed from transfers — matches UC-10 language
+
+  @@index([studentId]) // UC-9: "only student's complaints shown"
+  @@index([targetDepartment]) // UC-10: HOD queries by their department
+  @@map("complaint")
+}
+
+enum ComplaintStatus {
+  PENDING // just submitted, waiting for HOD
+  ASSIGNED // HOD has assigned it to a department (UC-10 post condition)
+  ACCEPTED // HOD resolved it positively
+  REJECTED // HOD resolved it negatively
+}
+
+// Append-only log — covers UC-10 "HOD reassigns" alternative flow too
+model ComplaintAssignment {
+  id String @id @default(uuid())
+
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+  fromDepartment Department
+  toDepartment   Department
+  reason         String? // UC-10: reason for assignment / reassignment
+
+  assignedAt DateTime @default(now())
+
+  @@index([complaintId])
+  @@map("complaint_assignment")
 }
