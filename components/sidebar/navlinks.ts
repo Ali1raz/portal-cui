@@ -9,7 +9,7 @@ import {
   IconPlus,
   IconUserCheck,
 } from "@tabler/icons-react";
-import { GraduationCap, Home, User, Users } from "lucide-react";
+import { AlertTriangle, GraduationCap, Home, User, Users } from "lucide-react";
 import { Route } from "next";
 
 type NavLink<T extends string = string> = {
@@ -119,6 +119,11 @@ export function getNavLinks({
         title: "Complaints",
         href: "/hod/complaints",
         icon: IconFlag,
+      },
+      {
+        title: "Announcements",
+        href: "/hod/announcements",
+        icon: AlertTriangle,
       },
     ],
     DIRECTOR: [
