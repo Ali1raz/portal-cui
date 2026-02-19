@@ -302,7 +302,7 @@ export function OfferingsTable({
   );
 
   return (
-    <div className="w-full" aria-busy={isPending}>
+    <div className="max-w-full" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div>
           <Label htmlFor="offering-search" className="sr-only">
@@ -310,7 +310,7 @@ export function OfferingsTable({
           </Label>
           <Input
             id="offering-search"
-            className="w-[200px]"
+            className="max-w-[200px]"
             placeholder="Search by subject name or code"
             value={queryState.query}
             onChange={(event) => {
@@ -324,14 +324,14 @@ export function OfferingsTable({
               });
             }}
           />
-        </div>{" "}
+        </div>
         <div>
           <Label htmlFor="teacher-search" className="sr-only">
             Search by teacher name
           </Label>
           <Input
             id="teacher-search"
-            className="w-[200px]"
+            className="max-w-[200px]"
             placeholder="Filter by teacher name"
             value={queryState.teacher}
             onChange={(event) => {
@@ -345,7 +345,7 @@ export function OfferingsTable({
               });
             }}
           />
-        </div>{" "}
+        </div>
         <Select
           value={queryState.department ?? "all"}
           onValueChange={(value) => {
