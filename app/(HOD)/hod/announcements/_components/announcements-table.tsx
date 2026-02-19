@@ -94,6 +94,8 @@ import type { HodAnnouncementRow } from "@/app/data/hod/get-announcements";
 import { HodAnnouncementDetailsDrawer } from "./hod-announcement-details-drawer";
 import { MiddleTruncateText } from "@/components/general/truncated-text";
 import { HodAnnouncementActions } from "./hod-announcements-actions";
+import { Checkbox } from "@/components/ui/checkbox";
+import { HodAnnouncementsBulkActions } from "./hod-announcements-bulk-actions";
 
 export const statusVariantMap: Record<
   AnnouncementStatus,
@@ -128,6 +130,7 @@ export function HodAnnouncementsTable({
   "use no memo";
   const tableId = React.useId();
   const [isPending, startTransition] = React.useTransition();
+  const [rowSelection, setRowSelection] = React.useState({});
 
   const [queryState, setQueryState] = useQueryStates(
     hodAnnouncementsSearchParamsParsers,
@@ -172,6 +175,50 @@ export function HodAnnouncementsTable({
 
   const columns = React.useMemo<ColumnDef<HodAnnouncementRow>[]>(
     () => [
+      {
+        id: "select",
+        header: ({ table }) => {
+          const isAllSelected = table.getIsAllPageRowsSelected();
+          const isSomeSelected = table.getIsSomePageRowsSelected();
+          const toggleHandler = table.getToggleAllPageRowsSelectedHandler();
+          return (
+            <Checkbox
+              className="mr-4"
+              aria-label="Select all"
+              checked={
+                isAllSelected
+                  ? true
+                  : isSomeSelected && !isAllSelected
+                    ? "indeterminate"
+                    : false
+              }
+              onCheckedChange={(value) => {
+                const syntheticEvent = {
+                  target: { checked: !!value },
+                } as unknown as React.ChangeEvent<HTMLInputElement>;
+                toggleHandler(syntheticEvent);
+              }}
+            />
+          );
+        },
+        cell: ({ row }) => {
+          const toggleHandler = row.getToggleSelectedHandler();
+          return (
+            <Checkbox
+              aria-label="Select row"
+              checked={row.getIsSelected()}
+              disabled={!row.getCanSelect()}
+              onCheckedChange={(value) => {
+                const syntheticEvent = {
+                  target: { checked: !!value },
+                } as unknown as React.ChangeEvent<HTMLInputElement>;
+                toggleHandler(syntheticEvent);
+              }}
+            />
+          );
+        },
+        enableSorting: false,
+      },
       {
         id: "srNo",
         header: "Sr No.",
@@ -269,6 +316,8 @@ export function HodAnnouncementsTable({
     columns,
     columnResizeMode: "onChange",
     getCoreRowModel: getCoreRowModel(),
+    enableRowSelection: true,
+    onRowSelectionChange: setRowSelection,
     onSortingChange: (updater) => {
       const nextSorting =
         typeof updater === "function" ? updater(sorting) : updater;
@@ -301,12 +350,14 @@ export function HodAnnouncementsTable({
       sorting,
       columnOrder,
       pagination,
+      rowSelection,
     },
     onColumnOrderChange: setColumnOrder,
     enableSortingRemoval: false,
     manualPagination: true,
     manualSorting: true,
     rowCount: totalCount,
+    getRowId: (row) => row.id,
   });
 
   function handleDragEnd(event: DragEndEvent) {
@@ -508,6 +559,18 @@ export function HodAnnouncementsTable({
             <XIcon className="mr-2 h-4 w-4" />
             Clear Filters
           </Button>
+        </div>
+      ) : null}
+
+      {Object.keys(rowSelection).length > 0 ? (
+        <div className="mb-4">
+          <HodAnnouncementsBulkActions
+            selectedIds={Object.keys(rowSelection)}
+            announcements={announcements.filter((a) =>
+              Object.keys(rowSelection).includes(a.id)
+            )}
+            onSuccess={() => setRowSelection({})}
+          />
         </div>
       ) : null}
 
