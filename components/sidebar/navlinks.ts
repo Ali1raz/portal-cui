@@ -1,21 +1,26 @@
 import { Role } from "@/lib/generated/prisma/enums";
 import {
   IconBook,
-  IconBook2,
+  IconTagPlus,
   IconBooks,
-  IconFlag,
-  IconFlagPlus,
+  IconCalendar,
+  IconHistory,
   IconHome,
-  IconPlus,
+  IconLayoutDashboard,
+  IconMessagePlus,
+  IconMessageReport,
+  IconSchool,
+  IconSpeakerphone,
+  IconUser,
   IconUserCheck,
+  IconUsers,
 } from "@tabler/icons-react";
-import { GraduationCap, Home, User, Users } from "lucide-react";
 import { Route } from "next";
 
 type NavLink<T extends string = string> = {
   title: string;
   href: T;
-  icon: typeof Home | typeof IconUserCheck;
+  icon: typeof IconHome;
 };
 
 type RoleDashboardLink<T extends string = string> = NavLink<T> & {
@@ -26,31 +31,31 @@ const roleDashboardLinks: Record<Role, RoleDashboardLink<Route> | null> = {
   PROFESSOR: {
     title: "Dashboard",
     href: "/professor",
-    icon: IconHome,
+    icon: IconLayoutDashboard,
     role: "PROFESSOR",
   },
   HOD: {
     title: "Dashboard",
     href: "/hod",
-    icon: Home,
+    icon: IconLayoutDashboard,
     role: "HOD",
   },
   DIRECTOR: {
     title: "Dashboard",
     href: "/director",
-    icon: Home,
+    icon: IconLayoutDashboard,
     role: "DIRECTOR",
   },
   STUDENT: {
     title: "Dashboard",
     href: "/student",
-    icon: GraduationCap,
+    icon: IconSchool,
     role: "STUDENT",
   },
   ADMIN: {
     title: "Dashboard",
     href: "/admin",
-    icon: IconHome,
+    icon: IconLayoutDashboard,
     role: "ADMIN",
   },
   ACCOUNTANT: null,
@@ -78,7 +83,7 @@ export function getNavLinks({
     {
       title: "Profile",
       href: "/profile",
-      icon: User,
+      icon: IconUser,
     },
   ];
 
@@ -91,53 +96,58 @@ export function getNavLinks({
       {
         title: "Dashboard",
         href: "/professor",
-        icon: IconHome,
+        icon: IconLayoutDashboard,
       },
       {
         title: "Subjects",
         href: "/professor/subject",
-        icon: Users,
+        icon: IconBook,
       },
     ],
     HOD: [
       {
         title: "Dashboard",
         href: "/hod",
-        icon: Home,
+        icon: IconLayoutDashboard,
       },
       {
         title: "Leave Requests",
         href: "/hod/leave-requests",
-        icon: Users,
+        icon: IconCalendar,
       },
       {
         title: "Past leave Requests",
         href: "/hod/past-leave-requests",
-        icon: Users,
+        icon: IconHistory,
       },
       {
         title: "Complaints",
         href: "/hod/complaints",
-        icon: IconFlag,
+        icon: IconMessageReport,
+      },
+      {
+        title: "Announcements",
+        href: "/hod/announcements",
+        icon: IconSpeakerphone,
       },
     ],
     DIRECTOR: [
       {
         title: "Dashboard",
         href: "/director",
-        icon: Home,
+        icon: IconLayoutDashboard,
       },
       {
         title: "Users",
         href: "/director/users",
-        icon: Users,
+        icon: IconUsers,
       },
     ],
     STUDENT: [
       {
         title: "Dashboard",
         href: "/student",
-        icon: GraduationCap,
+        icon: IconSchool,
       },
       {
         title: "Registration",
@@ -158,22 +168,22 @@ export function getNavLinks({
       {
         title: "Request leave",
         href: "/student/request-leave",
-        icon: IconUserCheck,
+        icon: IconCalendar,
       },
       {
         title: "Past leave Requests",
         href: "/student/past-leave-requests",
-        icon: IconUserCheck,
+        icon: IconHistory,
       },
       {
         title: "Complaints",
         href: "/student/complaints",
-        icon: IconFlag,
+        icon: IconMessageReport,
       },
       {
         title: "New Complaint",
         href: "/student/complaints/new",
-        icon: IconFlagPlus,
+        icon: IconMessagePlus,
       },
     ],
     ACCOUNTANT: [],
@@ -181,7 +191,7 @@ export function getNavLinks({
       {
         title: "Dashboard",
         href: "/admin",
-        icon: IconHome,
+        icon: IconLayoutDashboard,
       },
       {
         title: "Subjects",
@@ -191,7 +201,7 @@ export function getNavLinks({
       {
         title: "Create subject",
         href: "/admin/subjects/create",
-        icon: IconPlus,
+        icon: IconTagPlus,
       },
       {
         title: "Offering",
@@ -201,12 +211,12 @@ export function getNavLinks({
       {
         title: "Create offering",
         href: "/admin/offering/create",
-        icon: IconBook2,
+        icon: IconTagPlus,
       },
       {
         title: "Users",
         href: "/admin/users",
-        icon: Users,
+        icon: IconUsers,
       },
     ],
     USER: [],

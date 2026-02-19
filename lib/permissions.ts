@@ -27,6 +27,7 @@ export const statements = {
     "assign",
     "delete:own",
   ] as const,
+  announcements: ["create", "list", "get", "update", "delete"] as const,
 } as const;
 
 export const access = createAccessControl(statements);
@@ -41,6 +42,7 @@ export const roles = {
     subject: ["list", "list:registered", "get:registered"],
     subjectOfferings: ["list"],
     complaints: ["list:own", "get", "create", "update:own", "delete:own"],
+    announcements: ["list", "get"],
   }),
 
   ADMIN: access.newRole({
@@ -52,6 +54,7 @@ export const roles = {
     subject: ["create", "get", "list", "update", "delete"],
     subjectOfferings: ["list", "get", "update", "delete", "create"],
     complaints: [],
+    announcements: ["create", "list", "get", "update", "delete"],
   }),
 
   PROFESSOR: access.newRole({
@@ -63,6 +66,7 @@ export const roles = {
     subject: ["list", "get"],
     subjectOfferings: ["list"],
     complaints: [],
+    announcements: [],
   }),
   ACCOUNTANT: access.newRole({
     userProfiles: ["view"],
@@ -73,6 +77,7 @@ export const roles = {
     subject: ["list"],
     subjectOfferings: ["list"],
     complaints: [],
+    announcements: ["create", "list", "get", "update", "delete"],
   }),
   DIRECTOR: access.newRole({
     userProfiles: ["create", "update", "view"],
@@ -83,6 +88,7 @@ export const roles = {
     subject: ["list", "get"],
     subjectOfferings: ["list", "get", "update"],
     complaints: [],
+    announcements: [],
   }),
   HOD: access.newRole({
     userProfiles: ["view", "update"],
@@ -92,7 +98,8 @@ export const roles = {
     leaveRequest: ["get", "list", "update", "list:past"],
     subject: ["list", "get", "update"],
     subjectOfferings: ["list", "get"],
-    complaints: ["list", "assign", "get", "update"],
+    complaints: ["list", "assign", "get", "update", "list"],
+    announcements: ["create", "list", "get", "update", "delete"],
   }),
   USER: access.newRole({
     userProfiles: ["view"],
@@ -103,6 +110,7 @@ export const roles = {
     subject: [],
     subjectOfferings: [],
     complaints: [],
+    announcements: [],
   }),
 } satisfies Record<Role, ReturnType<typeof access.newRole>>;
 

@@ -55,6 +55,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "framer-motion": "^12.23.25",
+    "inngest": "^3.52.1",
     "lucide-react": "^0.556.0",
     "motion": "^12.23.25",
     "next": "16.1.3",

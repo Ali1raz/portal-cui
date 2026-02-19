@@ -26,9 +26,10 @@ model User {
   director   Director?
   accountant Accountant?
 
-  banned     Boolean?  @default(false)
-  banReason  String?
-  banExpires DateTime?
+  banned        Boolean?       @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  announcements Announcement[]
 
   @@unique([email])
   @@map("user")
@@ -420,4 +421,59 @@ model ComplaintAssignment {
 
   @@index([complaintId])
   @@map("complaint_assignment")
+}
+
+enum AnnouncementStatus {
+  DRAFT // saved but not visible to students
+  SCHEDULED // will auto-publish at scheduledFor datetime cron-job handles transition to PUBLISHED
+  PUBLISHED // live and visible
+  ARCHIVED // soft-deleted / expired, hidden from students
+}
+
+enum AnnouncementType {
+  ACADEMIC // HOD — exams, course changes, academic calendar
+  FEE // Accountant — deadlines, dues, payments
+  EVENT // Any actor — seminars, workshops
+  GENERAL // Admin — policy, general info
+  URGENT // Any actor — high-priority, pinned
+}
+
+model Announcement {
+  id       String  @id @default(uuid())
+  title    String
+  content  String // rich text / markdown
+  imageKey String? // optional banner image
+
+  type   AnnouncementType
+  status AnnouncementStatus @default(DRAFT)
+
+  // ── Authorship ──────────────────────────────────────────
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  // ── Scheduling ──────────────────────────────────────────
+  // null scheduledFor = publish immediately on status → PUBLISHED
+  scheduledFor DateTime? // future datetime for auto-publish
+  publishedAt  DateTime? // set by system when status flips to PUBLISHED
+
+  // ── Audience Targeting ──────────────────────────────────
+  // All null = broadcast to ALL students (Admin use case)
+  // HOD will always set targetDepartment = their own department
+  // Accountant may target all or a specific program/batch
+  targetDepartment Department? // null = all departments
+  targetProgram    Program? // null = all programs (B + M)
+  targetBatch      Batch? // null = all batches (SP + FA)
+  targetYear       Int? // null = all years e.g. 2022
+
+  // ── Engagement ──────────────────────────────────────────
+  isPinned Boolean @default(false) // surfaced at top for URGENT
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, publishedAt]) // for student feed query
+  @@index([authorId]) // for author's own listing
+  @@index([targetDepartment]) // for HOD-scoped queries
+  @@index([status, isPinned, publishedAt]) // for pinned-first ordering
+  @@map("announcement")
 }
