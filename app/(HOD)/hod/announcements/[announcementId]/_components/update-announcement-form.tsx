@@ -25,35 +25,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { AnnouncementType } from "@/lib/generated/prisma/enums";
+import {
+  AnnouncementStatus,
+  AnnouncementType,
+} from "@/lib/generated/prisma/enums";
 import { tryCatch } from "@/hooks/tryCatch";
 import Uploader from "@/components/uploader";
 import { announcementSchema, AnnouncementSchemaType } from "../../schema";
-import { updateAnnouncement } from "../actions";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-
-interface AnnouncementData {
-  id: string;
-  title: string;
-  content: string;
-  type: AnnouncementType;
-  scheduledFor: Date | null;
-  isPinned: boolean;
-  imageKey: string | null;
-}
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { HodGetAnnouncementForUpdateType } from "@/app/data/hod/hodGetAnnouncementForUpdate";
+import { hodUpdateAnnouncement } from "../../actions";
 
 /// Form for HODs to update existing announcements.
 export function UpdateAnnouncementForm({
   announcement,
 }: {
   /// Existing announcement data to pre-populate form.
-  announcement: AnnouncementData;
+  announcement: HodGetAnnouncementForUpdateType;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -73,6 +67,7 @@ export function UpdateAnnouncementForm({
       scheduledFor: announcement.scheduledFor,
       isPinned: announcement.isPinned,
       imageKey: announcement.imageKey || "",
+      status: announcement.status || "PUBLISHED",
     },
     mode: "onChange",
   });
@@ -127,7 +122,7 @@ export function UpdateAnnouncementForm({
 
     startTransition(async () => {
       const { data: result, error } = await tryCatch(
-        updateAnnouncement(announcement.id, values)
+        hodUpdateAnnouncement(announcement.id, values)
       );
       if (error) {
         toast.error("Something bad happened. Please try again.");
@@ -327,9 +322,41 @@ export function UpdateAnnouncementForm({
           />
         ) : null}
 
+        <FormField
+          name="status"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="announcement-status">Status</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger id="announcement-status" className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(AnnouncementStatus).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      <span>{type}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="flex flex-row gap-2">
           <Button disabled={isPending} type="submit">
-            {isPending ? "Updating..." : "Update Announcement"}
+            {isPending ? (
+              <>
+                <Loader2 className="animate-spin size-4" />
+                Updating...
+              </>
+            ) : (
+              "Update announcement"
+            )}
           </Button>
           <Button
             type="button"

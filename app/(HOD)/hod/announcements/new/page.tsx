@@ -1,4 +1,4 @@
-import { CreateAnnouncementForm } from "./_components/create-announcement-form";
+import { HodCreateAnnouncementForm } from "./_components/create-announcement-form";
 
 /// HOD announcement creation page.
 export default function HodAnnouncementCreatePage() {
@@ -11,7 +11,7 @@ export default function HodAnnouncementCreatePage() {
           before publishing.
         </p>
       </div>
-      <CreateAnnouncementForm />
+      <HodCreateAnnouncementForm />
     </div>
   );
 }

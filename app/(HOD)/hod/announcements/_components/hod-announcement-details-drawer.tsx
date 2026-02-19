@@ -4,6 +4,7 @@ import {
   Drawer,
   DrawerContent,
   DrawerDescription,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -12,20 +13,10 @@ import { Button } from "@/components/ui/button";
 import type { HodAnnouncementRow } from "@/app/data/hod/get-announcements";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatEnumLabel } from "@/lib/utils";
-import { AnnouncementStatus } from "@/lib/generated/prisma/enums";
 import { GeneralImage } from "@/components/general/general-image";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
-
-const statusVariantMap: Record<
-  AnnouncementStatus,
-  "warning" | "info" | "success" | "destructive" | "secondary"
-> = {
-  DRAFT: "secondary",
-  SCHEDULED: "info",
-  PUBLISHED: "success",
-  ARCHIVED: "destructive",
-};
+import { statusVariantMap } from "./announcements-table";
 
 /// Drawer to show announcement details from the list.
 export function HodAnnouncementDetailsDrawer({
@@ -45,14 +36,14 @@ export function HodAnnouncementDetailsDrawer({
           </Button>
         )}
       </DrawerTrigger>
-      <DrawerContent className="no-scrollbar overflow-y-auto px-4">
+      <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>Announcement details</DrawerTitle>
           <DrawerDescription>
             Review announcement metadata and message content.
           </DrawerDescription>
         </DrawerHeader>
-        <div className="space-y-4 pb-6">
+        <div className="space-y-4 pb-6 px-4 overflow-y-scroll">
           <div className="space-y-2">
             <h2 className="text-base font-semibold">{announcement.title}</h2>
             <div className="flex flex-wrap items-center gap-2">
@@ -117,15 +108,16 @@ export function HodAnnouncementDetailsDrawer({
               {announcement.content}
             </p>
           </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/hod/announcements/${announcement.id}`}>
-                <Pencil className="mr-2 h-4 w-4" />
-                Edit
-              </Link>
-            </Button>
-          </div>
+          <DrawerFooter>
+            <div className="flex gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/hod/announcements/${announcement.id}`}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit
+                </Link>
+              </Button>
+            </div>
+          </DrawerFooter>
         </div>
       </DrawerContent>
     </Drawer>

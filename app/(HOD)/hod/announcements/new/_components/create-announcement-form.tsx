@@ -24,21 +24,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { AnnouncementType } from "@/lib/generated/prisma/enums";
+import {
+  AnnouncementStatus,
+  AnnouncementType,
+} from "@/lib/generated/prisma/enums";
 import { tryCatch } from "@/hooks/tryCatch";
 import Uploader from "@/components/uploader";
 import { announcementSchema, AnnouncementSchemaType } from "../../schema";
-import { createAnnouncement } from "../actions";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { hodCreateAnnouncement } from "../../actions";
 
 /// Form for HODs to create draft announcements.
-export function CreateAnnouncementForm() {
+export function HodCreateAnnouncementForm() {
   const [isPending, startTransition] = useTransition();
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>();
@@ -52,6 +55,7 @@ export function CreateAnnouncementForm() {
       scheduledFor: null,
       isPinned: false,
       imageKey: "",
+      status: "DRAFT",
     },
     mode: "onChange",
   });
@@ -108,7 +112,7 @@ export function CreateAnnouncementForm() {
 
     startTransition(async () => {
       const { data: result, error } = await tryCatch(
-        createAnnouncement(values)
+        hodCreateAnnouncement(values)
       );
       if (error) {
         toast.error("Something bad happened. Please try again.");
@@ -310,12 +314,44 @@ export function CreateAnnouncementForm() {
           />
         ) : null}
 
+        <FormField
+          name="status"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="announcement-status">Status</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger id="announcement-status" className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(AnnouncementStatus).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      <span>{type}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="flex flex-row gap-2">
           <Button disabled={isPending} type="submit">
-            {isPending ? "Submitting..." : "Save Draft"}
+            {isPending ? (
+              <>
+                <Loader2 className="animate-spin size-4" />
+                Creating...
+              </>
+            ) : (
+              "Create announcement"
+            )}
           </Button>
           <Button type="button" variant="outline" onClick={() => form.reset()}>
-            Reset
+            Reset form
           </Button>
         </div>
       </form>

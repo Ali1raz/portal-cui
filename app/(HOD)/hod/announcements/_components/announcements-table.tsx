@@ -93,8 +93,9 @@ import {
 import type { HodAnnouncementRow } from "@/app/data/hod/get-announcements";
 import { HodAnnouncementDetailsDrawer } from "./hod-announcement-details-drawer";
 import { MiddleTruncateText } from "@/components/general/truncated-text";
+import { HodAnnouncementActions } from "./hod-announcements-actions";
 
-const statusVariantMap: Record<
+export const statusVariantMap: Record<
   AnnouncementStatus,
   "warning" | "info" | "success" | "destructive" | "secondary"
 > = {
@@ -185,7 +186,10 @@ export function HodAnnouncementsTable({
           <div className="flex max-w-[320px] flex-col gap-1">
             <MiddleTruncateText text={row.original.title} maxLength={30} />
             <HodAnnouncementDetailsDrawer announcement={row.original}>
-              <ArrowUpRightFromSquare className="size-4 hover:text-primary cursor-pointer" />
+              <span className="hover:text-primary cursor-pointer flex items-center gap-2 w-min">
+                view
+                <ArrowUpRightFromSquare className="size-4" />
+              </span>
             </HodAnnouncementDetailsDrawer>
           </div>
         ),
@@ -248,11 +252,7 @@ export function HodAnnouncementsTable({
         enableSorting: false,
         cell: ({ row }) => (
           <div className="text-center">
-            <HodAnnouncementDetailsDrawer announcement={row.original}>
-              <Button size="sm" variant="outline">
-                View
-              </Button>
-            </HodAnnouncementDetailsDrawer>
+            <HodAnnouncementActions announcementId={row.original.id} />
           </div>
         ),
       },
