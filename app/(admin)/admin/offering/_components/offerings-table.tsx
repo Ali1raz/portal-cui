@@ -33,7 +33,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  CheckCheck,
   ChevronDown,
   ChevronFirst,
   ChevronLast,
@@ -76,6 +75,7 @@ import {
   offeringSearchParamsParsers,
 } from "../offering-search-params";
 import Link from "next/link";
+import { UserImage } from "@/components/user/user-image";
 
 export function OfferingsTable({
   offerings,
@@ -111,7 +111,8 @@ export function OfferingsTable({
     queryState.query.length > 0 ||
     queryState.department !== null ||
     queryState.semester !== null ||
-    queryState.year !== null;
+    queryState.year !== null ||
+    queryState.teacher.length > 0;
 
   const pagination: PaginationState = {
     pageIndex: Math.max(queryState.page - 1, 0),
@@ -190,9 +191,25 @@ export function OfferingsTable({
       cell: ({ row }) => (
         <div className="text-center">
           {row.original._count.teachingAssignments === 0 ? (
-            <Clock className="size-4" />
+            <div className="flex items-center justify-center gap-1 text-muted-foreground">
+              <Clock className="size-4" />
+              <span className="text-xs">Not assigned</span>
+            </div>
           ) : (
-            <CheckCheck className="size-4" />
+            <div className="flex flex-col gap-1">
+              {row.original.teachingAssignments.map((assignment, idx) => (
+                <div key={idx} className="flex items-center gap-1">
+                  <UserImage
+                    image={assignment.professor.user.image}
+                    name={assignment.professor.user.name}
+                    className="size-8"
+                  />
+                  <span className="text-sm">
+                    {assignment.professor.user.name}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       ),
@@ -307,7 +324,28 @@ export function OfferingsTable({
               });
             }}
           />
-        </div>
+        </div>{" "}
+        <div>
+          <Label htmlFor="teacher-search" className="sr-only">
+            Search by teacher name
+          </Label>
+          <Input
+            id="teacher-search"
+            className="w-[200px]"
+            placeholder="Filter by teacher name"
+            value={queryState.teacher}
+            onChange={(event) => {
+              const nextValue = event.target.value;
+
+              startTransition(() => {
+                void setQueryState({
+                  teacher: nextValue.trim().length > 0 ? nextValue : "",
+                  page: 1,
+                });
+              });
+            }}
+          />
+        </div>{" "}
         <Select
           value={queryState.department ?? "all"}
           onValueChange={(value) => {

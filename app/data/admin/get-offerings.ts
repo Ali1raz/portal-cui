@@ -15,6 +15,7 @@ type AdminGetOfferingsParams = Pick<
   | "department"
   | "semester"
   | "year"
+  | "teacher"
 >;
 
 export async function getAdminOfferings({
@@ -26,6 +27,7 @@ export async function getAdminOfferings({
   department,
   semester,
   year,
+  teacher,
 }: AdminGetOfferingsParams) {
   const can = await requirePermission({
     subjectOfferings: ["list"],
@@ -39,6 +41,7 @@ export async function getAdminOfferings({
   const safePageSize = Math.max(pageSize, 1);
   const direction: Prisma.SortOrder = sortDir;
   const trimmedQuery = query.trim();
+  const trimmedTeacher = teacher.trim();
   const where: Prisma.SubjectOfferingWhereInput = {
     ...(trimmedQuery
       ? {
@@ -59,6 +62,19 @@ export async function getAdminOfferings({
     ...(department ? { department } : {}),
     ...(typeof semester === "number" ? { semester } : {}),
     ...(typeof year === "number" ? { year } : {}),
+    ...(trimmedTeacher
+      ? {
+          teachingAssignments: {
+            some: {
+              professor: {
+                user: {
+                  name: { contains: trimmedTeacher, mode: "insensitive" },
+                },
+              },
+            },
+          },
+        }
+      : {}),
   };
 
   const orderBy: Prisma.SubjectOfferingOrderByWithRelationInput =
@@ -97,6 +113,21 @@ export async function getAdminOfferings({
             name: true,
             code: true,
             creditHours: true,
+          },
+        },
+        teachingAssignments: {
+          select: {
+            professor: {
+              select: {
+                user: {
+                  select: {
+                    name: true,
+                    image: true,
+                    id: true,
+                  },
+                },
+              },
+            },
           },
         },
         _count: {
