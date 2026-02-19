@@ -252,3 +252,154 @@ export async function HodDeleteAnnouncement(
     return { status: "error", message: errorMessage(error) };
   }
 }
+
+/// Bulk delete multiple announcements by IDs.
+export async function hodBulkDeleteAnnouncements(
+  ids: string[]
+): Promise<ApiResponseType> {
+  try {
+    const session = await requireSession();
+
+    const can = await requirePermission({
+      announcements: ["delete"],
+    });
+
+    if (!can) {
+      return {
+        status: "error",
+        message: "You are not allowed to delete announcements",
+      };
+    }
+
+    if (!ids || ids.length === 0) {
+      return {
+        status: "error",
+        message: "No announcements selected",
+      };
+    }
+
+    const hod = await prisma.hod.findFirst({
+      where: { userId: session.user.id },
+      select: { id: true, department: true },
+    });
+
+    if (!hod) {
+      return {
+        status: "error",
+        message: "HOD profile not found.",
+      };
+    }
+
+    // Verify all announcements belong to HOD's department
+    const announcements = await prisma.announcement.findMany({
+      where: {
+        id: { in: ids },
+        targetDepartment: hod.department,
+      },
+      select: { id: true },
+    });
+
+    if (announcements.length === 0) {
+      return {
+        status: "error",
+        message: "No valid announcements found to delete",
+      };
+    }
+
+    const validIds = announcements.map((a) => a.id);
+
+    await prisma.announcement.deleteMany({
+      where: { id: { in: validIds } },
+    });
+
+    return {
+      status: "success",
+      message: `Successfully deleted ${validIds.length} ${validIds.length === 1 ? "announcement" : "announcements"}`,
+    };
+  } catch (error) {
+    return { status: "error", message: errorMessage(error) };
+  }
+}
+
+/// Bulk update status for multiple announcements.
+export async function hodBulkUpdateAnnouncementStatus(
+  ids: string[],
+  newStatus: AnnouncementStatus
+): Promise<ApiResponseType> {
+  try {
+    const session = await requireSession();
+
+    const can = await requirePermission({
+      announcements: ["update"],
+    });
+
+    if (!can) {
+      return {
+        status: "error",
+        message: "You are not allowed to update announcements",
+      };
+    }
+
+    if (!ids || ids.length === 0) {
+      return {
+        status: "error",
+        message: "No announcements selected",
+      };
+    }
+
+    if (!Object.values(AnnouncementStatus).includes(newStatus)) {
+      return {
+        status: "error",
+        message: "Invalid status value",
+      };
+    }
+
+    const hod = await prisma.hod.findFirst({
+      where: { userId: session.user.id },
+      select: { id: true, department: true },
+    });
+
+    if (!hod) {
+      return {
+        status: "error",
+        message: "HOD profile not found.",
+      };
+    }
+
+    // Verify all announcements belong to HOD's department
+    const announcements = await prisma.announcement.findMany({
+      where: {
+        id: { in: ids },
+        targetDepartment: hod.department,
+      },
+      select: { id: true, status: true },
+    });
+
+    if (announcements.length === 0) {
+      return {
+        status: "error",
+        message: "No valid announcements found to update",
+      };
+    }
+
+    const validIds = announcements.map((a) => a.id);
+
+    // Update status and set publishedAt if changing to PUBLISHED
+    await prisma.announcement.updateMany({
+      where: { id: { in: validIds } },
+      data: {
+        status: newStatus,
+        ...(newStatus === AnnouncementStatus.PUBLISHED && {
+          publishedAt: new Date(),
+        }),
+      },
+    });
+
+    return {
+      status: "success",
+      message: `Successfully updated ${validIds.length} ${validIds.length === 1 ? "announcement" : "announcements"} to ${newStatus}`,
+    };
+  } catch (error) {
+    return { status: "error", message: errorMessage(error) };
+  }
+}
