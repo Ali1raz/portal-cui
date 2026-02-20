@@ -14,6 +14,7 @@ import {
   IconUser,
   IconUserCheck,
   IconUsers,
+  IconMessage2,
 } from "@tabler/icons-react";
 import { Route } from "next";
 
@@ -128,7 +129,12 @@ export function getNavLinks({
       {
         title: "Announcements",
         href: "/hod/announcements",
-        icon: IconSpeakerphone,
+        icon: IconMessage2,
+      },
+      {
+        title: "Create Announcement",
+        href: "/hod/announcements/new",
+        icon: IconMessagePlus,
       },
     ],
     DIRECTOR: [
@@ -184,6 +190,11 @@ export function getNavLinks({
         title: "New Complaint",
         href: "/student/complaints/new",
         icon: IconMessagePlus,
+      },
+      {
+        title: "Announcements",
+        href: "/student/announcements",
+        icon: IconSpeakerphone,
       },
     ],
     ACCOUNTANT: [],
