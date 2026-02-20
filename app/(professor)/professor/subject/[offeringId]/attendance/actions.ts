@@ -6,6 +6,7 @@ import { errorMessage } from "@/lib/error-message";
 import type { AttendanceStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
+import { AttendanceFormSchemaType } from "./zod-schema";
 
 type AttendanceRecord = {
   registrationNo: string;
@@ -13,16 +14,17 @@ type AttendanceRecord = {
 };
 
 /// Marks attendance for a subject offering session and validates enrollment.
-export async function markAttendance(data: {
+export async function markAttendance({
+  attendances,
+  offeringId,
+  values,
+}: {
   offeringId: string;
-  topic: string;
-  date: Date;
-  startTime: string;
-  endTime: string;
   attendances: AttendanceRecord[];
+  values: AttendanceFormSchemaType;
 }): Promise<ApiResponseType> {
   try {
-    if (!data.attendances.length) {
+    if (!attendances.length) {
       return {
         status: "error",
         message: "No attendance entries provided.",
@@ -31,7 +33,7 @@ export async function markAttendance(data: {
 
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
-    if (data.date > todayEnd) {
+    if (values.date > todayEnd) {
       return {
         status: "error",
         message: "Future dates are not allowed.",
@@ -53,7 +55,7 @@ export async function markAttendance(data: {
     // Fetch teaching assignment for this professor and offering in one query
     const teachingAssignment = await prisma.teachingAssignment.findFirst({
       where: {
-        offeringId: data.offeringId,
+        offeringId: offeringId,
         professor: { userId: session.user.id },
       },
       select: { id: true, section: true },
@@ -66,15 +68,13 @@ export async function markAttendance(data: {
       };
     }
 
-    const sessionDate = data.date; // already a Date
-
     // For each student, verify enrollment in the offering and section
     const regNos = Array.from(
-      new Set(data.attendances.map((a) => a.registrationNo))
+      new Set(attendances.map((a) => a.registrationNo))
     );
     const enrollments = await prisma.enrollment.findMany({
       where: {
-        offeringId: data.offeringId,
+        offeringId: offeringId,
         section: teachingAssignment.section,
         student: { registrationNo: { in: regNos } },
       },
@@ -88,7 +88,7 @@ export async function markAttendance(data: {
       enrollments.map((e) => [e.student.registrationNo, e.studentId])
     );
 
-    const validAttendances = data.attendances
+    const validAttendances = attendances
       .map((a) => ({
         status: a.status,
         studentId: regNoToId.get(a.registrationNo) ?? null,
@@ -104,32 +104,32 @@ export async function markAttendance(data: {
 
     const skipped = regNos.filter((regNo) => !regNoToId.has(regNo));
 
+    // Check for existing attendance record with same date/time
+    const existing = await prisma.attendanceRecord.findFirst({
+      where: {
+        offeringId: offeringId,
+        date: values.date,
+        startTime: values.startTime,
+        endTime: values.endTime,
+      },
+      select: { id: true },
+    });
+
+    if (existing) {
+      return {
+        status: "error",
+        message: "Attendance already marked for this session.",
+      };
+    }
+
     await prisma.$transaction(async (tx) => {
-      // check existing record inside the transaction to reduce race window
-      const existing = await tx.attendanceRecord.findFirst({
-        where: {
-          offeringId: data.offeringId,
-          date: sessionDate,
-          startTime: data.startTime,
-          endTime: data.endTime,
-        },
-        select: { id: true },
-      });
-
-      if (existing) {
-        return {
-          status: "error",
-          message: "Attendance already marked for this session.",
-        };
-      }
-
       const attendanceRecord = await tx.attendanceRecord.create({
         data: {
-          date: sessionDate,
-          startTime: data.startTime,
-          endTime: data.endTime,
-          topic: data.topic,
-          offeringId: data.offeringId,
+          date: values.date,
+          startTime: values.startTime,
+          endTime: values.endTime,
+          topic: values.topic,
+          offeringId: offeringId,
         },
       });
 
@@ -150,6 +150,7 @@ export async function markAttendance(data: {
           : `Attendance marked for ${validAttendances.length} students`,
     };
   } catch (error) {
+    console.log(error);
     return {
       status: "error",
       message: errorMessage(error),

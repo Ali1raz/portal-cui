@@ -9,6 +9,7 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
+  RowSelectionState,
 } from "@tanstack/react-table";
 import { ProfessorSectionStudents } from "@/app/data/professor/get-professor-students";
 import {
@@ -37,6 +38,7 @@ import { formatDate } from "@/lib/utils";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type AttendanceTableData = ProfessorSectionStudents & {
   attendancePercentage: number;
@@ -56,6 +58,7 @@ export function AttendanceTable({
 }) {
   "use no memo"; // ← Add this directive
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
   const tableData: AttendanceTableData[] = React.useMemo(
     () =>
@@ -69,6 +72,32 @@ export function AttendanceTable({
 
   const columns: ColumnDef<AttendanceTableData>[] = React.useMemo(
     () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            size="sm"
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            size="sm"
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
       {
         accessorKey: "user.image",
         header: "",
@@ -193,16 +222,58 @@ export function AttendanceTable({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
+    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
+      rowSelection,
     },
+    enableRowSelection: true,
+    getRowId: (row) => row.id,
   });
+
+  const selectedStudentIds = React.useMemo(
+    () => Object.keys(rowSelection),
+    [rowSelection]
+  );
+
+  const handleBulkStatusChange = (status: AttendanceStatus) => {
+    selectedStudentIds.forEach((studentId) => {
+      onStatusChange(studentId, status);
+    });
+    setRowSelection({});
+  };
 
   return (
     <div className="space-y-4">
       <div className="space-y-4">
-        <div className="text-muted-foreground text-sm">
-          Total Students: {students.length}
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground text-sm">
+            Total Students: {students.length}
+            {selectedStudentIds.length > 0 && (
+              <span className="ml-2 font-medium text-foreground">
+                • {selectedStudentIds.length} selected
+              </span>
+            )}
+          </div>
+
+          {selectedStudentIds.length > 0 && (
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleBulkStatusChange(AttendanceStatus.PRESENT)}
+              >
+                Mark as Present
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleBulkStatusChange(AttendanceStatus.ABSENT)}
+              >
+                Mark as Absent
+              </Button>
+            </div>
+          )}
         </div>
         <Table>
           <TableHeader>

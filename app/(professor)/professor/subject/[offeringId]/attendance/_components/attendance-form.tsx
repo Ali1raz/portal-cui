@@ -20,12 +20,17 @@ import { tryCatch } from "@/hooks/tryCatch";
 import { markAttendance } from "../actions";
 import { AttendanceTable } from "./attendence-table";
 import type { ProfessorSectionStudents } from "@/app/data/professor/get-professor-students";
+import { attendanceFormSchema, AttendanceFormSchemaType } from "../zod-schema";
 import {
-  attendanceFormSchema,
-  type AttendanceFormSchemaType,
-} from "../zod-schema";
-import { DateTimePicker } from "@/components/ui/date-time-picker";
-import { demoDateTimePickerData } from "@/lib/data/attendence-form";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { availableTimesForAttendance } from "@/lib/data/attendence-form";
 
 /// Props for the professor attendance form.
 type AttendanceFormProps = {
@@ -35,66 +40,18 @@ type AttendanceFormProps = {
 
 export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
   const [isPending, startTransition] = useTransition();
+  const [date, setDate] = React.useState<Date | undefined>();
 
   const form = useForm<AttendanceFormSchemaType>({
     resolver: zodResolver(attendanceFormSchema),
     defaultValues: {
       topic: "",
       date: new Date(),
-      startTime: "09:00",
-      endTime: "10:00",
+      startTime: availableTimesForAttendance[0],
+      endTime: availableTimesForAttendance[1],
     },
     mode: "onChange",
   });
-
-  /// Normalizes time text like "9:00am" to 24-hour "HH:mm" for form submission.
-  const to24Hour = React.useCallback((timeText: string) => {
-    const match = timeText.trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
-    if (!match) return timeText;
-    const [, rawHour, rawMinute, period] = match;
-    const hour = Number(rawHour);
-    const minute = Number(rawMinute);
-    const isPm = period.toLowerCase() === "pm";
-    const normalizedHour = (hour % 12) + (isPm ? 12 : 0);
-    return `${String(normalizedHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-  }, []);
-
-  /// Builds readable time ranges like "9:00am - 10:00am" for the picker.
-  const timeRanges = React.useMemo(() => {
-    const slots = demoDateTimePickerData.availableTimeSlots ?? [];
-    return slots.map((slot) => {
-      const [rawHour, rawMinutePeriod] = slot.split(":");
-      const minute = rawMinutePeriod?.slice(0, 2) ?? "00";
-      const period = rawMinutePeriod?.slice(2).toLowerCase() ?? "am";
-      const hourNumber = Number(rawHour);
-      const baseHour = (hourNumber % 12) + (period === "pm" ? 12 : 0);
-      const end = new Date();
-      end.setHours(baseHour + 1, Number(minute), 0, 0);
-      const endHour = end.getHours() % 12 || 12;
-      const endPeriod = end.getHours() >= 12 ? "pm" : "am";
-      const endText = `${endHour}:${String(end.getMinutes()).padStart(2, "0")}${endPeriod}`;
-      return `${slot} - ${endText}`;
-    });
-  }, []);
-
-  /// Extracts start/end times from a time range string.
-  const parseTimeRange = React.useCallback(
-    (timeRange: string) => {
-      const [start, end] = timeRange.split("-").map((value) => value.trim());
-      return {
-        startTime: to24Hour(start),
-        endTime: to24Hour(end ?? start),
-      };
-    },
-    [to24Hour]
-  );
-
-  /// Guards against selecting future attendance dates.
-  const isFutureDate = React.useCallback((date: Date) => {
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
-    return date > todayEnd;
-  }, []);
 
   const [attendanceMap, setAttendanceMap] = React.useState<
     Record<string, AttendanceStatus>
@@ -116,6 +73,31 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
     []
   );
 
+  const today = React.useMemo(() => {
+    const next = new Date();
+    next.setHours(0, 0, 0, 0); // idk why this
+    // is needed but without this the calendar allows selecting the current date even if it's past midnight
+
+    return next;
+  }, []);
+
+  const setDateValue = (date: Date | undefined) => {
+    if (!date) {
+      form.setValue("date", new Date(), { shouldValidate: true });
+      return;
+    }
+    const next = new Date(date);
+    next.setHours(0, 0, 0, 0);
+    if (next > today) {
+      form.setError("date", {
+        message: "date should be in the past.",
+      });
+      return;
+    }
+
+    form.setValue("date", next, { shouldValidate: true });
+  };
+
   function onSubmit(values: AttendanceFormSchemaType) {
     startTransition(async () => {
       const attendances = students.map((student) => ({
@@ -126,11 +108,13 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
       const { data: result, error } = await tryCatch(
         markAttendance({
           offeringId,
-          topic: values.topic,
-          date: values.date,
-          startTime: values.startTime,
-          endTime: values.endTime,
           attendances,
+          values: {
+            topic: values.topic,
+            date: values.date,
+            startTime: values.startTime,
+            endTime: values.endTime,
+          },
         })
       );
 
@@ -165,42 +149,9 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
         <div className="p-4 space-y-4 mb-8">
           <h2 className="text-lg font-semibold">Lecture Details</h2>
 
-          <DateTimePicker
-            data={{
-              ...demoDateTimePickerData,
-              availableTimeSlots: timeRanges,
-              // timezone: "Karachi, Islamabad",
-            }}
-            appearance={{
-              showTitle: true,
-              // showTimezone: true,
-              // weekStartsOn: "sunday", // "sunday" | "monday" | "saturday"
-            }}
-            actions={{
-              onNext: (date, time) => {
-                if (isFutureDate(date)) {
-                  form.setError("date", {
-                    message: "Future dates are not allowed.",
-                  });
-                  toast.error("Future dates are not allowed.");
-                  return;
-                }
-                const { startTime, endTime } = parseTimeRange(time);
-                form.setValue("date", date, { shouldValidate: true });
-                form.setValue("startTime", startTime, {
-                  shouldValidate: true,
-                });
-                form.setValue("endTime", endTime, { shouldValidate: true });
-                // console.log("Selected Date:", date);
-                // console.log("Start Time:", startTime);
-                // console.log("End Time:", endTime);
-              },
-            }}
-          />
-
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 lg:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="topic"
@@ -218,34 +169,171 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="date"
-                  render={() => (
+                  render={({ field }) => (
                     <FormItem>
+                      <FormLabel>Date</FormLabel>
+
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left font-normal"
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span className="text-muted-foreground">
+                                  Pick a date
+                                </span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={date}
+                            onSelect={(date) => {
+                              setDate(date);
+                              setDateValue(date);
+                            }}
+                            disabled={(date) => date > today}
+                          />
+                        </PopoverContent>
+                      </Popover>
+
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="startTime"
-                  render={() => (
-                    <FormItem>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="endTime"
-                  render={() => (
-                    <FormItem>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid gap-4 sm:grid-cols-2 grid-cols-1">
+                  <FormField
+                    control={form.control}
+                    name="startTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start time</FormLabel>
+
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start text-left font-normal"
+                              >
+                                {field.value}
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <div className="w-[180px]">
+                              <div className="flex gap-4 flex-col">
+                                <div className="space-y-2 px-4 pt-4">
+                                  <p className="text-center text-sm font-medium">
+                                    Available Times
+                                  </p>
+                                </div>
+                                <ScrollArea className="h-full overflow-y-auto">
+                                  <div className="grid grid-cols-1 gap-2 px-4 pb-4">
+                                    {availableTimesForAttendance.map(
+                                      (time, i) => (
+                                        <Button
+                                          key={time}
+                                          size="sm"
+                                          onClick={() => {
+                                            form.setValue("startTime", time);
+                                            form.setValue(
+                                              "endTime",
+                                              availableTimesForAttendance[i + 1]
+                                            );
+                                          }}
+                                          variant={
+                                            time === field.value
+                                              ? "primary"
+                                              : "outline"
+                                          }
+                                        >
+                                          {time}
+                                        </Button>
+                                      )
+                                    )}
+                                  </div>
+                                </ScrollArea>
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="endTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End time</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start text-left font-normal"
+                              >
+                                {field.value}
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <div className="w-[180px]">
+                              <div className="flex gap-4 flex-col">
+                                <div className="space-y-2 px-4 pt-4">
+                                  <p className="text-center text-sm font-medium">
+                                    Available Times
+                                  </p>
+                                </div>
+                                <ScrollArea className="h-full overflow-y-auto">
+                                  <div className="grid grid-cols-1 gap-2 px-4 pb-4">
+                                    {availableTimesForAttendance.map((time) => (
+                                      <Button
+                                        key={time}
+                                        size="sm"
+                                        onClick={() => {
+                                          form.setValue("endTime", time);
+                                        }}
+                                        disabled={
+                                          form.getValues("startTime") === time
+                                        }
+                                        variant={
+                                          time === field.value
+                                            ? "primary"
+                                            : "outline"
+                                        }
+                                      >
+                                        {time}
+                                      </Button>
+                                    ))}
+                                  </div>
+                                </ScrollArea>
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
 
               <AttendanceTable

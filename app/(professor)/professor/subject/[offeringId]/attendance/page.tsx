@@ -17,7 +17,7 @@ export default async function AttendencePage(
   const { offeringId } = await props.params;
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col max-w-5xl">
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 p-4 md:gap-6 md:py-6">
           <div className="flex items-start sm:flex-row flex-col sm:justify-between justify-start gap-4">
