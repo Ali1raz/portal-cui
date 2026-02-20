@@ -4,6 +4,7 @@ import { ApiResponseType } from "@/lib/types";
 import { LeaveRequestFormType, leaveRequestSchema } from "./schema";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/app/data/permission/require-permission";
+import { inngest } from "@/lib/inngest/client";
 
 export async function sendLeaveRequest(
   data: LeaveRequestFormType,
@@ -41,7 +42,7 @@ export async function sendLeaveRequest(
       };
     }
 
-    await prisma.leaveRequest.create({
+    const lr = await prisma.leaveRequest.create({
       data: {
         studentId: studentId,
         date: new Date(validated.data.date),
@@ -50,7 +51,20 @@ export async function sendLeaveRequest(
         imageKey: validated.data.imageKey,
         offeringId: offering.id,
       },
+      select: {
+        id: true,
+      },
     });
+
+    if (validated.data.date) {
+      await inngest.send({
+        name: "leaveRequest/status.changed",
+        data: {
+          leaveRequestId: lr.id,
+          requestDate: validated.data.date,
+        },
+      });
+    }
 
     return {
       status: "success",
