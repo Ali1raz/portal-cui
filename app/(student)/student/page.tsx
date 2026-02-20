@@ -5,11 +5,11 @@ export default async function StudentPage() {
   const courses = await getStudentSubjects();
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col max-w-5xl">
       <div className="@container/main flex flex-1 flex-col gap-2">
-        <div className="flex flex-col gap-4 p-4 md:gap-6 md:py-6">
+        <div className="space-y-4 p-4">
           <h1>Welcome back! Here is your academic overview.</h1>
-          <div className="my-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="my-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 xl:grid-cols-2">
             {courses.map((course) => (
               <SubjectCard key={course.code} course={course} />
             ))}

@@ -1,9 +1,7 @@
-import { AppSidebar } from "@/components/sidebar/app-sidebar";
-import { SiteHeader } from "@/components/sidebar/site-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Role } from "@/lib/generated/prisma/enums";
 import { redirect } from "next/navigation";
 import { requireSession } from "../data/session/require-session";
+import { StudentLayoutProvider } from "./student/_components/student-layout-provider";
 
 export default async function StudentLayout({
   children,
@@ -16,21 +14,10 @@ export default async function StudentLayout({
   }
 
   return (
-    <main>
-      <SidebarProvider
-        style={
-          {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-            "--header-height": "calc(var(--spacing) * 12)",
-          } as React.CSSProperties
-        }
-      >
-        <AppSidebar variant="inset" user={session.user} />
-        <SidebarInset>
-          <SiteHeader user={session.user} />
-          {children}
-        </SidebarInset>
-      </SidebarProvider>
-    </main>
+    <>
+      <StudentLayoutProvider user={session.user}>
+        {children}
+      </StudentLayoutProvider>
+    </>
   );
 }

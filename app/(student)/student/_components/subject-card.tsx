@@ -9,14 +9,14 @@ import Link from "next/link";
 export function SubjectCard({ course }: { course: StudentSubject }) {
   return (
     <Card className="mx-auto w-full max-w-xl group">
-      <CardHeader className="flex items-center justify-between">
+      <CardHeader className="flex items-baseline justify-between">
         <CardTitle className="text-base">{course.name}</CardTitle>
-        <Badge variant="primary" className="px-2 text-xs">
+        <Badge variant="primary" className="px-2 text-xs bg-primary/80">
           {course.creditHours} Credits
         </Badge>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 mt-auto">
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Teacher:</span>

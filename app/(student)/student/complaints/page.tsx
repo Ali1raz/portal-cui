@@ -1,5 +1,5 @@
 import { studentsGetComplaints } from "@/app/data/student/get-complaints";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -51,18 +51,19 @@ export default async function StudentsComplaintsPage(
   props: PageProps<"/student/complaints">
 ) {
   return (
-    <div className="px-4 md:px-6 my-6">
-      <div className="flex items-center justify-between">
-        <h1>Complaints</h1>
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/student/complaints/new">New Complaint</Link>
-        </Button>
+    <div className="@container/main p-4 space-y-4">
+      <div className="flex sm:justify-between sm:flex-row items-baseline flex-col gap-4">
+        <h2 className="text-2xl font-bold">Complaints</h2>
+        <Link
+          href="/student/complaints/new"
+          className={buttonVariants({ size: "md" })}
+        >
+          New Complaint
+        </Link>
       </div>
-      <div className="mt-4">
-        <Suspense fallback={<ComplaintsTableSkeleton />}>
-          <ComplaintsList searchParams={props.searchParams} />
-        </Suspense>
-      </div>
+      <Suspense fallback={<ComplaintsTableSkeleton />}>
+        <ComplaintsList searchParams={props.searchParams} />
+      </Suspense>
     </div>
   );
 }

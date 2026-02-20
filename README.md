@@ -22,3 +22,11 @@ nextjs 16 with prisma 7 and postgres
 [https://jb.desishub.com/blog/nextjs-with-prisma-7-and-postgres](https://jb.desishub.com/blog/nextjs-with-prisma-7-and-postgres)
 </details>
 </summary>
+
+## Inngest local server:
+
+to run local server run this:
+
+```bash
+pnpm dlx inngest-cli@latest dev
+```
