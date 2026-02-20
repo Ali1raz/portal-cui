@@ -29,6 +29,15 @@ import type { DateRange } from "react-day-picker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
   Pagination,
@@ -68,6 +77,10 @@ import {
   type ComplaintsSortBy,
 } from "../complaints-search-params";
 import { ComplaintActions } from "./complaint-actions";
+import { BulkDeleteComplaints } from "../actions";
+import { tryCatch } from "@/hooks/tryCatch";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const statusVariantMap: Record<
   ComplaintStatus,
@@ -114,6 +127,10 @@ export function ComplaintsTable({
   "use no memo";
   const tableId = React.useId();
   const [isPending, startTransition] = React.useTransition();
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const router = useRouter();
 
   const [queryState, setQueryState] = useQueryStates(
     complaintsSearchParamsParsers,
@@ -157,14 +174,35 @@ export function ComplaintsTable({
   const columns = React.useMemo<ColumnDef<StudentComplaintRow>[]>(
     () => [
       {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            size="sm"
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+            size="sm"
+          />
+        ),
+        enableSorting: false,
+      },
+      {
         id: "srNo",
         header: "Sr No.",
         enableSorting: false,
-        cell: ({ row }) => (
-          <div>
-            {pagination.pageIndex * pagination.pageSize + row.index + 1}
-          </div>
-        ),
+        cell: ({ row }) => <div>{row.index + 1}</div>,
       },
       {
         id: "title",
@@ -222,7 +260,7 @@ export function ComplaintsTable({
         ),
       },
     ],
-    [pagination.pageIndex, pagination.pageSize]
+    []
   );
 
   const table = useReactTable({
@@ -257,14 +295,17 @@ export function ComplaintsTable({
         });
       });
     },
+    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       pagination,
+      rowSelection,
     },
     enableSortingRemoval: false,
     manualPagination: true,
     manualSorting: true,
     rowCount: totalCount,
+    getRowId: (row) => row.id,
   });
 
   function handleStatusChange(value: string) {
@@ -305,275 +346,351 @@ export function ComplaintsTable({
     });
   }
 
+  const selectedRows = table.getFilteredSelectedRowModel().rows;
+  const selectedCount = selectedRows.length;
+
+  async function handleBulkDelete() {
+    if (selectedCount === 0) return;
+
+    const selectedIds = selectedRows.map((row) => row.original.id);
+
+    setIsDeleting(true);
+
+    const { data: response, error } = await tryCatch(
+      BulkDeleteComplaints(selectedIds)
+    );
+
+    setIsDeleting(false);
+
+    if (error || response?.status === "error") {
+      toast.error(response?.message ?? "Failed to delete complaints");
+      return;
+    }
+
+    toast.success(response.message);
+    setRowSelection({});
+    setShowDeleteDialog(false);
+    router.refresh();
+  }
+
   return (
-    <div className="space-y-6" aria-busy={isPending}>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="complaint-status">Status</Label>
-            <Select
-              value={queryState.status || "all"}
-              onValueChange={handleStatusChange}
+    <>
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Selected Complaints</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedCount} complaint
+              {selectedCount !== 1 ? "s" : ""}? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isDeleting}
             >
-              <SelectTrigger id="complaint-status" className="w-44">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                {statusOptions.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {formatEnumLabel(status)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="complaint-category">Category</Label>
-            <Select
-              value={queryState.category || "all"}
-              onValueChange={handleCategoryChange}
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={isDeleting}
             >
-              <SelectTrigger id="complaint-category" className="w-48">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                {categoryOptions.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {formatEnumLabel(category)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-          <div className="flex flex-col gap-2">
-            <Label>Created Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-start">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange.from ? (
-                    dateRange.to ? (
-                      <span>
-                        {format(dateRange.from, "MMM dd, yyyy")} -{" "}
-                        {format(dateRange.to, "MMM dd, yyyy")}
-                      </span>
+      <div className="space-y-6" aria-busy={isPending}>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="complaint-status">Status</Label>
+              <Select
+                value={queryState.status || "all"}
+                onValueChange={handleStatusChange}
+              >
+                <SelectTrigger id="complaint-status" className="w-44">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {statusOptions.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {formatEnumLabel(status)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="complaint-category">Category</Label>
+              <Select
+                value={queryState.category || "all"}
+                onValueChange={handleCategoryChange}
+              >
+                <SelectTrigger id="complaint-category" className="w-48">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {categoryOptions.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {formatEnumLabel(category)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label>Created Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="justify-start">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateRange.from ? (
+                      dateRange.to ? (
+                        <span>
+                          {format(dateRange.from, "MMM dd, yyyy")} -{" "}
+                          {format(dateRange.to, "MMM dd, yyyy")}
+                        </span>
+                      ) : (
+                        <span>
+                          From {format(dateRange.from, "MMM dd, yyyy")}
+                        </span>
+                      )
                     ) : (
-                      <span>From {format(dateRange.from, "MMM dd, yyyy")}</span>
-                    )
-                  ) : (
-                    <span className="text-muted-foreground">
-                      Pick date range
-                    </span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={handleDateRangeChange}
-                  numberOfMonths={1}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+                      <span className="text-muted-foreground">
+                        Pick date range
+                      </span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={handleDateRangeChange}
+                    numberOfMonths={1}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="complaint-attachment">Attachment</Label>
-            <Select
-              value={queryState.hasAttachment ?? "all"}
-              onValueChange={handleAttachmentChange}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="complaint-attachment">Attachment</Label>
+              <Select
+                value={queryState.hasAttachment ?? "all"}
+                onValueChange={handleAttachmentChange}
+              >
+                <SelectTrigger id="complaint-attachment" className="w-44">
+                  <SelectValue placeholder="Select attachment" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {complaintAttachmentValues.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {value === "with"
+                        ? "With attachment"
+                        : "Without attachment"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-6">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              {totalCount} result{totalCount !== 1 ? "s" : ""}
+            </p>
+          </div>
+          {selectedCount > 0 ? (
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-muted-foreground">
+                {selectedCount} selected
+              </p>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                Delete Selected
+              </Button>
+            </div>
+          ) : null}
+          {hasActiveParams ? (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                startTransition(() => {
+                  void setQueryState(null);
+                });
+              }}
+              className="hover:underline underline-offset-4"
             >
-              <SelectTrigger id="complaint-attachment" className="w-44">
-                <SelectValue placeholder="Select attachment" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                {complaintAttachmentValues.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {value === "with"
-                      ? "With attachment"
-                      : "Without attachment"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <XIcon className="size-4" />
+              Clear
+            </Button>
+          ) : null}
         </div>
-      </div>
 
-      <div className="flex items-center gap-6">
-        <div>
-          <p className="text-sm text-muted-foreground">
-            {totalCount} result{totalCount !== 1 ? "s" : ""}
-          </p>
-        </div>
-        {hasActiveParams ? (
-          <Button
-            variant="ghost"
-            onClick={() => {
-              startTransition(() => {
-                void setQueryState(null);
-              });
-            }}
-            className="hover:underline underline-offset-4"
-          >
-            <XIcon className="size-4" />
-            Clear
-          </Button>
-        ) : null}
-      </div>
-
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="bg-muted/50">
-                {headerGroup.headers.map((header) => (
-                  <SortableTableHeader key={header.id} header={header} />
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="bg-muted/50">
+                  {headerGroup.headers.map((header) => (
+                    <SortableTableHeader key={header.id} header={header} />
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No complaints found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-4 py-4">
-        <div className="flex items-center gap-3">
-          <Label htmlFor={tableId} className="max-sm:sr-only">
-            Rows per page
-          </Label>
-          <Select
-            value={table.getState().pagination.pageSize.toString()}
-            onValueChange={(value) => {
-              table.setPageSize(Number(value));
-            }}
-          >
-            <SelectTrigger id={tableId} className="w-fit whitespace-nowrap">
-              <SelectValue placeholder="Select number of results" />
-            </SelectTrigger>
-            <SelectContent className="[&_*[role=option]]:pr-8 [&_*[role=option]]:pl-2 [&_*[role=option]>span]:right-2 [&_*[role=option]>span]:left-auto">
-              {[10, 20, 50].map((pageSize) => (
-                <SelectItem key={pageSize} value={pageSize.toString()}>
-                  {pageSize}
-                </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="text-muted-foreground flex grow justify-end text-sm whitespace-nowrap">
-          <p
-            className="text-muted-foreground text-sm whitespace-nowrap"
-            aria-live="polite"
-          >
-            <span className="text-foreground">
-              {table.getState().pagination.pageIndex *
-                table.getState().pagination.pageSize +
-                1}
-              -
-              {Math.min(
-                Math.max(
-                  table.getState().pagination.pageIndex *
-                    table.getState().pagination.pageSize +
-                    table.getState().pagination.pageSize,
-                  0
-                ),
-                table.getRowCount()
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No complaints found.
+                  </TableCell>
+                </TableRow>
               )}
-            </span>{" "}
-            of <span className="text-foreground">{table.getRowCount()}</span>
-          </p>
+            </TableBody>
+          </Table>
         </div>
 
-        <div>
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  className="disabled:pointer-events-none disabled:opacity-50"
-                  onClick={() => table.firstPage()}
-                  disabled={!table.getCanPreviousPage()}
-                  aria-label="Go to first page"
-                >
-                  <ChevronFirst aria-hidden="true" />
-                </Button>
-              </PaginationItem>
+        <div className="flex flex-wrap items-center justify-between gap-4 py-4">
+          <div className="flex items-center gap-3">
+            <Label htmlFor={tableId} className="max-sm:sr-only">
+              Rows per page
+            </Label>
+            <Select
+              value={table.getState().pagination.pageSize.toString()}
+              onValueChange={(value) => {
+                table.setPageSize(Number(value));
+              }}
+            >
+              <SelectTrigger id={tableId} className="w-fit whitespace-nowrap">
+                <SelectValue placeholder="Select number of results" />
+              </SelectTrigger>
+              <SelectContent className="[&_*[role=option]]:pr-8 [&_*[role=option]]:pl-2 [&_*[role=option]>span]:right-2 [&_*[role=option]>span]:left-auto">
+                {[10, 20, 50].map((pageSize) => (
+                  <SelectItem key={pageSize} value={pageSize.toString()}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-              <PaginationItem>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  className="disabled:pointer-events-none disabled:opacity-50"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                  aria-label="Go to previous page"
-                >
-                  <ChevronLeft aria-hidden="true" />
-                </Button>
-              </PaginationItem>
+          <div className="text-muted-foreground flex grow justify-end text-sm whitespace-nowrap">
+            <p
+              className="text-muted-foreground text-sm whitespace-nowrap"
+              aria-live="polite"
+            >
+              <span className="text-foreground">
+                {table.getState().pagination.pageIndex *
+                  table.getState().pagination.pageSize +
+                  1}
+                -
+                {Math.min(
+                  Math.max(
+                    table.getState().pagination.pageIndex *
+                      table.getState().pagination.pageSize +
+                      table.getState().pagination.pageSize,
+                    0
+                  ),
+                  table.getRowCount()
+                )}
+              </span>{" "}
+              of <span className="text-foreground">{table.getRowCount()}</span>
+            </p>
+          </div>
 
-              <PaginationItem>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  className="disabled:pointer-events-none disabled:opacity-50"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                  aria-label="Go to next page"
-                >
-                  <ChevronRight aria-hidden="true" />
-                </Button>
-              </PaginationItem>
+          <div>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="disabled:pointer-events-none disabled:opacity-50"
+                    onClick={() => table.firstPage()}
+                    disabled={!table.getCanPreviousPage()}
+                    aria-label="Go to first page"
+                  >
+                    <ChevronFirst aria-hidden="true" />
+                  </Button>
+                </PaginationItem>
 
-              <PaginationItem>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  className="disabled:pointer-events-none disabled:opacity-50"
-                  onClick={() => table.lastPage()}
-                  disabled={!table.getCanNextPage()}
-                  aria-label="Go to last page"
-                >
-                  <ChevronLast aria-hidden="true" />
-                </Button>
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+                <PaginationItem>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="disabled:pointer-events-none disabled:opacity-50"
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                    aria-label="Go to previous page"
+                  >
+                    <ChevronLeft aria-hidden="true" />
+                  </Button>
+                </PaginationItem>
+
+                <PaginationItem>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="disabled:pointer-events-none disabled:opacity-50"
+                    onClick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
+                    aria-label="Go to next page"
+                  >
+                    <ChevronRight aria-hidden="true" />
+                  </Button>
+                </PaginationItem>
+
+                <PaginationItem>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="disabled:pointer-events-none disabled:opacity-50"
+                    onClick={() => table.lastPage()}
+                    disabled={!table.getCanNextPage()}
+                    aria-label="Go to last page"
+                  >
+                    <ChevronLast aria-hidden="true" />
+                  </Button>
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
