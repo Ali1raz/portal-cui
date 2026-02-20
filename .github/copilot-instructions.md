@@ -160,6 +160,26 @@ app\(admin)\admin\offering\page.tsx // <-- for usage of search params, and also 
 
 ---
 
+never get props or params using following example:
+
+```tsx
+export default function AnnouncementDetailPage({
+  params,
+}: {
+  params: { id: string }; // bad example
+}) {}
+```
+
+use this example instead:
+
+```tsx
+export default async function AnnouncementDetailPage(
+  props: PageProps<"/student/announcements/[id]"> // this is correct
+) {
+  const { id } = await props.params; // <-- important
+}
+```
+
 never use types in Link href as:
 
 ```tsx

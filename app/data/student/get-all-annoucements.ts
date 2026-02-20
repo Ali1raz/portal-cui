@@ -1,11 +1,12 @@
 import "server-only";
-
 import { requirePermission } from "../permission/require-permission";
-import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { requireSession } from "../session/require-session";
+import { redirect } from "next/navigation";
 
 export async function studentGetAllAnnouncements() {
+  // This function is currently identical to studentGetSidebarAnnouncements.
+  // In the future, you might want to add pagination, filtering, or return more details for the full announcements page.
   const can = await requirePermission({
     announcements: ["list"],
   });
@@ -22,7 +23,7 @@ export async function studentGetAllAnnouncements() {
       department: true,
       program: true,
       registrationNo: true,
-      registration: { select: { batch: true } },
+      registration: { select: { batch: true, year: true, semester: true } },
     },
   });
 
@@ -30,21 +31,20 @@ export async function studentGetAllAnnouncements() {
     return redirect("/unauthorized");
   }
 
-  // Extract batch (FA/SP) and year from registration number (e.g., "FA22-BSE-001")
-  const studentBatch = student.registration?.batch || null;
-
-  const yearMatch = student.registrationNo.match(/\d{2}/);
-  const studentYear = yearMatch ? 2000 + parseInt(yearMatch[0]) : null;
+  const studentBatch = student.registration?.batch;
+  const studentYear = student.registration?.year;
 
   const ann = await prisma.announcement.findMany({
     where: {
       status: "PUBLISHED",
-      // Announcement must target student's department OR be a broadcast (null department)
-      OR: [
-        { targetDepartment: student.department },
-        { targetDepartment: null },
-      ],
-      // Additional targeting filters - if specified, they must match
+      // Only show announcements from HOD of student's department
+      author: {
+        hod: {
+          department: student.department,
+        },
+      },
+      // Respect targeting filters
+      // null shows to everyone, otherwise must match student's details
       AND: [
         {
           OR: [{ targetProgram: null }, { targetProgram: student.program }],
@@ -55,33 +55,33 @@ export async function studentGetAllAnnouncements() {
             ...(studentBatch ? [{ targetBatch: studentBatch }] : []),
           ],
         },
-        ...(studentYear
-          ? [
-              {
-                OR: [{ targetYear: null }, { targetYear: studentYear }],
-              },
-            ]
-          : []),
+        {
+          OR: [
+            { targetYear: null },
+            ...(studentYear ? [{ targetYear: studentYear }] : []),
+          ],
+        },
       ],
     },
-    // isPinned announcements should always come first, followed by the rest sorted by published date
     orderBy: [
-      { isPinned: "desc" }, // Pinned announcements come first
-      { publishedAt: "desc" }, // Then by published date
-      { createdAt: "desc" }, // Fallback to creation date
+      { isPinned: "desc" },
+      { publishedAt: "desc" },
+      { createdAt: "desc" },
     ],
-    // take: 5,
     select: {
       id: true,
       title: true,
       content: true,
-      createdAt: true,
+      imageKey: true,
+      type: true,
       isPinned: true,
       publishedAt: true,
+      createdAt: true,
       author: {
         select: {
-          image: true,
+          id: true,
           name: true,
+          image: true,
           role: true,
         },
       },
@@ -91,6 +91,6 @@ export async function studentGetAllAnnouncements() {
   return ann;
 }
 
-export type StudentAnnouncementType = Awaited<
+export type StudentGetAllAnnouncementsType = Awaited<
   ReturnType<typeof studentGetAllAnnouncements>
 >[number];

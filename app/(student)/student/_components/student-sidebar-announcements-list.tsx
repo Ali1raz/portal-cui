@@ -1,12 +1,12 @@
-import { studentGetAllAnnouncements } from "@/app/data/student/get-announcements";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   StudentSidebarAnnouncementItemSkeleton,
   StudentSidebarAnnouncementsListItem,
 } from "./student-sidebar-announcement-item";
+import { studentGetSidebarAnnouncements } from "@/app/data/student/get-sidebar-announcements";
 
 export async function StudentsSidebarAnnoucementsList() {
-  const anns = await studentGetAllAnnouncements();
+  const anns = await studentGetSidebarAnnouncements();
 
   if (anns.length === 0) {
     return (

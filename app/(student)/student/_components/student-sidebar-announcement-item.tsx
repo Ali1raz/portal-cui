@@ -1,4 +1,4 @@
-import { StudentAnnouncementType } from "@/app/data/student/get-announcements";
+import { StudentSidebarAnnouncementType } from "@/app/data/student/get-sidebar-announcements";
 import {
   Card,
   CardContent,
@@ -13,7 +13,7 @@ import { PinIcon } from "lucide-react";
 export function StudentSidebarAnnouncementsListItem({
   announcement,
 }: {
-  announcement: StudentAnnouncementType;
+  announcement: StudentSidebarAnnouncementType;
 }) {
   return (
     <Card className="p-1 *:p-2 hover:bg-sidebar/85 gap-0 space-y-0 relative">
