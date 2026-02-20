@@ -141,7 +141,21 @@ export function LeaveRequestForm({
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) => date < new Date("1900-01-01")}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+
+                      const maxDate = new Date();
+                      maxDate.setDate(maxDate.getDate() + 4); // allow up to 4 days in the future
+                      maxDate.setHours(23, 59, 59, 999);
+
+                      const isPast = date < today;
+                      const isTooFar = date > maxDate;
+                      const isWeekend =
+                        date.getDay() === 0 || date.getDay() === 6;
+
+                      return isPast || isTooFar || isWeekend;
+                    }}
                   />
                 </PopoverContent>
               </Popover>
@@ -169,11 +183,11 @@ export function LeaveRequestForm({
           name="reasonDetails"
           render={({ field }) => (
             <FormItem className="w-full">
-              <FormLabel>Small Description</FormLabel>
+              <FormLabel>Description (keep it concise)</FormLabel>
               <FormControl>
                 <Textarea
                   className="min-h-28"
-                  placeholder="Provide a detailed reason for your leave..."
+                  placeholder="Provide a reason for your leave..."
                   {...field}
                 />
               </FormControl>

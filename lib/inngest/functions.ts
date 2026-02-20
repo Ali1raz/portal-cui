@@ -44,3 +44,30 @@ export const handleAnnouncementSchedule = inngest.createFunction(
     return { announcementId, message: `Announcement published!` };
   }
 );
+
+export const handleLeaveRequestStatusChange = inngest.createFunction(
+  { id: "leave-request-status-change" },
+  { event: "leaveRequest/status.changed" },
+  async ({ event, step }) => {
+    const { leaveRequestId, requestDate } = event.data;
+    // wait until requestDate to update leaverequest status to rejected if it is still pending
+    // dev test for 1minute
+    // const until = new Date(Date.now() + 60 * 1000); // 1 minute from now
+
+    await step.sleepUntil(
+      "wait-until-request-date",
+      `${new Date(requestDate).toISOString()}`
+    );
+
+    await step.run("update-leave-request-status", async () => {
+      await prisma.leaveRequest.update({
+        where: {
+          id: leaveRequestId,
+          status: "PENDING",
+          date: new Date(requestDate),
+        },
+        data: { status: "REJECTED" },
+      });
+    });
+  }
+);
