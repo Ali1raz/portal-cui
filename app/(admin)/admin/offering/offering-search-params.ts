@@ -49,6 +49,7 @@ export const offeringSearchParamsParsers = {
   }),
   semester: parseAsInteger.withOptions({ clearOnDefault: true }),
   year: parseAsInteger.withOptions({ clearOnDefault: true }),
+  teacher: parseAsString.withDefault("").withOptions({ clearOnDefault: true }),
 };
 
 export const offeringSearchParamsCache = createSearchParamsCache(
