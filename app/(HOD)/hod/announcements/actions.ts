@@ -71,7 +71,7 @@ export async function hodCreateAnnouncement(
         type: validated.data.type,
         status: validated.data.scheduledFor
           ? AnnouncementStatus.SCHEDULED
-          : AnnouncementStatus.DRAFT,
+          : validated.data.status || AnnouncementStatus.DRAFT,
         authorId: session.user.id,
         targetDepartment: hod.department,
         scheduledFor,
