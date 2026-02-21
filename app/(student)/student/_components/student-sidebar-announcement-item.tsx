@@ -9,6 +9,7 @@ import {
 import { UserImage } from "@/components/user/user-image";
 import { getRelativeTime } from "@/lib/utils";
 import { PinIcon } from "lucide-react";
+import Link from "next/link";
 
 export function StudentSidebarAnnouncementsListItem({
   announcement,
@@ -16,16 +17,21 @@ export function StudentSidebarAnnouncementsListItem({
   announcement: StudentSidebarAnnouncementType;
 }) {
   return (
-    <Card className="p-1 *:p-2 hover:bg-sidebar/85 gap-0 space-y-0 relative">
+    <Card className="p-1 *:p-2 group hover:bg-sidebar/85 gap-0 space-y-0 relative">
       <CardHeader>
         {announcement.isPinned && (
           <PinIcon
-            className="text-muted-foreground absolute rotate-60 -top-1 left-1"
+            className="text-muted-foreground absolute rotate-60 -top-1 left-2"
             size={16}
           />
         )}
         <CardTitle className="flex items-start justify-between gap-2">
-          <h1 className="line-clamp-2">{announcement.title}</h1>
+          <Link
+            href={`/student/announcements/${announcement.id}`}
+            className="group-hover:text-primary transition-colors"
+          >
+            <h1 className="line-clamp-2">{announcement.title}</h1>
+          </Link>
           <span className="text-xs text-muted-foreground">
             {getRelativeTime(
               new Date(announcement.publishedAt || announcement.createdAt)

@@ -41,34 +41,35 @@ export async function sendLeaveRequest(
         message: "Subject offering not found",
       };
     }
-
-    const lr = await prisma.leaveRequest.create({
-      data: {
-        studentId: studentId,
-        date: new Date(validated.data.date),
-        reasonTitle: validated.data.reasonTitle,
-        reasonDetails: validated.data.reasonDetails,
-        imageKey: validated.data.imageKey,
-        offeringId: offering.id,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (validated.data.date) {
-      await inngest.send({
-        name: "leaveRequest/status.changed",
+    await prisma.$transaction(async (tx) => {
+      const lr = await tx.leaveRequest.create({
         data: {
-          leaveRequestId: lr.id,
-          requestDate: validated.data.date,
+          studentId: studentId,
+          date: new Date(validated.data.date),
+          reasonTitle: validated.data.reasonTitle,
+          reasonDetails: validated.data.reasonDetails,
+          imageKey: validated.data.imageKey,
+          offeringId: offering.id,
+        },
+        select: {
+          id: true,
         },
       });
-    }
+
+      if (lr.id) {
+        await inngest.send({
+          name: "leaveRequest/status.changed",
+          data: {
+            leaveRequestId: lr.id,
+            requestDate: validated.data.date,
+          },
+        });
+      }
+    });
 
     return {
       status: "success",
-      message: "Leave request sent successfully.",
+      message: "Leave request created successfully.",
     };
   } catch {
     return {

@@ -28,20 +28,21 @@ export async function studentGetAnnouncementById(id: string) {
     return redirect("/unauthorized");
   }
 
-  const studentBatch = student.registration?.batch;
-  const studentYear = student.registration?.year;
+  const studentBatch = student.registration?.batch || null;
+
+  const yearMatch = student.registrationNo.match(/\d{2}/);
+  const studentYear = yearMatch ? 2000 + parseInt(yearMatch[0]) : null;
 
   const announcement = await prisma.announcement.findFirst({
     where: {
       id,
       status: "PUBLISHED",
-      // Only show announcements from HOD of student's department
-      author: {
-        hod: {
-          department: student.department,
-        },
-      },
-      // Respect targeting filters
+      // Announcement must target student's department OR be a broadcast (null department)
+      OR: [
+        { targetDepartment: student.department },
+        { targetDepartment: null },
+      ],
+      // Additional targeting filters - if specified, they must match
       AND: [
         {
           OR: [{ targetProgram: null }, { targetProgram: student.program }],
@@ -52,12 +53,13 @@ export async function studentGetAnnouncementById(id: string) {
             ...(studentBatch ? [{ targetBatch: studentBatch }] : []),
           ],
         },
-        {
-          OR: [
-            { targetYear: null },
-            ...(studentYear ? [{ targetYear: studentYear }] : []),
-          ],
-        },
+        ...(studentYear
+          ? [
+              {
+                OR: [{ targetYear: null }, { targetYear: studentYear }],
+              },
+            ]
+          : []),
       ],
     },
     select: {
