@@ -36,7 +36,7 @@ import { HeroHeader } from "./Header";
 //   },
 // };
 
-export default function HeroSection() {
+export function HeroSection() {
   return (
     <>
       <HeroHeader />
