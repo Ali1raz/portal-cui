@@ -27,6 +27,7 @@ import Link from "next/link";
 
 export function NavUser({ user }: { user: User }) {
   const handleSignOut = useSignOut();
+  // console.log(user.image, "---->>> navuser");
 
   return (
     <SidebarMenu>

@@ -1,7 +1,5 @@
 "use client";
 
-import { IconInnerShadowTop } from "@tabler/icons-react";
-
 import {
   Sidebar,
   SidebarContent,
@@ -16,6 +14,7 @@ import Link from "next/link";
 import { NavUser } from "@/components/sidebar/nav-user";
 import { NavMain } from "./nav-main";
 import { Role } from "@/lib/generated/prisma/enums";
+import Image from "next/image";
 
 export function AppSidebar({
   user,
@@ -31,7 +30,7 @@ export function AppSidebar({
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
               <Link href="/">
-                <IconInnerShadowTop className="size-5!" />
+                <Image src="/cui.svg" alt="CUI" height={24} width={24} />
                 <span className="text-base font-semibold">CUI Portal</span>
               </Link>
             </SidebarMenuButton>

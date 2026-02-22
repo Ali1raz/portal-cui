@@ -23,7 +23,7 @@ export default function Error() {
       </div>
 
       <span className="text-muted-foreground mb-6 text-[6rem] leading-none font-extrabold select-none">
-        404
+        500
       </span>
       <h1 className="text-foreground mb-2 text-3xl font-bold">
         Oops, something bad happened

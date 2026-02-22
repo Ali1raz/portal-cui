@@ -88,7 +88,7 @@ export function HeroSection() {
                 href="/"
                 className="block text-sm duration-150 hover:opacity-75"
               >
-                <span>Meet Our Customers</span>
+                <span>built using these technologies</span>
 
                 <ChevronRight className="ml-1 inline-block size-3" />
               </Link>
