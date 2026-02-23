@@ -28,7 +28,7 @@ export default async function AnnouncementsPage({
                 Create, edit, and schedule announcements to reach effectively.
               </p>
             </div>
-            <Button asChild variant="default">
+            <Button asChild>
               <Link href="/hod/announcements/new">New</Link>
             </Button>
           </div>
