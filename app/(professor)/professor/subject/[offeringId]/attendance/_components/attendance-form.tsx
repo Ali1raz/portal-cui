@@ -256,7 +256,7 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
                                           }}
                                           variant={
                                             time === field.value
-                                              ? "primary"
+                                              ? "default"
                                               : "outline"
                                           }
                                         >
@@ -315,7 +315,7 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
                                         }
                                         variant={
                                           time === field.value
-                                            ? "primary"
+                                            ? "default"
                                             : "outline"
                                         }
                                       >
