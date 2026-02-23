@@ -6,6 +6,8 @@ import { flushSync } from "react-dom";
 
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
+import { Kbd } from "./kbd";
 
 interface AnimatedThemeTogglerProps extends React.ComponentPropsWithoutRef<"button"> {
   duration?: number;
@@ -71,16 +73,44 @@ export const AnimatedThemeToggler = ({
     );
   }, [isDark, duration]);
 
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if ((e.key === "d" || e.key === "D") && !e.metaKey && !e.ctrlKey) {
+        if (
+          (e.target instanceof HTMLElement && e.target.isContentEditable) ||
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement ||
+          e.target instanceof HTMLSelectElement
+        ) {
+          return;
+        }
+
+        e.preventDefault();
+        toggleTheme();
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, [toggleTheme]);
+
   return (
-    <Button
-      ref={buttonRef}
-      onClick={toggleTheme}
-      className={cn(className)}
-      variant="outline"
-      {...props}
-    >
-      {isDark ? <Sun /> : <Moon />}
-      <span className="sr-only">Toggle theme</span>
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          ref={buttonRef}
+          onClick={toggleTheme}
+          className={cn(className)}
+          variant="outline"
+          {...props}
+        >
+          {isDark ? <Sun /> : <Moon />}
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent className="flex items-center gap-2 pr-1">
+        Toggle Mode <Kbd>D</Kbd>
+      </TooltipContent>
+    </Tooltip>
   );
 };
