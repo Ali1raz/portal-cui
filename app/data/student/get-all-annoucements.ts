@@ -5,8 +5,6 @@ import { requireSession } from "../session/require-session";
 import { redirect } from "next/navigation";
 
 export async function studentGetAllAnnouncements() {
-  // This function is currently identical to studentGetSidebarAnnouncements.
-  // In the future, you might want to add pagination, filtering, or return more details for the full announcements page.
   const can = await requirePermission({
     announcements: ["list"],
   });
@@ -23,7 +21,7 @@ export async function studentGetAllAnnouncements() {
       department: true,
       program: true,
       registrationNo: true,
-      registration: { select: { batch: true, year: true, semester: true } },
+      registration: { select: { batch: true } },
     },
   });
 
@@ -31,20 +29,21 @@ export async function studentGetAllAnnouncements() {
     return redirect("/unauthorized");
   }
 
-  const studentBatch = student.registration?.batch;
-  const studentYear = student.registration?.year;
+  // Extract batch (FA/SP) and year from registration number (e.g., "FA22-BSE-001")
+  const studentBatch = student.registration?.batch || null;
+
+  const yearMatch = student.registrationNo.match(/\d{2}/);
+  const studentYear = yearMatch ? 2000 + parseInt(yearMatch[0]) : null;
 
   const ann = await prisma.announcement.findMany({
     where: {
       status: "PUBLISHED",
-      // Only show announcements from HOD of student's department
-      author: {
-        hod: {
-          department: student.department,
-        },
-      },
-      // Respect targeting filters
-      // null shows to everyone, otherwise must match student's details
+      // Announcement must target student's department OR be a broadcast (null department)
+      OR: [
+        { targetDepartment: student.department },
+        { targetDepartment: null },
+      ],
+      // Additional targeting filters - if specified, they must match
       AND: [
         {
           OR: [{ targetProgram: null }, { targetProgram: student.program }],
@@ -55,18 +54,19 @@ export async function studentGetAllAnnouncements() {
             ...(studentBatch ? [{ targetBatch: studentBatch }] : []),
           ],
         },
-        {
-          OR: [
-            { targetYear: null },
-            ...(studentYear ? [{ targetYear: studentYear }] : []),
-          ],
-        },
+        ...(studentYear
+          ? [
+              {
+                OR: [{ targetYear: null }, { targetYear: studentYear }],
+              },
+            ]
+          : []),
       ],
     },
     orderBy: [
-      { isPinned: "desc" },
-      { publishedAt: "desc" },
-      { createdAt: "desc" },
+      { isPinned: "desc" }, // Pinned announcements come first
+      { createdAt: "desc" }, // Then by creation date (newest first)
+      { publishedAt: "desc" }, // Fallback to published date
     ],
     select: {
       id: true,

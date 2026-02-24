@@ -2,30 +2,33 @@ import { getLeaveRequests } from "@/app/data/hod/get-leave-requests";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDate } from "@/lib/utils";
-import { RequestActions } from "./_components/request-actions";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { LeaveRequestSearchParams } from "./leave-request-search-params";
+import { leaveRequestSearchParamsCache } from "./leave-request-search-params";
+import { LeaveRequestsTable } from "./_components/leave-requests-table";
 
-export default async function LeaveRequestsPage() {
+export default async function LeaveRequestsPage(
+  props: PageProps<"/hod/leave-requests">
+) {
   return (
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 p-4 md:gap-6 md:py-6">
-          <h1>
-            Follwings are{" "}
-            <span className="uppercase underline text-primary">pending</span>{" "}
-            requests for leave, that need your approval.
-          </h1>
-          <div className="my-2 ">
-            <Suspense fallback={<LeaveRequestsListSkeleton />}>
-              <LeaveRequestsList />
+          <div>
+            <h1 className="text-xl font-bold mb-2">Leave Requests</h1>
+            <p className="text-muted-foreground">
+              Manage and review leave requests from students in your department.
+            </p>
+          </div>
+          <div className="my-2">
+            <Suspense fallback={<LeaveRequestsTableSkeleton />}>
+              <LeaveRequestsList searchParams={props.searchParams} />
             </Suspense>
           </div>
         </div>
@@ -34,104 +37,50 @@ export default async function LeaveRequestsPage() {
   );
 }
 
-async function LeaveRequestsList() {
-  const requests = await getLeaveRequests();
+/// Async component that fetches and displays leave requests table
+async function LeaveRequestsList({
+  searchParams,
+}: {
+  searchParams: PageProps<"/hod/leave-requests">["searchParams"];
+}) {
+  const parsedParams: LeaveRequestSearchParams =
+    await leaveRequestSearchParamsCache.parse(searchParams);
+  const { requests, totalCount } = await getLeaveRequests(parsedParams);
 
-  return (
-    <Table>
-      <TableCaption className="py-2">All Pending Leave Requests.</TableCaption>
-
-      <TableHeader className="bg-muted">
-        <TableRow>
-          <TableHead>Sr.</TableHead>
-          <TableHead className="w-[100px]">Name</TableHead>
-          <TableHead>Subject</TableHead>
-          <TableHead>Requested for</TableHead>
-          <TableHead>Created On</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {requests.map((request, index: number) => (
-          <TableRow className="group" key={request.id}>
-            <TableCell className="font-medium group-hover:text-primary">
-              {index + 1}
-            </TableCell>
-            <TableCell>{request.student.user.name}</TableCell>
-            <TableCell className="flex flex-col items-start max-w-[20ch] overflow-hidden text-ellipsis">
-              <span>{request.offering.subject.name}</span>
-              <span className="font-semibold">
-                {request.offering.subject.code}
-              </span>
-            </TableCell>
-            <TableCell>{formatDate(request.date)}</TableCell>
-            <TableCell>{formatDate(request.createdAt)}</TableCell>
-            <TableCell>{request.status}</TableCell>
-            <TableCell className="text-right">
-              <RequestActions
-                leaveRequestId={request.id}
-                status={request.status}
-              />
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
+  return <LeaveRequestsTable requests={requests} totalCount={totalCount} />;
 }
 
-function LeaveRequestsListSkeleton() {
+/// Loading skeleton for leave requests table
+function LeaveRequestsTableSkeleton() {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableCell>
-            <Skeleton className="w-18 h-6" />
-          </TableCell>
-
-          <TableCell>
-            <Skeleton className="w-18 h-6" />
-          </TableCell>
-          <TableCell>
-            <Skeleton className="w-15 h-6" />
-          </TableCell>
-          <TableCell>
-            <Skeleton className="w-15 h-6" />
-          </TableCell>
-          <TableCell>
-            <Skeleton className="w-15 h-6" />
-          </TableCell>
-          <TableCell>
-            <Skeleton className="w-15 h-6" />
-          </TableCell>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {Array.from({ length: 6 }).map((_, index) => (
-          <TableRow className="group" key={index}>
-            <TableCell>
-              <Skeleton className="w-18 h-6" />
-            </TableCell>
-            <TableCell className="flex flex-col gap-2">
-              <Skeleton className="w-22 h-6" />
-              <Skeleton className="w-10 h-6" />
-            </TableCell>
-            <TableCell>
-              <Skeleton className="w-18 h-6" />
-            </TableCell>
-            <TableCell>
-              <Skeleton className="w-15 h-6" />
-            </TableCell>
-            <TableCell>
-              <Skeleton className="w-15 h-6" />
-            </TableCell>
-            <TableCell>
-              <Skeleton className="w-8 h-6" />
-            </TableCell>
+    <div className="my-4 rounded-md border">
+      <div className="flex flex-wrap gap-4">
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-8 w-32" />
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <TableHead key={index}>
+                <Skeleton className="h-4 w-24" />
+              </TableHead>
+            ))}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: 6 }).map((_, rowIndex) => (
+            <TableRow key={rowIndex}>
+              {Array.from({ length: 8 }).map((_, cellIndex) => (
+                <TableCell key={cellIndex}>
+                  <Skeleton className="h-4 w-20" />
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

@@ -229,6 +229,16 @@ export function getNavLinks({
         href: "/admin/users",
         icon: IconUsers,
       },
+      {
+        title: "Announcements",
+        href: "/admin/announcements",
+        icon: IconMessage2,
+      },
+      {
+        title: "New Announcement",
+        href: "/admin/announcements/new",
+        icon: IconMessagePlus,
+      },
     ],
     USER: [],
   } satisfies Record<Role, NavLink<Route>[]>;

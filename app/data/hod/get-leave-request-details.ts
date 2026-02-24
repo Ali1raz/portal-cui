@@ -25,7 +25,6 @@ export async function getLeaveRequestDetails(requestId: string) {
 
   const request = await prisma.leaveRequest.findFirst({
     where: {
-      status: "PENDING",
       id: requestId,
       student: {
         department: hod.department,

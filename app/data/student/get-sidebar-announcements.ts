@@ -36,57 +36,77 @@ export async function studentGetSidebarAnnouncements() {
   const yearMatch = student.registrationNo.match(/\d{2}/);
   const studentYear = yearMatch ? 2000 + parseInt(yearMatch[0]) : null;
 
-  const ann = await prisma.announcement.findMany({
-    where: {
-      status: "PUBLISHED",
-      // Announcement must target student's department OR be a broadcast (null department)
-      OR: [
-        { targetDepartment: student.department },
-        { targetDepartment: null },
-      ],
-      // Additional targeting filters - if specified, they must match
-      AND: [
-        {
-          OR: [{ targetProgram: null }, { targetProgram: student.program }],
-        },
-        {
-          OR: [
-            { targetBatch: null },
-            ...(studentBatch ? [{ targetBatch: studentBatch }] : []),
-          ],
-        },
-        ...(studentYear
-          ? [
-              {
-                OR: [{ targetYear: null }, { targetYear: studentYear }],
-              },
-            ]
-          : []),
-      ],
-    },
-    // isPinned announcements should always come first, followed by the rest sorted by published date
-    orderBy: [
-      { isPinned: "desc" }, // Pinned announcements come first
-      { publishedAt: "desc" }, // Then by published date
-      { createdAt: "desc" }, // Fallback to creation date
+  // Base where clause for targeting
+  const baseWhere = {
+    status: "PUBLISHED" as const,
+    // Announcement must target student's department OR be a broadcast (null department)
+    OR: [{ targetDepartment: student.department }, { targetDepartment: null }],
+    // Additional targeting filters - if specified, they must match
+    AND: [
+      {
+        OR: [{ targetProgram: null }, { targetProgram: student.program }],
+      },
+      {
+        OR: [
+          { targetBatch: null },
+          ...(studentBatch ? [{ targetBatch: studentBatch }] : []),
+        ],
+      },
+      ...(studentYear
+        ? [
+            {
+              OR: [{ targetYear: null }, { targetYear: studentYear }],
+            },
+          ]
+        : []),
     ],
-    // take: 5,
-    select: {
-      id: true,
-      title: true,
-      content: true,
-      createdAt: true,
-      isPinned: true,
-      publishedAt: true,
-      author: {
-        select: {
-          image: true,
-          name: true,
-          role: true,
-        },
+  };
+
+  const selectFields = {
+    id: true,
+    title: true,
+    content: true,
+    createdAt: true,
+    isPinned: true,
+    publishedAt: true,
+    author: {
+      select: {
+        image: true,
+        name: true,
+        role: true,
       },
     },
+  };
+
+  // Fetch all pinned announcements
+  const pinnedAnnouncements = await prisma.announcement.findMany({
+    where: {
+      ...baseWhere,
+      isPinned: true,
+    },
+    orderBy: [
+      { createdAt: "desc" }, // Newest pinned first
+      { publishedAt: "desc" },
+    ],
+    select: selectFields,
   });
+
+  // Fetch 2-3 most recent unpinned announcements
+  const unpinnedAnnouncements = await prisma.announcement.findMany({
+    where: {
+      ...baseWhere,
+      isPinned: false,
+    },
+    orderBy: [
+      { createdAt: "desc" }, // Newest unpinned first
+      { publishedAt: "desc" },
+    ],
+    take: 3,
+    select: selectFields,
+  });
+
+  // Combine pinned and unpinned announcements
+  const ann = [...pinnedAnnouncements, ...unpinnedAnnouncements];
 
   return ann;
 }

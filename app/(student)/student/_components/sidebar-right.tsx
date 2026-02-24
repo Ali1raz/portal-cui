@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { ArrowUpRightFromSquare } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +14,7 @@ import {
   StudentsSidebarAnnoucementsList,
   StudentsSidebarAnnouncementsListSkeleton,
 } from "./student-sidebar-announcements-list";
+import Link from "next/link";
 
 export function RightSidebar({
   ...props
@@ -46,9 +47,11 @@ export function RightSidebar({
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton>
-                <Plus />
-                <span>New Calendar</span>
+              <SidebarMenuButton asChild>
+                <Link href="/student/announcements">
+                  <ArrowUpRightFromSquare />
+                  <span>View All</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
