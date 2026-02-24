@@ -1,23 +1,24 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
+import { Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 import { z } from "zod";
 import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
 
 const formSchema = z
   .object({
@@ -29,7 +30,7 @@ const formSchema = z
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    path: ["confirmPassword"], // This points the error to the confirmPassword field
+    path: ["confirmPassword"],
     message: "Passwords do not match",
   });
 
@@ -37,10 +38,16 @@ type FormSchemaType = z.infer<typeof formSchema>;
 
 type ResetPasswordFormProps = {
   token: string;
+  className?: string;
 };
 
-export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
-  const [isPending, setIsPending] = useState(false);
+/// Reset password form that allows users to set a new password using a reset token.
+export function ResetPasswordForm({
+  token,
+  className,
+  ...props
+}: ResetPasswordFormProps & React.ComponentProps<"div">) {
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
@@ -52,74 +59,93 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
   const router = useRouter();
 
-  async function resetPassword({ password }: { password: string }) {
-    await authClient.resetPassword({
-      newPassword: password,
-      token: token,
-      fetchOptions: {
-        onRequest: () => {
-          setIsPending(true);
+  function onSubmit(values: FormSchemaType) {
+    startTransition(async () => {
+      await authClient.resetPassword({
+        newPassword: values.password,
+        token: token,
+        fetchOptions: {
+          onError: (ctx) => {
+            toast.error(ctx.error.message);
+          },
+          onSuccess: () => {
+            toast.success("Password reset successfully.");
+            router.push("/login");
+          },
         },
-        onResponse: () => {
-          setIsPending(false);
-        },
-        onError: (ctx) => {
-          toast.error(ctx.error.message);
-        },
-        onSuccess: () => {
-          toast.success("Password reset successfully.");
-          router.push("/login");
-        },
-      },
+      });
     });
   }
 
   return (
-    <div className="w-full space-y-8">
-      <div>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(resetPassword)}
-            className="space-y-6"
-          >
-            <FormField
-              control={form.control}
+    <div className={cn("", className)} {...props}>
+      <div className="grid gap-4">
+        <form id="reset-password-form" onSubmit={form.handleSubmit(onSubmit)}>
+          <FieldGroup className="flex flex-col gap-4">
+            <Controller
               name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>New Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" disabled={isPending} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
               control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm password</FormLabel>
-                  <FormControl>
-                    <Input type="password" disabled={isPending} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>New Password</FieldLabel>
+                  <Input
+                    {...field}
+                    type="password"
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    autoComplete="new-password"
+                    disabled={isPending}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
             />
-            <Button type="submit" disabled={isPending} className="w-full">
-              {isPending ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  &nbsp;Loading...
-                </>
-              ) : (
-                "Reset password"
+            <Controller
+              name="confirmPassword"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Confirm Password</FieldLabel>
+                  <Input
+                    {...field}
+                    type="password"
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    autoComplete="new-password"
+                    disabled={isPending}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
-            </Button>
-          </form>
-        </Form>
+            />
+          </FieldGroup>
+        </form>
+
+        <Field className="mt-4">
+          <Button disabled={isPending} type="submit" form="reset-password-form">
+            {isPending ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+              </>
+            ) : (
+              <>Reset password</>
+            )}
+          </Button>
+        </Field>
+
+        <div className="text-center text-sm">
+          Remember your password?{" "}
+          <Link
+            href="/login"
+            className="text-primary hover:underline underline-offset-4"
+          >
+            Back to login
+          </Link>
+        </div>
       </div>
     </div>
   );

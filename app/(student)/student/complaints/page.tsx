@@ -56,7 +56,7 @@ export default async function StudentsComplaintsPage(
         <h2 className="text-2xl font-bold">Complaints</h2>
         <Link
           href="/student/complaints/new"
-          className={buttonVariants({ size: "md" })}
+          className={buttonVariants({ size: "sm" })}
         >
           New Complaint
         </Link>

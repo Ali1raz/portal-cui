@@ -2,13 +2,6 @@
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 import { Input } from "@/components/ui/input";
 import { useTransition } from "react";
@@ -80,89 +73,81 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <form id="login-form" onSubmit={form.handleSubmit(onSubmit)}>
-            <FieldGroup className="flex flex-col gap-4">
-              <Controller
-                name="email"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-                    <Input
-                      {...field}
-                      type="email"
-                      id={field.name}
-                      aria-invalid={fieldState.invalid}
-                      placeholder="m@example.com"
-                      autoComplete="email"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              <Controller
-                name="password"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <div className="flex items-center justify-between">
-                      <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                      <Link
-                        href="/forgot-password"
-                        className="text-sm underline-offset-4 hover:underline"
-                      >
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <Input
-                      {...field}
-                      id={field.name}
-                      aria-invalid={fieldState.invalid}
-                      type="password"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-            </FieldGroup>
-          </form>
-
-          <Field className="mt-4">
-            <Button disabled={isEmailPending} type="submit" form="login-form">
-              {isEmailPending ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                </>
-              ) : (
-                <>Login</>
+    <div className={cn("", className)} {...props}>
+      <div className="grid gap-4">
+        <form id="login-form" onSubmit={form.handleSubmit(onSubmit)}>
+          <FieldGroup className="flex flex-col gap-4">
+            <Controller
+              name="email"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                  <Input
+                    {...field}
+                    type="email"
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    placeholder="m@example.com"
+                    autoComplete="email"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
-            </Button>
-          </Field>
+            />
+            <Controller
+              name="password"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <div className="flex items-center justify-between">
+                    <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                    <Link
+                      href="/forgot-password"
+                      className="text-sm underline-offset-4 hover:underline"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    type="password"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          </FieldGroup>
+        </form>
 
-          <div className="text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/register"
-              className="text-primary hover:underline underline-offset-4"
-            >
-              Register
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+        <Field className="mt-4">
+          <Button disabled={isEmailPending} type="submit" form="login-form">
+            {isEmailPending ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+              </>
+            ) : (
+              <>Login</>
+            )}
+          </Button>
+        </Field>
+
+        <div className="text-center text-sm">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/register"
+            className="text-primary hover:underline underline-offset-4"
+          >
+            Register
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

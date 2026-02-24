@@ -57,7 +57,7 @@ export default async function LeaveRequestsPage(
         <h2 className="text-2xl font-bold">My Leave Requests</h2>
         <Link
           href="/student/request-leave"
-          className={buttonVariants({ size: "md" })}
+          className={buttonVariants({ size: "sm" })}
         >
           New Leave Request
         </Link>

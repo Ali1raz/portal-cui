@@ -1,15 +1,28 @@
-import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { CUILogo } from "@/components/general/cui-logo";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default async function VerifyEmail() {
   return (
-    <div className="min-h-screen flex items-center justify-center w-full max-w-xl mx-auto">
-      <Card className="p-8 w-full">
-        <CardTitle className="text-2xl font-bold">Verify Email</CardTitle>
-        <CardDescription className="text-green-600 dark:text-green-400">
-          We sent you an email with verification link, click on that link to
-          verify your email.
-        </CardDescription>
-      </Card>
+    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+      <div className="w-full max-w-2xl">
+        <CUILogo
+          className="flex items-center text-center mb-8 flex-col gap-y-2"
+          imageClasses="size-26"
+        />
+        <div className="space-y-4 text-center">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold">Check your email</h2>
+            <p className="text-muted-foreground">
+              We&apos;ve sent you a verification link. Click the link in the
+              email to verify your account and complete your registration.
+            </p>
+          </div>
+          <Button asChild variant="link">
+            <Link href="/login">Back to login</Link>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,11 +1,21 @@
-import FooterSection from "@/components/general/footer";
-import HeroSection from "@/components/general/hero-section";
+import { FeatureSection } from "@/components/feature-section";
+import { Features } from "@/components/features-12";
+import { Footer } from "@/components/footer";
+import { HeroSection } from "@/components/general/hero-section";
+import { Integrations } from "@/components/integrations";
 
 export default function Page() {
   return (
-    <div>
+    <>
       <HeroSection />
-      <FooterSection />
-    </div>
+      <section className="place-content-center p-4">
+        <FeatureSection />
+      </section>
+      <Features />
+      <div className="place-content-center p-4">
+        <Integrations />
+      </div>
+      <Footer />
+    </>
   );
 }

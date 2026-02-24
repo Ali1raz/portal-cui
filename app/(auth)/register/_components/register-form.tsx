@@ -3,13 +3,6 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Field,
   FieldError,
   FieldGroup,
@@ -28,6 +21,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
 
+/// Register form with account creation and redirect to success page.
 export function RegisterForm({
   className,
   ...props
@@ -63,96 +57,92 @@ export function RegisterForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Register to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to register to your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <form id="login-form" onSubmit={form.handleSubmit(onSubmit)}>
-            <FieldGroup className="flex flex-col gap-4">
-              <Controller
-                name="name"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Name</FieldLabel>
-                    <Input
-                      {...field}
-                      id={field.name}
-                      aria-invalid={fieldState.invalid && fieldState.isTouched}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              <Controller
-                name="email"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-                    <Input
-                      {...field}
-                      id={field.name}
-                      aria-invalid={fieldState.invalid}
-                      placeholder="m@example.com"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              <Controller
-                name="password"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                    <Input
-                      {...field}
-                      id={field.name}
-                      aria-invalid={fieldState.invalid}
-                      type="password"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-            </FieldGroup>
-          </form>
-
-          <Field className="mt-4">
-            <Button disabled={isEmailPending} type="submit" form="login-form">
-              {isEmailPending ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                </>
-              ) : (
-                <>Register</>
+    <div className={cn("", className)} {...props}>
+      <div className="grid gap-4">
+        <form id="register-form" onSubmit={form.handleSubmit(onSubmit)}>
+          <FieldGroup className="flex flex-col gap-4">
+            <Controller
+              name="name"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid && fieldState.isTouched}
+                    autoComplete="name"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
-            </Button>
-          </Field>
+            />
+            <Controller
+              name="email"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                  <Input
+                    {...field}
+                    type="email"
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    placeholder="m@example.com"
+                    autoComplete="email"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+            <Controller
+              name="password"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    type="password"
+                    autoComplete="new-password"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          </FieldGroup>
+        </form>
 
-          <div className="text-center text-sm">
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className="text-primary hover:underline underline-offset-4"
-            >
-              Login
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+        <Field className="mt-4">
+          <Button disabled={isEmailPending} type="submit" form="register-form">
+            {isEmailPending ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+              </>
+            ) : (
+              <>Register</>
+            )}
+          </Button>
+        </Field>
+
+        <div className="text-center text-sm">
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="text-primary hover:underline underline-offset-4"
+          >
+            Login
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

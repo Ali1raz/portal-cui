@@ -12,6 +12,7 @@ import { SignOutButton } from "./signout-button";
 import { getDashboardLinkForRole } from "@/components/sidebar/navlinks";
 import { Role } from "@/lib/generated/prisma/enums";
 import { Route } from "next";
+import { useScroll } from "@/hooks/use-scroll";
 
 type MenuItem = {
   name: string;
@@ -21,11 +22,11 @@ type MenuItem = {
 
 export const HeroHeader = () => {
   const [menuState, setMenuState] = React.useState(false);
-  const [isScrolled, setIsScrolled] = React.useState(false);
   const session = useSession();
   const pathName = usePathname();
   const userRole = session.data?.user?.role as Role | undefined;
   const dashboardLink = getDashboardLinkForRole(userRole);
+  const scrolled = useScroll(50);
 
   const menuItems: MenuItem[] = [
     ...(dashboardLink
@@ -37,30 +38,29 @@ export const HeroHeader = () => {
     { name: "Director", href: "/director", role: "DIRECTOR" },
   ];
 
-  React.useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  //   const handleScroll = () => {
+  //     setIsScrolled(window.scrollY > 350);
+  //   };
+  //   window.addEventListener("scroll", handleScroll);
+  //   return () => window.removeEventListener("scroll", handleScroll);
+  // }, []);
   return (
-    <header>
+    <header className="fixed top-0 left-0 w-full z-50">
       <nav
         data-state={menuState && "active"}
-        className="fixed z-20 w-full px-2"
+        className="max-w-5xl mx-auto w-full px-2"
       >
         <div
           className={cn(
-            "mx-auto mt-2 max-w-6xl px-6 transition-all duration-300 lg:px-12",
-            isScrolled &&
-              "bg-background/50 max-w-4xl rounded-2xl border backdrop-blur-lg lg:px-5"
+            "mx-auto mt-2 px-6 transition-all duration-300 lg:px-12",
+            scrolled &&
+              "bg-background/50 rounded-2xl border backdrop-blur-lg lg:px-5"
           )}
         >
           <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
             <div className="flex w-full justify-between lg:w-auto">
               <CUILogo
-                textClasses="block max-[490px]:hidden"
+                textClasses="block max-[490px]:hidden font-medium"
                 className="flex items-center gap-1"
               />
 
@@ -119,7 +119,7 @@ export const HeroHeader = () => {
                       asChild
                       variant="outline"
                       size="sm"
-                      className={cn(isScrolled && "lg:hidden")}
+                      className={cn(scrolled && "lg:hidden")}
                     >
                       <Link href="/login">
                         <span>Login</span>
@@ -128,7 +128,7 @@ export const HeroHeader = () => {
                     <Button
                       asChild
                       size="sm"
-                      className={cn(isScrolled && "lg:hidden")}
+                      className={cn(scrolled && "lg:hidden")}
                     >
                       <Link href="/register">
                         <span>Sign Up</span>
@@ -136,13 +136,13 @@ export const HeroHeader = () => {
                     </Button>
                   </>
                 ) : (
-                  <SignOutButton className={cn(isScrolled && "lg:hidden")} />
+                  <SignOutButton className={cn(scrolled && "lg:hidden")} />
                 )}
                 {session.data ? (
                   <Button
                     asChild
                     size="sm"
-                    className={cn(isScrolled ? "lg:inline-flex" : "hidden")}
+                    className={cn(scrolled ? "lg:inline-flex" : "hidden")}
                   >
                     <Link href="/profile">
                       <span>Profile</span>
@@ -154,7 +154,7 @@ export const HeroHeader = () => {
                     size="sm"
                     className={cn(
                       "hidden lg:inline-flex",
-                      !isScrolled && "lg:hidden"
+                      !scrolled && "lg:hidden"
                     )}
                   >
                     <Link href="/register">
