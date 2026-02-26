@@ -203,7 +203,11 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
                               setDate(date);
                               setDateValue(date);
                             }}
-                            disabled={(date) => date > today}
+                            disabled={(date) =>
+                              date > today ||
+                              date.getDay() === 0 ||
+                              date.getDay() === 6
+                            }
                           />
                         </PopoverContent>
                       </Popover>

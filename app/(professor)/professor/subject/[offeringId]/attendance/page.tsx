@@ -21,10 +21,7 @@ export default async function AttendencePage(
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 p-4 md:gap-6 md:py-6">
           <div className="flex items-start sm:flex-row flex-col sm:justify-between justify-start gap-4">
-            <h1>
-              Manage attendance for class{" "}
-              <span className="text-primary font-semibold">{offeringId}</span>
-            </h1>
+            <h1>Manage attendance for class</h1>
           </div>
           <Suspense fallback={<AttendanceTableSkeleton />}>
             <AttendenceTableInSuspense offeringId={offeringId} />

@@ -23,6 +23,7 @@ export async function getProfessorSubjects() {
       id: true,
       employeeNo: true,
       createdAt: true,
+      department: true,
       user: {
         select: {
           name: true,

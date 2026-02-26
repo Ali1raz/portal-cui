@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDownIcon, Home, LogOutIcon } from "lucide-react";
+import { ChevronDownIcon, Home, LogOutIcon, User } from "lucide-react";
 
 import { useSignOut } from "@/hooks/use-signout";
 import Link from "next/link";
@@ -20,12 +20,14 @@ interface UserAvatarProps {
   name: string;
   email: string;
   image: string | null | undefined;
+  role?: string | null | undefined;
 }
 
 export default function UserAvatarDropdown({
   name,
   email,
   image,
+  role,
 }: UserAvatarProps) {
   const handleSignOut = useSignOut();
 
@@ -38,13 +40,17 @@ export default function UserAvatarDropdown({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="max-w-64">
-        <DropdownMenuLabel className="flex min-w-0 flex-col">
-          <span className="text-foreground truncate text-sm font-medium">
-            {name}
-          </span>
-          <span className="text-muted-foreground truncate text-xs font-normal">
-            {email}
-          </span>
+        <DropdownMenuLabel>
+          <div className="flex items-start gap-2 text-left text-sm">
+            <UserImage name={name} image={image} />
+            <div className="grid flex-1 text-left text-sm gap-2 leading-tight">
+              <span className="truncate font-medium">
+                {name && name.length > 0 ? name : email.split("@")[0]}
+              </span>
+              <p className="text-muted-foreground truncate text-xs">{email}</p>
+              <p>{role}</p>
+            </div>
+          </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
@@ -54,14 +60,24 @@ export default function UserAvatarDropdown({
               <span>Home</span>
             </Link>
           </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/profile">
+              <User className="h-4 w-4" />
+              <span>Profile</span>
+            </Link>
+          </DropdownMenuItem>
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
-
-        <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-          <LogOutIcon size={16} aria-hidden="true" />
-          <span>Logout</span>
-        </DropdownMenuItem>
+        <DropdownMenuGroup>
+          <DropdownMenuItem
+            onClick={handleSignOut}
+            className="cursor-pointer text-red-600 dark:text-red-400"
+          >
+            <LogOutIcon size={16} aria-hidden="true" />
+            <span>Logout</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

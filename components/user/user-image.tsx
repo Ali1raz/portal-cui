@@ -10,7 +10,6 @@ export function UserImage({
   name?: string | null;
   className?: string;
 }) {
-  console.log(image, "---->>> user image prop");
   const constructedImageUrl = useConstructImageUrl(image || "");
 
   const imageUrl = !image
@@ -18,8 +17,6 @@ export function UserImage({
     : image.includes("avatars.vercel.sh")
       ? image
       : constructedImageUrl;
-
-  console.log(imageUrl, "---->>> user image url");
 
   return (
     <Avatar className={className}>

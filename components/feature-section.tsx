@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import type React from "react";
-import { CobeGlobe } from "@/components/cobe-globe";
 import {
   GlobeIcon,
   ClipboardCheckIcon,
@@ -214,8 +213,23 @@ function PresenceVisual() {
           </FeatureDescription>
         </div>
       </div>
-      <div className="relative">
-        <CobeGlobe className="-top-[12%] right-0 sm:absolute" />
+      <div className="absolute -right-1 -bottom-1 aspect-video max-h-50 rounded-tl-md border bg-card p-1 sm:max-h-42 md:aspect-square md:max-h-50 lg:aspect-16/12">
+        <div className="aspect-video h-full overflow-hidden rounded-tl-sm border *:pointer-events-none *:size-full *:shrink-0 *:select-none">
+          <Image
+            alt="Dashboard preview"
+            className="dark:hidden"
+            height={360}
+            src="/features/hod-ann-table-light.png"
+            width={640}
+          />
+          <Image
+            alt="Dashboard preview"
+            className="hidden dark:block"
+            height={360}
+            src="/features/hod-ann-table-dark.png"
+            width={640}
+          />
+        </div>
       </div>
     </div>
   );
