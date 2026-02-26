@@ -27,6 +27,7 @@ import { CalendarIcon } from "lucide-react";
 import { StudentGetAttendencesType } from "@/app/data/student/get-student-attendances";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,7 +41,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -259,36 +259,6 @@ export default function AttendanceTable({
 
   return (
     <div className="space-y-6" aria-busy={isPending}>
-      <div>
-        <h1 className="font-semibold text-lg my-3">Attendance Details</h1>
-        <div className="flex items-baseline gap-5 flex-wrap">
-          <div className="*:first:text-sm *:first:text-muted-foreground *:not-first:text-lg">
-            <h1>Total records</h1>
-            <p>{totalCount}</p>
-          </div>
-          <div className="*:first:text-sm *:first:text-muted-foreground *:not-first:text-lg">
-            <h1>Absentees</h1>
-            <p>
-              {rows.reduce<number>(
-                (total, row) => total + (row.status === "ABSENT" ? 1 : 0),
-                0
-              )}
-            </p>
-          </div>
-          <div className="*:first:text-sm *:first:text-muted-foreground *:not-first:text-lg">
-            <h1>Present</h1>
-            <p>
-              {rows.reduce<number>(
-                (total, row) => total + (row.status === "PRESENT" ? 1 : 0),
-                0
-              )}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <Separator />
-
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="w-full max-w-md">
@@ -346,11 +316,11 @@ export default function AttendanceTable({
             </ToggleGroup>
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="space-y-2">
             <Label>Attendance Date</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-start">
+                <Button variant="outline" className="w-full">
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {dateRange.from ? (
                     dateRange.to ? (
@@ -591,5 +561,97 @@ function SortableTableHeader({
         ) : null}
       </div>
     </TableHead>
+  );
+}
+
+/// Loading skeleton for attendance table.
+export function AttendanceTableSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <Skeleton className="h-10 w-full max-w-md" />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-4 w-12" />
+            <div className="flex gap-1">
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-20" />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-10 w-64" />
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead>
+                <Skeleton className="h-4 w-12" />
+              </TableHead>
+              <TableHead>
+                <Skeleton className="h-4 w-16" />
+              </TableHead>
+              <TableHead>
+                <Skeleton className="h-4 w-16" />
+              </TableHead>
+              <TableHead>
+                <Skeleton className="h-4 w-20" />
+              </TableHead>
+              <TableHead>
+                <Skeleton className="h-4 w-16" />
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <TableRow key={i}>
+                <TableCell>
+                  <Skeleton className="h-4 w-8" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-24" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-28" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-32" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-20" />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-4 py-4">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-4 w-24 max-sm:sr-only" />
+          <Skeleton className="h-10 w-20" />
+        </div>
+
+        <div className="flex grow justify-end">
+          <Skeleton className="h-4 w-32" />
+        </div>
+
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-10" />
+          <Skeleton className="h-10 w-10" />
+          <Skeleton className="h-10 w-10" />
+          <Skeleton className="h-10 w-10" />
+        </div>
+      </div>
+    </div>
   );
 }

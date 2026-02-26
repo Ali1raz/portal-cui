@@ -6,26 +6,30 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
-export function SubjectCard({ course }: { course: StudentSubject }) {
+export function SubjectCard({ subject }: { subject: StudentSubject }) {
   return (
     <Card className="mx-auto w-full max-w-xl group">
       <CardHeader className="flex items-baseline justify-between">
-        <CardTitle className="text-base">{course.name}</CardTitle>
+        <CardTitle className="text-base">{subject.name}</CardTitle>
         <Badge variant="primary" className="px-2 text-xs bg-primary/80">
-          {course.creditHours} Credits
+          {subject.creditHours} Credits
         </Badge>
       </CardHeader>
 
-      <CardContent className="space-y-4 mt-auto">
+      <CardContent className="space-y-3 mt-auto">
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
+            <span className="text-muted-foreground">Code:</span>
+            <span className="font-medium">{subject.code}</span>
+          </div>
+          <div className="flex justify-between">
             <span className="text-muted-foreground">Teacher:</span>
-            <span className="font-medium">{course.teacherName}</span>
+            <span className="font-medium">{subject.teacherName}</span>
           </div>
 
           <div className="flex justify-between">
             <span className="text-muted-foreground">Class:</span>
-            <span className="font-medium">{course.className}</span>
+            <span className="font-medium">{subject.className}</span>
           </div>
         </div>
 
@@ -35,7 +39,7 @@ export function SubjectCard({ course }: { course: StudentSubject }) {
           <div className="flex justify-between items-center">
             <div>
               <Link
-                href={`/student/subject/${course.offeringId}/attendance`}
+                href={`/student/subject/${subject.offeringId}/attendance`}
                 className="flex items-center gap-1 text-sm group-hover:text-primary hover:underline underline-offset-4"
               >
                 Attendance <ArrowUpRight className="size-4" />
@@ -43,24 +47,24 @@ export function SubjectCard({ course }: { course: StudentSubject }) {
             </div>
             <span
               className={`text-sm font-bold ${
-                course.attendancePercentage < 80
+                subject.attendancePercentage < 80
                   ? "text-red-500/50"
                   : "text-green-500/50"
               }`}
             >
-              {course.attendancePercentage}%
+              {subject.attendancePercentage}%
             </span>
           </div>
           <Progress
-            value={course.attendancePercentage}
+            value={subject.attendancePercentage}
             className={`h-2 ${
-              course.attendancePercentage < 80
+              subject.attendancePercentage < 80
                 ? "[&>div]:bg-red-500"
                 : "[&>div]:bg-green-500"
             }`}
           />
 
-          {course.attendancePercentage < 80 && (
+          {subject.attendancePercentage < 80 && (
             <p className="text-xs text-red-500 font-medium">
               ⚠️ Below minimum requirement
             </p>

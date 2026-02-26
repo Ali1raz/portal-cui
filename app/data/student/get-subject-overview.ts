@@ -56,5 +56,36 @@ export async function studentGetSubjectOverview({
     return notFound();
   }
 
-  return subj;
+  // Fetch attendance statistics
+  const [totalRecords, presentCount, absentCount] = await Promise.all([
+    prisma.studentAttendance.count({
+      where: {
+        studentId: student.id,
+        record: { offeringId },
+      },
+    }),
+    prisma.studentAttendance.count({
+      where: {
+        studentId: student.id,
+        record: { offeringId },
+        status: "PRESENT",
+      },
+    }),
+    prisma.studentAttendance.count({
+      where: {
+        studentId: student.id,
+        record: { offeringId },
+        status: "ABSENT",
+      },
+    }),
+  ]);
+
+  return {
+    ...subj,
+    attendanceStats: {
+      totalRecords,
+      presentCount,
+      absentCount,
+    },
+  };
 }

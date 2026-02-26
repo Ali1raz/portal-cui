@@ -5,7 +5,10 @@ import { ensureUser, generateEmployeeNo } from "./utils";
 
 export async function seedProfessors() {
   console.log("\n👨‍🏫 Seeding Professors...");
-  const professors = SEED_USERS.filter((u) => u.role === Role.PROFESSOR);
+  // Include both PROFESSOR and HOD roles since HODs are also professors
+  const professors = SEED_USERS.filter(
+    (u) => u.role === Role.PROFESSOR || u.role === Role.HOD
+  );
 
   for (const user of professors) {
     if (!user.department) continue;
@@ -40,8 +43,12 @@ export async function seedProfessors() {
 
 export async function seedProfessorAssignments() {
   console.log("\n📝 Seeding Professor Assignments...");
+  // Include both PROFESSOR and HOD roles since HODs also teach
   const professors = SEED_USERS.filter(
-    (u) => u.role === Role.PROFESSOR && u.teaches && u.teaches.length > 0
+    (u) =>
+      (u.role === Role.PROFESSOR || u.role === Role.HOD) &&
+      u.teaches &&
+      u.teaches.length > 0
   );
   const currentYear = new Date().getFullYear();
   const semester = 1;

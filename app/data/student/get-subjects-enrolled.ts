@@ -30,6 +30,7 @@ export async function getStudentEnrolledSubjects() {
     select: {
       id: true,
       name: true,
+      code: true,
     },
   });
   return {

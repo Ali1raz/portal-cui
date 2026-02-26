@@ -1,5 +1,7 @@
 import { getStudentAttendances } from "@/app/data/student/get-student-attendances";
-import AttendanceTable from "./_components/attendance-table";
+import AttendanceTable, {
+  AttendanceTableSkeleton,
+} from "./_components/attendance-table";
 import { Suspense } from "react";
 import {
   SubjectOverview,
@@ -25,7 +27,7 @@ export default async function StudentAttendancePage(
         </Suspense>
       </div>
       <Separator className="my-4" />
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<AttendanceTableSkeleton />}>
         <AttendanceList
           offeringId={offeringId}
           searchParams={props.searchParams}

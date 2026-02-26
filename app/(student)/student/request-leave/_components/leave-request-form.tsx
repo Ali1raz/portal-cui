@@ -99,8 +99,14 @@ export function LeaveRequestForm({
                 </FormControl>
                 <SelectContent>
                   {subjects.map((s, i) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {i + 1}. {s.name}
+                    <SelectItem
+                      key={s.id}
+                      value={s.id}
+                      className="flex flex-col sm:flex-row gap-3"
+                    >
+                      <span>
+                        {i + 1}. {s.name} - {s.code}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
