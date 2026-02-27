@@ -85,6 +85,8 @@ import {
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { APP } from "@/lib/data/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { LeaveRequestBulkActions } from "./leave-request-bulk-actions";
 
 export function LeaveRequestsTable({
   requests,
@@ -96,6 +98,7 @@ export function LeaveRequestsTable({
   "use no memo";
   const tableId = useId();
   const [isPending, startTransition] = useTransition();
+  const [rowSelection, setRowSelection] = useState({});
   const [queryState, setQueryState] = useQueryStates(
     leaveRequestSearchParamsParsers,
     {
@@ -128,6 +131,27 @@ export function LeaveRequestsTable({
   };
 
   const columns: ColumnDef<GetLeaveRequestsType>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+    },
     {
       id: "srNo",
       header: "Sr No.",
@@ -265,8 +289,11 @@ export function LeaveRequestsTable({
       sorting,
       columnOrder,
       pagination,
+      rowSelection,
     },
     onColumnOrderChange: setColumnOrder,
+    enableRowSelection: true,
+    onRowSelectionChange: setRowSelection,
     enableSortingRemoval: false,
     manualPagination: true,
     manualSorting: true,
@@ -386,7 +413,6 @@ export function LeaveRequestsTable({
         </div>
         {hasActiveParams ? (
           <Button
-            type="button"
             variant="outline"
             size="sm"
             onClick={() => {
@@ -400,6 +426,22 @@ export function LeaveRequestsTable({
           </Button>
         ) : null}
       </div>
+      <div className="my-2 md:my-4">
+        {Object.keys(rowSelection).length > 0 ? (
+          <LeaveRequestBulkActions
+            selectedIds={table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original.id)}
+            requests={table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original)}
+            onSuccess={() => {
+              setRowSelection({});
+            }}
+          />
+        ) : null}
+      </div>
+
       <div className="rounded-md border">
         <DndContext
           id={tableId}
