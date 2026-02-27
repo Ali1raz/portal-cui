@@ -59,7 +59,12 @@ const roleDashboardLinks: Record<Role, RoleDashboardLink<Route> | null> = {
     icon: IconLayoutDashboard,
     role: "ADMIN",
   },
-  ACCOUNTANT: null,
+  ACCOUNTANT: {
+    title: "Dashboard",
+    href: "/accountant",
+    icon: IconLayoutDashboard,
+    role: "ACCOUNTANT",
+  },
   USER: null,
 };
 
@@ -197,7 +202,23 @@ export function getNavLinks({
         icon: IconSpeakerphone,
       },
     ],
-    ACCOUNTANT: [],
+    ACCOUNTANT: [
+      {
+        title: "Dashboard",
+        href: "/accountant",
+        icon: IconLayoutDashboard,
+      },
+      {
+        title: "Announcements",
+        href: "/accountant/announcements",
+        icon: IconMessage2,
+      },
+      {
+        title: "New Announcement",
+        href: "/accountant/announcements/new",
+        icon: IconMessagePlus,
+      },
+    ],
     ADMIN: [
       {
         title: "Dashboard",
