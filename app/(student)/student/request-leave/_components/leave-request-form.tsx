@@ -31,7 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { sendLeaveRequest } from "../actions";
@@ -46,6 +46,7 @@ export function LeaveRequestForm({
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const [resetKey, setResetKey] = useState(0);
 
   // 1. Define your form.
   const form = useForm<LeaveRequestFormType>({
@@ -77,6 +78,7 @@ export function LeaveRequestForm({
       } else if (result.status === "success") {
         toast.success(result.message);
         form.reset();
+        setResetKey((prev) => prev + 1);
         router.refresh();
       }
     });
@@ -213,6 +215,7 @@ export function LeaveRequestForm({
                   fileTypeAccepted="image" // doc for future
                   onChange={field.onChange}
                   value={field.value}
+                  key={resetKey}
                 />
               </FormControl>
               <FormMessage />
