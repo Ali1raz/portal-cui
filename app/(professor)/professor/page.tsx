@@ -1,67 +1,59 @@
-import { UserImage } from "@/components/user/user-image";
-import { formatDate } from "@/lib/utils";
+import { requireSession } from "@/app/data/session/require-session";
+import { UserDetailsSection } from "@/components/user/user-details-section";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { CourseCard } from "./_components/subject-card";
 import { getProfessorSubjects } from "@/app/data/professor/get-professor-courses";
 
 export default async function ProfessorPage() {
-  const { professor, assignments } = await getProfessorSubjects();
-  console.log(assignments.length);
+  const [session, { professor, assignments }] = await Promise.all([
+    requireSession(),
+    getProfessorSubjects(),
+  ]);
 
-  if (!assignments || assignments.length === 0) {
-    return <div>You are not assigned to any sections YET.</div>;
-  }
+  const professorDetails = [
+    { label: "Department", value: professor.department },
+  ];
 
   return (
-    <div className="flex flex-1 flex-col w-full max-w-6xl mx-auto">
-      <div className="@container/main flex flex-1 flex-col p-4 ">
-        <div className="flex flex-col">
-          <div className="flex sm:items-start flex-col sm:flex-row gap-4">
-            <div className="size-32">
-              <UserImage
-                className="rounded-full w-full h-full size-30"
-                name={professor.user.name}
-                image={professor.user.image}
-              />
-            </div>
+    <div className="flex flex-1 flex-col">
+      <div className="@container/main flex flex-1 flex-col gap-2 p-4 py-6">
+        <div>
+          <UserDetailsSection user={session.user} details={professorDetails} />
+          <h1 className="mt-4">
+            Welcome back!{" "}
+            <span className="font-bold text-primary">{session.user.name}</span>{" "}
+            Here is your teaching overview.
+          </h1>
+        </div>
 
-            <div className="flex flex-col">
-              <h1 className="text-2xl font-bold">{professor.user.name}</h1>
-              <h2 className="flex items-center gap-2">
-                {professor.user.email}
-              </h2>
+        {!assignments || assignments.length === 0 ? (
+          <div className="p-4">
+            <p className="text-muted-foreground">
+              You are not assigned to any sections yet.
+            </p>
+          </div>
+        ) : (
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Your classes</h2>
+              <Link
+                href="/professor/subject"
+                className={buttonVariants({
+                  variant: "ghost",
+                  className: "underline hover:text-primary",
+                })}
+              >
+                View all subjects
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {assignments.map((assignment, i) => (
+                <CourseCard key={i} assignment={assignment} />
+              ))}
             </div>
           </div>
-          <div className="flex flex-wrap items-center text-sm gap-4 border-y p-2 my-6">
-            {[
-              { label: "Joined", value: formatDate(professor.createdAt) },
-              { label: "Trust level", value: professor.user.role },
-            ].map((item, i) => (
-              <div key={i}>
-                <span className="text-muted-foreground/80">{item.label}: </span>
-                <span>{item?.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="flex items-center justify-between ">
-          <h2 className="text-xl font-bold">Your classes</h2>
-          <Link
-            href="/professor/subject"
-            className={buttonVariants({
-              variant: "ghost",
-              className: "self-end underline hover:text-primary mt-2",
-            })}
-          >
-            View all sections
-          </Link>
-        </div>
-        <div className="my-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-          {assignments.map((assignment, i) => (
-            <CourseCard key={i} assignment={assignment} />
-          ))}
-        </div>
+        )}
       </div>
     </div>
   );

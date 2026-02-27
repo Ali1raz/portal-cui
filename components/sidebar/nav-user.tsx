@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  IconDotsVertical,
-  IconLogout,
-  IconUserCircle,
-} from "@tabler/icons-react";
+import { IconDotsVertical } from "@tabler/icons-react";
 
 import {
   DropdownMenu,
@@ -24,6 +20,7 @@ import { User } from "@/lib/auth";
 import { UserImage } from "@/components/user/user-image";
 import { useSignOut } from "@/hooks/use-signout";
 import Link from "next/link";
+import { LogOut, User as UserIcon } from "lucide-react";
 
 export function NavUser({ user }: { user: User }) {
   const handleSignOut = useSignOut();
@@ -46,9 +43,9 @@ export function NavUser({ user }: { user: User }) {
 
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
-                <span className="text-muted-foreground truncate text-xs">
+                <p className="text-muted-foreground truncate text-xs">
                   {user.email}
-                </span>
+                </p>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -59,17 +56,18 @@ export function NavUser({ user }: { user: User }) {
             sideOffset={4}
           >
             <DropdownMenuLabel>
-              <div className="flex items-center gap-2 text-left text-sm">
+              <div className="flex items-start gap-2 text-left text-sm">
                 <UserImage name={user?.name} image={user?.image} />
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid flex-1 text-left text-sm gap-2 leading-tight">
                   <span className="truncate font-medium">
                     {user?.name && user.name.length > 0
                       ? user.name
                       : user?.email.split("@")[0]}
                   </span>
-                  <span className="text-muted-foreground truncate text-xs">
-                    {user.email.split("@")[0]}
-                  </span>
+                  <p className="text-muted-foreground truncate text-xs">
+                    {user.email}
+                  </p>
+                  <p>{user.role}</p>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -77,19 +75,21 @@ export function NavUser({ user }: { user: User }) {
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
                 <Link href="/profile">
-                  <IconUserCircle className="mr-2 h-4 w-4" />
+                  <UserIcon className="mr-2 h-4 w-4" />
                   <span>Profile</span>
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleSignOut}
-              className="cursor-pointer"
-            >
-              <IconLogout className="mr-2 h-4 w-4" />
-              <span>Sign out</span>
-            </DropdownMenuItem>
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                onClick={handleSignOut}
+                className="cursor-pointer"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sign out</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

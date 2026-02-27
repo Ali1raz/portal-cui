@@ -70,6 +70,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useQueryStates } from "nuqs";
 import { subjectsSearchParamsParsers } from "@/app/(admin)/admin/subjects/subjects-search-params";
+import { APP } from "@/lib/data/utils";
 
 export function AdminSubjectsTable({
   subjects,
@@ -355,7 +356,7 @@ export function AdminSubjectsTable({
               <SelectValue placeholder="Select number of results" />
             </SelectTrigger>
             <SelectContent className="[&_*[role=option]]:pr-8 [&_*[role=option]]:pl-2 [&_*[role=option]>span]:right-2 [&_*[role=option]>span]:left-auto">
-              {[5, 10, 20].map((pageSize) => (
+              {APP.page_sizes.map((pageSize) => (
                 <SelectItem key={pageSize} value={pageSize.toString()}>
                   {pageSize}
                 </SelectItem>

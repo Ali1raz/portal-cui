@@ -25,9 +25,14 @@ export const offeringDepartmentValues = [
   "BA",
 ] as const;
 
+export const hasTeacherValues = ["all", "yes", "no"] as const;
+export const hasEnrollmentsValues = ["all", "yes", "no"] as const;
+
 export type OfferingSortBy = (typeof offeringSortByValues)[number];
 export type OfferingSortDir = (typeof offeringSortDirValues)[number];
 export type OfferingDepartment = (typeof offeringDepartmentValues)[number];
+export type HasTeacher = (typeof hasTeacherValues)[number];
+export type HasEnrollments = (typeof hasEnrollmentsValues)[number];
 
 /// Shared nuqs parsers for offering search params.
 export const offeringSearchParamsParsers = {
@@ -50,6 +55,12 @@ export const offeringSearchParamsParsers = {
   semester: parseAsInteger.withOptions({ clearOnDefault: true }),
   year: parseAsInteger.withOptions({ clearOnDefault: true }),
   teacher: parseAsString.withDefault("").withOptions({ clearOnDefault: true }),
+  hasTeacher: parseAsStringEnum(Object.values(hasTeacherValues))
+    .withDefault("all")
+    .withOptions({ clearOnDefault: true }),
+  hasEnrollments: parseAsStringEnum(Object.values(hasEnrollmentsValues))
+    .withDefault("all")
+    .withOptions({ clearOnDefault: true }),
 };
 
 export const offeringSearchParamsCache = createSearchParamsCache(

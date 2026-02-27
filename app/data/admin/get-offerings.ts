@@ -16,6 +16,8 @@ type AdminGetOfferingsParams = Pick<
   | "semester"
   | "year"
   | "teacher"
+  | "hasTeacher"
+  | "hasEnrollments"
 >;
 
 export async function getAdminOfferings({
@@ -28,6 +30,8 @@ export async function getAdminOfferings({
   semester,
   year,
   teacher,
+  hasTeacher,
+  hasEnrollments,
 }: AdminGetOfferingsParams) {
   const can = await requirePermission({
     subjectOfferings: ["list"],
@@ -75,6 +79,16 @@ export async function getAdminOfferings({
           },
         }
       : {}),
+    ...(hasTeacher === "yes"
+      ? { teachingAssignments: { some: {} } }
+      : hasTeacher === "no"
+        ? { teachingAssignments: { none: {} } }
+        : {}),
+    ...(hasEnrollments === "yes"
+      ? { enrollments: { some: {} } }
+      : hasEnrollments === "no"
+        ? { enrollments: { none: {} } }
+        : {}),
   };
 
   const orderBy: Prisma.SubjectOfferingOrderByWithRelationInput =
@@ -124,6 +138,7 @@ export async function getAdminOfferings({
                     name: true,
                     image: true,
                     id: true,
+                    email: true,
                   },
                 },
               },

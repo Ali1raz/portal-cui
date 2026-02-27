@@ -96,6 +96,7 @@ import { MiddleTruncateText } from "@/components/general/truncated-text";
 import { HodAnnouncementActions } from "./hod-announcements-actions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HodAnnouncementsBulkActions } from "./hod-announcements-bulk-actions";
+import { APP } from "@/lib/data/utils";
 
 export const statusVariantMap: Record<
   AnnouncementStatus,
@@ -649,7 +650,7 @@ export function HodAnnouncementsTable({
               <SelectValue placeholder="Select number of results" />
             </SelectTrigger>
             <SelectContent className="[&_*[role=option]]:pr-8 [&_*[role=option]]:pl-2 [&_*[role=option]>span]:right-2 [&_*[role=option]>span]:left-auto">
-              {[10, 20, 50].map((pageSize) => (
+              {APP.page_sizes.map((pageSize) => (
                 <SelectItem key={pageSize} value={pageSize.toString()}>
                   {pageSize}
                 </SelectItem>

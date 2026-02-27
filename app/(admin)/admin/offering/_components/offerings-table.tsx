@@ -76,6 +76,7 @@ import {
 } from "../offering-search-params";
 import Link from "next/link";
 import { UserImage } from "@/components/user/user-image";
+import { APP } from "@/lib/data/utils";
 
 export function OfferingsTable({
   offerings,
@@ -112,7 +113,9 @@ export function OfferingsTable({
     queryState.department !== null ||
     queryState.semester !== null ||
     queryState.year !== null ||
-    queryState.teacher.length > 0;
+    queryState.teacher.length > 0 ||
+    queryState.hasTeacher !== "all" ||
+    queryState.hasEnrollments !== "all";
 
   const pagination: PaginationState = {
     pageIndex: Math.max(queryState.page - 1, 0),
@@ -204,9 +207,12 @@ export function OfferingsTable({
                     name={assignment.professor.user.name}
                     className="size-8"
                   />
-                  <span className="text-sm">
-                    {assignment.professor.user.name}
-                  </span>
+                  <div className="flex flex-col leading-tight">
+                    <span className="text-sm">
+                      {assignment.professor.user.name}
+                    </span>
+                    <span>{assignment.professor.user.email}</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -416,17 +422,58 @@ export function OfferingsTable({
             ))}
           </SelectContent>
         </Select>
+        <Select
+          value={queryState.hasTeacher}
+          onValueChange={(value) => {
+            startTransition(() => {
+              void setQueryState({
+                hasTeacher: value as typeof queryState.hasTeacher,
+                page: 1,
+              });
+            });
+          }}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Teacher Assignment" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Offerings</SelectItem>
+            <SelectItem value="yes">Assigned</SelectItem>
+            <SelectItem value="no">Not Assigned</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={queryState.hasEnrollments}
+          onValueChange={(value) => {
+            startTransition(() => {
+              void setQueryState({
+                hasEnrollments: value as typeof queryState.hasEnrollments,
+                page: 1,
+              });
+            });
+          }}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Student Enrollments" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Offerings</SelectItem>
+            <SelectItem value="yes">Has Enrollments</SelectItem>
+            <SelectItem value="no">No Enrollments</SelectItem>
+          </SelectContent>
+        </Select>
         {hasActiveParams ? (
           <Button
             type="button"
             variant="outline"
+            size="sm"
             onClick={() => {
               startTransition(() => {
                 void setQueryState(null);
               });
             }}
           >
-            Clear
+            Clear Filters
           </Button>
         ) : null}
       </div>
@@ -504,7 +551,7 @@ export function OfferingsTable({
               <SelectValue placeholder="Select number of results" />
             </SelectTrigger>
             <SelectContent className="[&_*[role=option]]:pr-8 [&_*[role=option]]:pl-2 [&_*[role=option]>span]:right-2 [&_*[role=option]>span]:left-auto">
-              {[5, 10, 25, 50].map((pageSize) => (
+              {APP.page_sizes.map((pageSize) => (
                 <SelectItem key={pageSize} value={pageSize.toString()}>
                   {pageSize}
                 </SelectItem>

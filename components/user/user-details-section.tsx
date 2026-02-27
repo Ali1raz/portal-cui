@@ -10,7 +10,7 @@ interface iAppProps {
   }[];
 }
 
-export function UserDetailsSection({ user }: iAppProps) {
+export function UserDetailsSection({ user, details }: iAppProps) {
   return (
     <div className="flex flex-col">
       <div className="flex sm:items-start gap-4 sm:flex-row">
@@ -31,6 +31,7 @@ export function UserDetailsSection({ user }: iAppProps) {
         {[
           { label: "Joined", value: formatDate(user.createdAt) },
           { label: "Trust level", value: user.role },
+          ...(details || []),
         ].map((item, i) => (
           <div key={i}>
             <span className="text-muted-foreground/80 ">{item.label}: </span>

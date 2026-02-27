@@ -91,6 +91,7 @@ import {
 import type { HodComplaintRow } from "@/app/data/hod/get-complaints";
 import { ComplaintActions } from "./complaint-actions";
 import { MiddleTruncateText } from "@/components/general/truncated-text";
+import { APP } from "@/lib/data/utils";
 
 const statusVariantMap: Record<
   ComplaintStatus,
@@ -557,7 +558,7 @@ export function HodComplaintsTable({
               <SelectValue placeholder="Select number of results" />
             </SelectTrigger>
             <SelectContent className="[&_*[role=option]]:pr-8 [&_*[role=option]]:pl-2 [&_*[role=option]>span]:right-2 [&_*[role=option]>span]:left-auto">
-              {[10, 20, 50].map((pageSize) => (
+              {APP.page_sizes.map((pageSize) => (
                 <SelectItem key={pageSize} value={pageSize.toString()}>
                   {pageSize}
                 </SelectItem>

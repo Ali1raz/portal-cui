@@ -17,7 +17,7 @@ export default async function OfferingPage(
   props: PageProps<"/admin/offering">
 ) {
   return (
-    <div>
+    <div className="@container/main">
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-xl font-bold">All Offerings</h1>
       </div>

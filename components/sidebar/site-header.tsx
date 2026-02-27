@@ -26,6 +26,7 @@ export function SiteHeader({ user }: { user: User }) {
               email={user.email}
               image={user.image}
               name={user.name}
+              role={user.role}
             />
           </div>
         </div>

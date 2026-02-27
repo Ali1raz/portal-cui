@@ -45,6 +45,7 @@ export function HodCreateAnnouncementForm() {
   const [isPending, startTransition] = useTransition();
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>();
+  const [resetKey, setResetKey] = useState(0);
 
   const form = useForm<AnnouncementSchemaType>({
     resolver: zodResolver(announcementSchema),
@@ -124,7 +125,8 @@ export function HodCreateAnnouncementForm() {
         toast.success(result.message);
         form.reset();
         setScheduleEnabled(false);
-        form.setValue("imageKey", "");
+        setScheduledDate(undefined);
+        setResetKey((prev) => prev + 1);
       }
     });
   }
@@ -206,6 +208,7 @@ export function HodCreateAnnouncementForm() {
               </FormLabel>
               <FormControl>
                 <Uploader
+                  key={resetKey}
                   fileTypeAccepted="image"
                   onChange={field.onChange}
                   value={field.value}

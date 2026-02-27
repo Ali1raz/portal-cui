@@ -7,5 +7,26 @@
   "typescript.tsdk": "node_modules\\typescript\\lib",
   "github.copilot.chat.codeGeneration.useInstructionFiles": true,
   "chat.useAgentSkills": true,
-  "chat.useAgentsMdFile": true
+  "chat.useAgentsMdFile": true,
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+  // "editor.colorDecorators": false,
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(((?:[^()]|\\([^()]*\\))*)\\)", "[\"'`]?([^\"'`]+)[\"'`]?"],
+    ["cn\\(((?:[^()]|\\([^()]*\\))*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+  "tailwindCSS.classFunctions": ["cva", "cn"],
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[mdx]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
