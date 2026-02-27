@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "nuqs": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "computedHash": "6faff5ca150b3b5899681ece80db589e858ef4db7c725b894f623da03c3d2a70"
+    }
+  }
+}
