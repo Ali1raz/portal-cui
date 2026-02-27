@@ -98,7 +98,7 @@ export async function hodCreateAnnouncement(
 
     return {
       status: "success",
-      message: "Announcement created as draft.",
+      message: `Announcement created as ${validated.data.status}.`,
     };
   } catch (error: unknown) {
     return {
@@ -133,7 +133,7 @@ export async function hodUpdateAnnouncement(
 
     const hod = await prisma.hod.findFirst({
       where: { userId: session.user.id },
-      select: { department: true },
+      select: { department: true, id: true },
     });
 
     if (!hod) {
@@ -154,7 +154,7 @@ export async function hodUpdateAnnouncement(
     if (!existing) {
       return {
         status: "error",
-        message: "Announcement not found.",
+        message: "Announcement not found or not accessible.",
       };
     }
 
@@ -217,19 +217,20 @@ export async function HodDeleteAnnouncement(
     if (!can) {
       return {
         status: "error",
-        message: "You are not allowed to delete announcement",
+        message: "You are not allowed to delete announcements.",
       };
     }
 
     const hod = await prisma.hod.findFirst({
       where: { userId: session.user.id },
-      select: { id: true, department: true },
+      select: { department: true },
     });
 
     const an = await prisma.announcement.findFirst({
       where: {
         id,
         targetDepartment: hod?.department,
+        authorId: session.user.id,
       },
       select: {
         id: true,
@@ -239,7 +240,7 @@ export async function HodDeleteAnnouncement(
     if (!an) {
       return {
         status: "error",
-        message: "Announcement not fond",
+        message: "Announcement not found or not accessible.",
       };
     }
 
@@ -267,7 +268,7 @@ export async function hodBulkDeleteAnnouncements(
     if (!can) {
       return {
         status: "error",
-        message: "You are not allowed to delete announcements",
+        message: "You are not allowed to delete announcements.",
       };
     }
 

@@ -39,6 +39,7 @@ import {
 import { format } from "date-fns";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { hodCreateAnnouncement } from "../../actions";
+import { useRouter } from "next/navigation";
 
 /// Form for HODs to create draft announcements.
 export function HodCreateAnnouncementForm() {
@@ -46,6 +47,7 @@ export function HodCreateAnnouncementForm() {
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>();
   const [resetKey, setResetKey] = useState(0);
+  const router = useRouter();
 
   const form = useForm<AnnouncementSchemaType>({
     resolver: zodResolver(announcementSchema),
@@ -127,6 +129,7 @@ export function HodCreateAnnouncementForm() {
         setScheduleEnabled(false);
         setScheduledDate(undefined);
         setResetKey((prev) => prev + 1);
+        router.push("/hod/announcements");
       }
     });
   }

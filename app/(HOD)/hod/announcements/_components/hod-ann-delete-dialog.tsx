@@ -9,7 +9,6 @@ import {
   DialogTrigger,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { tryCatch } from "@/hooks/tryCatch";
 import { Loader2, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ReactNode, useState, useTransition } from "react";
@@ -29,20 +28,24 @@ export function HodAnnDelete({
 
   function handleDelete() {
     startTransition(async () => {
-      const { data: result, error } = await tryCatch(HodDeleteAnnouncement(id));
-
-      if (error) {
-        toast.error("Something went wrong.");
-        return;
-      }
-
-      if (result.status === "error") {
-        toast.error(result.message);
-      } else if (result.status === "success") {
-        toast.success(result.message);
-        router.refresh();
-        setOpen(false);
-      }
+      await toast.promise(
+        (async () => {
+          const result = await HodDeleteAnnouncement(id);
+          if (result.status === "error") {
+            throw new Error(result.message);
+          }
+          return result;
+        })(),
+        {
+          loading: "Deleting announcement...",
+          success: (data) => {
+            router.refresh();
+            setOpen(false);
+            return data.message;
+          },
+          error: (err) => err?.message || "Something went wrong",
+        }
+      );
     });
   }
 

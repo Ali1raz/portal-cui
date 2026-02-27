@@ -18,7 +18,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { tryCatch } from "@/hooks/tryCatch";
 import { Loader2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -52,23 +51,26 @@ export function HodAnnouncementsBulkActions({
 
   function handleBulkDelete() {
     startTransition(async () => {
-      const { data: result, error } = await tryCatch(
-        hodBulkDeleteAnnouncements(selectedIds)
+      await toast.promise(
+        (async () => {
+          const result = await hodBulkDeleteAnnouncements(selectedIds);
+          if (result.status === "error") {
+            throw new Error(result.message);
+          }
+          return result;
+        })(),
+        {
+          loading: "Deleting announcements...",
+          success: (data) => {
+            toast.success(data.message);
+            router.refresh();
+            setDeleteDialogOpen(false);
+            onSuccess();
+            return data.message;
+          },
+          error: (err) => err?.message || "Something went wrong",
+        }
       );
-
-      if (error) {
-        toast.error("Something went wrong.");
-        return;
-      }
-
-      if (result.status === "error") {
-        toast.error(result.message);
-      } else if (result.status === "success") {
-        toast.success(result.message);
-        router.refresh();
-        setDeleteDialogOpen(false);
-        onSuccess();
-      }
     });
   }
 
@@ -76,22 +78,27 @@ export function HodAnnouncementsBulkActions({
     if (!currentStatus || newStatus === currentStatus) return;
 
     startTransition(async () => {
-      const { data: result, error } = await tryCatch(
-        hodBulkUpdateAnnouncementStatus(selectedIds, newStatus)
+      await toast.promise(
+        (async () => {
+          const result = await hodBulkUpdateAnnouncementStatus(
+            selectedIds,
+            newStatus
+          );
+          if (result.status === "error") {
+            throw new Error(result.message);
+          }
+          return result;
+        })(),
+        {
+          loading: "Updating status...",
+          success: (data) => {
+            router.refresh();
+            onSuccess();
+            return data.message;
+          },
+          error: (err) => err?.message || "Something went wrong",
+        }
       );
-
-      if (error) {
-        toast.error("Something went wrong.");
-        return;
-      }
-
-      if (result.status === "error") {
-        toast.error(result.message);
-      } else if (result.status === "success") {
-        toast.success(result.message);
-        router.refresh();
-        onSuccess();
-      }
     });
   }
 

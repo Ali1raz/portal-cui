@@ -56,6 +56,7 @@ export async function hodGetAnnouncements({
     },
     select: {
       department: true,
+      userId: true,
     },
   });
 
@@ -85,6 +86,7 @@ export async function hodGetAnnouncements({
   const to = parseDateValue(dateTo);
 
   const where: Prisma.AnnouncementWhereInput = {
+    authorId: session.user.id,
     targetDepartment: hod.department,
     ...(statusFilters.length > 0 && {
       status: { in: statusFilters as AnnouncementStatus[] },
