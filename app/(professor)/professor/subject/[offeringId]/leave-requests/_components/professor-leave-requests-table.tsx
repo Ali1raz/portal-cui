@@ -91,6 +91,7 @@ import {
 import { UserImage } from "@/components/user/user-image";
 import { MiddleTruncateText } from "@/components/general/truncated-text";
 import { ProfessorLeaveRequestDropdown } from "./leave-requst-actions-dropdown";
+import { APP } from "@/lib/data/utils";
 
 /// Props for professor leave requests table.
 type ProfessorLeaveRequestsTableProps = {
@@ -567,7 +568,7 @@ export function ProfessorLeaveRequestsTable({
               <SelectValue placeholder="Select number of results" />
             </SelectTrigger>
             <SelectContent className="[&_*[role=option]]:pr-8 [&_*[role=option]]:pl-2 [&_*[role=option]>span]:right-2 [&_*[role=option]>span]:left-auto">
-              {[5, 10, 20].map((pageSize) => (
+              {APP.page_sizes.map((pageSize) => (
                 <SelectItem key={pageSize} value={pageSize.toString()}>
                   {pageSize}
                 </SelectItem>

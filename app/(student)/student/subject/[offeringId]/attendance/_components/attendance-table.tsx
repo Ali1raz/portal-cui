@@ -64,6 +64,7 @@ import {
   attendanceSearchParamsParsers,
   type AttendanceSortBy,
 } from "../attendance-search-params";
+import { APP } from "@/lib/data/utils";
 
 interface AttendanceTableProps {
   rows: StudentGetAttendencesType[];
@@ -405,7 +406,7 @@ export default function AttendanceTable({
               <SelectValue placeholder="Select number of results" />
             </SelectTrigger>
             <SelectContent className="[&_*[role=option]]:pr-8 [&_*[role=option]]:pl-2 [&_*[role=option]>span]:right-2 [&_*[role=option]>span]:left-auto">
-              {[5, 10, 20].map((pageSize) => (
+              {APP.page_sizes.map((pageSize) => (
                 <SelectItem key={pageSize} value={pageSize.toString()}>
                   {pageSize}
                 </SelectItem>

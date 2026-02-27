@@ -81,6 +81,7 @@ import { BulkDeleteComplaints } from "../actions";
 import { tryCatch } from "@/hooks/tryCatch";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { APP } from "@/lib/data/utils";
 
 const statusVariantMap: Record<
   ComplaintStatus,
@@ -598,7 +599,7 @@ export function ComplaintsTable({
                 <SelectValue placeholder="Select number of results" />
               </SelectTrigger>
               <SelectContent className="[&_*[role=option]]:pr-8 [&_*[role=option]]:pl-2 [&_*[role=option]>span]:right-2 [&_*[role=option]>span]:left-auto">
-                {[10, 20, 50].map((pageSize) => (
+                {APP.page_sizes.map((pageSize) => (
                   <SelectItem key={pageSize} value={pageSize.toString()}>
                     {pageSize}
                   </SelectItem>
