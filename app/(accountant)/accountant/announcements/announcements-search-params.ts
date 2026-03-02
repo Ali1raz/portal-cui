@@ -1,3 +1,4 @@
+import { APP } from "@/lib/data/utils";
 import {
   createSearchParamsCache,
   parseAsInteger,
@@ -30,7 +31,7 @@ export type AnnouncementAttachmentFilter =
 /// URL search param parsers for accountant announcements.
 export const accountantAnnouncementsSearchParamsParsers = {
   page: parseAsInteger.withDefault(1),
-  pageSize: parseAsInteger.withDefault(10),
+  pageSize: parseAsInteger.withDefault(APP.default_page_size),
   sortBy: parseAsStringEnum(
     Object.values(announcementSortByValues)
   ).withDefault("createdAt"),

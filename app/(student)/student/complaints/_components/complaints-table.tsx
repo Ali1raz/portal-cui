@@ -163,7 +163,7 @@ export function ComplaintsTable({
 
   const hasActiveParams =
     queryState.page !== 1 ||
-    queryState.pageSize !== 20 ||
+    queryState.pageSize !== APP.default_page_size ||
     queryState.sortBy !== "createdAt" ||
     queryState.sortDir !== "desc" ||
     queryState.status.length > 0 ||

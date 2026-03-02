@@ -137,7 +137,7 @@ export function getNavLinks({
         icon: IconMessage2,
       },
       {
-        title: "Create Announcement",
+        title: "New Announcement",
         href: "/hod/announcements/new",
         icon: IconMessagePlus,
       },

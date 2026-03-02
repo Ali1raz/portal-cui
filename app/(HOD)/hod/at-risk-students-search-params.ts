@@ -1,3 +1,4 @@
+import { APP } from "@/lib/data/utils";
 import {
   createSearchParamsCache,
   parseAsInteger,
@@ -27,7 +28,7 @@ export type SortDirection = (typeof sortDirectionValues)[number];
 /// URL search parameters parsers for at-risk students list.
 export const atRiskStudentsSearchParamsParsers = {
   page: parseAsInteger.withDefault(1),
-  pageSize: parseAsInteger.withDefault(10),
+  pageSize: parseAsInteger.withDefault(APP.default_page_size),
   sortBy: parseAsStringEnum(
     Object.values(atRiskStudentsSortByValues)
   ).withDefault("effectivePct"),

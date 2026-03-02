@@ -1,3 +1,4 @@
+import { APP } from "@/lib/data/utils";
 import {
   createSearchParamsCache,
   parseAsInteger,
@@ -22,7 +23,7 @@ export type LeaveRequestsSortDir = (typeof leaveRequestsSortDirValues)[number];
 /// Shared nuqs parsers for professor leave requests search params.
 export const leaveRequestsSearchParamsParsers = {
   page: parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true }),
-  pageSize: parseAsInteger.withDefault(10).withOptions({
+  pageSize: parseAsInteger.withDefault(APP.default_page_size).withOptions({
     clearOnDefault: true,
   }),
   sortBy: parseAsStringEnum(Object.values(leaveRequestsSortByValues))

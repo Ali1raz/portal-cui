@@ -1,19 +1,13 @@
 /* eslint-disable react-hooks/incompatible-library */
 "use client";
 
-import { useId, useState, useTransition, type CSSProperties } from "react";
+import { useId, useState, useTransition } from "react";
 import type {
-  Cell,
   ColumnDef,
-  Header,
   PaginationState,
   SortingState,
 } from "@tanstack/react-table";
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import {
   closestCenter,
   DndContext,
@@ -29,17 +23,12 @@ import {
   arrayMove,
   horizontalListSortingStrategy,
   SortableContext,
-  useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import {
-  ChevronDown,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
   ChevronRight,
-  ChevronUp,
-  GripVertical,
 } from "lucide-react";
 import type { AdminGetAllSubjectsType } from "@/app/data/admin/get-all-subjects";
 import { Button } from "@/components/ui/button";
@@ -61,13 +50,15 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { AdminsubjectOptionsDropdown } from "./admin-subject-options-dropdown";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import {
+  DragAlongCell,
+  DraggableTableHeader,
+} from "@/components/general/tanstack-table";
 import { useQueryStates } from "nuqs";
 import { subjectsSearchParamsParsers } from "@/app/(admin)/admin/subjects/subjects-search-params";
 import { APP } from "@/lib/data/utils";
@@ -97,7 +88,7 @@ export function AdminSubjectsTable({
 
   const hasActiveParams =
     queryState.page !== 1 ||
-    queryState.pageSize !== 10 ||
+    queryState.pageSize !== APP.default_page_size ||
     queryState.sortBy !== "name" ||
     queryState.sortDir !== "asc" ||
     queryState.query.length > 0;
@@ -302,7 +293,10 @@ export function AdminSubjectsTable({
                     strategy={horizontalListSortingStrategy}
                   >
                     {headerGroup.headers.map((header) => (
-                      <DraggableTableHeader key={header.id} header={header} />
+                      <DraggableTableHeader<AdminGetAllSubjectsType>
+                        key={header.id}
+                        header={header}
+                      />
                     ))}
                   </SortableContext>
                 </TableRow>
@@ -321,7 +315,7 @@ export function AdminSubjectsTable({
                         items={columnOrder}
                         strategy={horizontalListSortingStrategy}
                       >
-                        <DragAlongCell cell={cell} />
+                        <DragAlongCell<AdminGetAllSubjectsType> cell={cell} />
                       </SortableContext>
                     ))}
                   </TableRow>
@@ -451,135 +445,5 @@ export function AdminSubjectsTable({
         </div>
       </div>
     </div>
-  );
-}
-
-function DraggableTableHeader({
-  header,
-}: {
-  header: Header<AdminGetAllSubjectsType, unknown>;
-}) {
-  const {
-    attributes,
-    isDragging,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({
-    id: header.column.id,
-  });
-
-  const style: CSSProperties = {
-    opacity: isDragging ? 0.8 : 1,
-    position: "relative",
-    transform: CSS.Translate.toString(transform),
-    transition,
-    whiteSpace: "nowrap",
-    width: header.column.getSize(),
-    zIndex: isDragging ? 1 : 0,
-  };
-
-  return (
-    <TableHead
-      ref={setNodeRef}
-      className="before:bg-border relative h-10 border-t before:absolute before:inset-y-0 before:left-0 before:w-px first:before:bg-transparent"
-      style={style}
-      aria-sort={
-        header.column.getIsSorted() === "asc"
-          ? "ascending"
-          : header.column.getIsSorted() === "desc"
-            ? "descending"
-            : "none"
-      }
-    >
-      <div className="flex items-center justify-start gap-0.5">
-        <Button
-          size="icon"
-          variant="ghost"
-          className="-ml-2 size-7"
-          {...attributes}
-          {...listeners}
-          aria-label="Drag to reorder"
-        >
-          <GripVertical
-            className={cn(
-              "opacity-60 cursor-grab",
-              isDragging && " cursor-grabbing"
-            )}
-            aria-hidden="true"
-          />
-        </Button>
-        <span className="grow truncate">
-          {header.isPlaceholder
-            ? null
-            : flexRender(header.column.columnDef.header, header.getContext())}
-        </span>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="group -mr-1 size-7"
-          onClick={header.column.getToggleSortingHandler()}
-          onKeyDown={(event) => {
-            if (
-              header.column.getCanSort() &&
-              (event.key === "Enter" || event.key === " ")
-            ) {
-              event.preventDefault();
-              header.column.getToggleSortingHandler()?.(event);
-            }
-          }}
-          aria-label="Toggle sorting"
-        >
-          {{
-            asc: (
-              <ChevronUp
-                className="shrink-0 opacity-60"
-                size={16}
-                aria-hidden="true"
-              />
-            ),
-            desc: (
-              <ChevronDown
-                className="shrink-0 opacity-60"
-                size={16}
-                aria-hidden="true"
-              />
-            ),
-          }[header.column.getIsSorted() as string] ?? (
-            <ChevronUp
-              className="shrink-0 opacity-0 group-hover:opacity-60"
-              size={16}
-              aria-hidden="true"
-            />
-          )}
-        </Button>
-      </div>
-    </TableHead>
-  );
-}
-
-function DragAlongCell({
-  cell,
-}: {
-  cell: Cell<AdminGetAllSubjectsType, unknown>;
-}) {
-  const { isDragging, setNodeRef, transform, transition } = useSortable({
-    id: cell.column.id,
-  });
-
-  const style: CSSProperties = {
-    opacity: isDragging ? 0.8 : 1,
-    position: "relative",
-    transform: CSS.Translate.toString(transform),
-    transition,
-    width: cell.column.getSize(),
-    zIndex: isDragging ? 1 : 0,
-  };
-
-  return (
-    <TableCell ref={setNodeRef} className="truncate" style={style}>
-      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-    </TableCell>
   );
 }

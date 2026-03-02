@@ -57,7 +57,7 @@ export type Status = (typeof statusValues)[number];
 export const searchParamsParsers = {
   page: parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true }),
   pageSize: parseAsInteger
-    .withDefault(10)
+    .withDefault(APP.default_page_size)
     .withOptions({ clearOnDefault: true }),
   sortBy: parseAsStringEnum(sortByValues)
     .withDefault("name")

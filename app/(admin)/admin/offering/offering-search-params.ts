@@ -1,3 +1,4 @@
+import { APP } from "@/lib/data/utils";
 import {
   createSearchParamsCache,
   parseAsInteger,
@@ -38,7 +39,7 @@ export type HasEnrollments = (typeof hasEnrollmentsValues)[number];
 export const offeringSearchParamsParsers = {
   page: parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true }),
   pageSize: parseAsInteger
-    .withDefault(10)
+    .withDefault(APP.default_page_size)
     .withOptions({ clearOnDefault: true }),
   sortBy: parseAsStringEnum(Object.values(offeringSortByValues))
     .withDefault("semester")

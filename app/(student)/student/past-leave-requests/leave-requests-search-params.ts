@@ -5,6 +5,7 @@ import {
   parseAsStringEnum,
 } from "nuqs/server";
 import { LeaveStatus } from "@/lib/generated/prisma/enums";
+import { APP } from "@/lib/data/utils";
 
 export const leaveRequestsSortByValues = [
   "subject",
@@ -27,7 +28,7 @@ export type StudentLeaveRequestsStatus =
 /// Shared nuqs parsers for student leave requests search params.
 export const leaveRequestsSearchParamsParsers = {
   page: parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true }),
-  pageSize: parseAsInteger.withDefault(10).withOptions({
+  pageSize: parseAsInteger.withDefault(APP.default_page_size).withOptions({
     clearOnDefault: true,
   }),
   sortBy: parseAsStringEnum(Object.values(leaveRequestsSortByValues))

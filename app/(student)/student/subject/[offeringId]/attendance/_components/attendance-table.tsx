@@ -133,7 +133,7 @@ export default function AttendanceTable({
 
   const hasActiveParams =
     queryState.page !== 1 ||
-    queryState.pageSize !== 10 ||
+    queryState.pageSize !== APP.default_page_size ||
     queryState.sortBy !== "date" ||
     queryState.sortDir !== "desc" ||
     queryState.topic.length > 0 ||

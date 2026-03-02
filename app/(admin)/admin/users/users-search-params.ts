@@ -5,6 +5,7 @@ import {
   parseAsStringEnum,
 } from "nuqs/server";
 import { Role } from "@/lib/generated/prisma/enums";
+import { APP } from "@/lib/data/utils";
 
 export const usersSortByValues = [
   "name",
@@ -23,7 +24,7 @@ export type UsersRole = (typeof usersRoleValues)[number];
 export const usersSearchParamsParsers = {
   page: parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true }),
   pageSize: parseAsInteger
-    .withDefault(10)
+    .withDefault(APP.default_page_size)
     .withOptions({ clearOnDefault: true }),
   sortBy: parseAsStringEnum(Object.values(usersSortByValues))
     .withDefault("name")

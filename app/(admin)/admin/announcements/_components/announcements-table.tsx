@@ -3,17 +3,11 @@
 
 import * as React from "react";
 import type {
-  Cell,
   ColumnDef,
-  Header,
   PaginationState,
   SortingState,
 } from "@tanstack/react-table";
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import {
   closestCenter,
   DndContext,
@@ -29,18 +23,13 @@ import {
   arrayMove,
   horizontalListSortingStrategy,
   SortableContext,
-  useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import {
   CalendarIcon,
-  ChevronDown,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
   ChevronRight,
-  ChevronUp,
-  GripVertical,
   PinIcon,
   XIcon,
 } from "lucide-react";
@@ -73,7 +62,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -84,6 +72,10 @@ import {
   Department,
 } from "@/lib/generated/prisma/enums";
 import { cn, formatDate, formatEnumLabel } from "@/lib/utils";
+import {
+  DragAlongCell,
+  DraggableTableHeader,
+} from "@/components/general/tanstack-table";
 import { useQueryStates } from "nuqs";
 import {
   announcementAttachmentValues,
@@ -166,7 +158,7 @@ export function AdminAnnouncementsTable({
 
   const hasActiveParams =
     queryState.page !== 1 ||
-    queryState.pageSize !== 10 ||
+    queryState.pageSize !== APP.default_page_size ||
     queryState.sortBy !== "createdAt" ||
     queryState.sortDir !== "desc" ||
     queryState.status.length > 0 ||
@@ -189,55 +181,56 @@ export function AdminAnnouncementsTable({
           const isSomeSelected = table.getIsSomePageRowsSelected();
           const toggleHandler = table.getToggleAllPageRowsSelectedHandler();
           return (
-            <Checkbox
-              className="mr-4"
-              aria-label="Select all"
-              checked={
-                isAllSelected
-                  ? true
-                  : isSomeSelected && !isAllSelected
-                    ? "indeterminate"
-                    : false
-              }
-              onCheckedChange={(value) => {
-                const syntheticEvent = {
-                  target: { checked: !!value },
-                } as unknown as React.ChangeEvent<HTMLInputElement>;
-                toggleHandler(syntheticEvent);
-              }}
-            />
+            <div className="flex items-center gap-2 me-2">
+              <Checkbox
+                size="sm"
+                aria-label="Select all"
+                checked={
+                  isAllSelected
+                    ? true
+                    : isSomeSelected && !isAllSelected
+                      ? "indeterminate"
+                      : false
+                }
+                onCheckedChange={(value) => {
+                  const syntheticEvent = {
+                    target: { checked: !!value },
+                  } as unknown as React.ChangeEvent<HTMLInputElement>;
+                  toggleHandler(syntheticEvent);
+                }}
+              />
+              <span className="text-muted-foreground text-sm">Sr. No</span>
+            </div>
           );
         },
         cell: ({ row }) => {
           const toggleHandler = row.getToggleSelectedHandler();
           return (
-            <Checkbox
-              aria-label="Select row"
-              checked={row.getIsSelected()}
-              disabled={!row.getCanSelect()}
-              onCheckedChange={(value) => {
-                const syntheticEvent = {
-                  target: { checked: !!value },
-                } as unknown as React.ChangeEvent<HTMLInputElement>;
-                toggleHandler(syntheticEvent);
-              }}
-            />
+            <div className="flex items-center gap-2">
+              <Checkbox
+                size="sm"
+                aria-label="Select row"
+                checked={row.getIsSelected()}
+                disabled={!row.getCanSelect()}
+                onCheckedChange={(value) => {
+                  const syntheticEvent = {
+                    target: { checked: !!value },
+                  } as unknown as React.ChangeEvent<HTMLInputElement>;
+                  toggleHandler(syntheticEvent);
+                }}
+              />
+              <div className="flex items-baseline gap-1.5">
+                {row.original.isPinned && (
+                  <PinIcon className="size-3.5 text-primary" />
+                )}
+                <span className="text-muted-foreground text-sm">
+                  {row.index + 1}
+                </span>
+              </div>
+            </div>
           );
         },
         enableSorting: false,
-      },
-      {
-        id: "srNo",
-        header: "Sr No.",
-        enableSorting: false,
-        cell: ({ row }) => (
-          <div className="flex items-baseline gap-2">
-            {row.original.isPinned && (
-              <PinIcon className="size-4 text-primary" />
-            )}
-            {row.index + 1}
-          </div>
-        ),
       },
       {
         id: "title",
@@ -687,7 +680,10 @@ export function AdminAnnouncementsTable({
                     strategy={horizontalListSortingStrategy}
                   >
                     {headerGroup.headers.map((header) => (
-                      <DraggableTableHeader key={header.id} header={header} />
+                      <DraggableTableHeader<AdminAnnouncementRow>
+                        key={header.id}
+                        header={header}
+                      />
                     ))}
                   </SortableContext>
                 </TableRow>
@@ -707,7 +703,7 @@ export function AdminAnnouncementsTable({
                         items={columnOrder}
                         strategy={horizontalListSortingStrategy}
                       >
-                        <DragAlongCell cell={cell} />
+                        <DragAlongCell<AdminAnnouncementRow> cell={cell} />
                       </SortableContext>
                     ))}
                   </TableRow>
@@ -837,137 +833,5 @@ export function AdminAnnouncementsTable({
         </div>
       </div>
     </div>
-  );
-}
-
-function DraggableTableHeader({
-  header,
-}: {
-  header: Header<AdminAnnouncementRow, unknown>;
-}) {
-  const {
-    attributes,
-    isDragging,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({
-    id: header.column.id,
-  });
-
-  const style: React.CSSProperties = {
-    opacity: isDragging ? 0.8 : 1,
-    position: "relative",
-    transform: CSS.Translate.toString(transform),
-    transition,
-    whiteSpace: "nowrap",
-    width: header.column.getSize(),
-    zIndex: isDragging ? 1 : 0,
-  };
-
-  return (
-    <TableHead
-      ref={setNodeRef}
-      className="before:bg-border relative h-10 border-t before:absolute before:inset-y-0 before:left-0 before:w-px first:before:bg-transparent"
-      style={style}
-      aria-sort={
-        header.column.getIsSorted() === "asc"
-          ? "ascending"
-          : header.column.getIsSorted() === "desc"
-            ? "descending"
-            : "none"
-      }
-    >
-      <div className="flex items-center justify-start group gap-0.5">
-        <Button
-          size="icon"
-          variant="ghost"
-          className="-ml-2 size-7"
-          {...attributes}
-          {...listeners}
-          aria-label="Drag to reorder"
-        >
-          <GripVertical
-            className={cn(
-              "opacity-60 cursor-grab",
-              isDragging && " cursor-grabbing"
-            )}
-            aria-hidden="true"
-          />
-        </Button>
-        <span className="grow truncate">
-          {header.isPlaceholder
-            ? null
-            : flexRender(header.column.columnDef.header, header.getContext())}
-        </span>
-        {header.column.getCanSort() && (
-          <Button
-            size="icon"
-            variant="ghost"
-            className="-mr-1 size-7"
-            onClick={header.column.getToggleSortingHandler()}
-            onKeyDown={(event) => {
-              if (
-                header.column.getCanSort() &&
-                (event.key === "Enter" || event.key === " ")
-              ) {
-                event.preventDefault();
-                header.column.getToggleSortingHandler()?.(event);
-              }
-            }}
-            aria-label="Toggle sorting"
-          >
-            {{
-              asc: (
-                <ChevronUp
-                  className="shrink-0 opacity-60"
-                  size={16}
-                  aria-hidden="true"
-                />
-              ),
-              desc: (
-                <ChevronDown
-                  className="shrink-0 opacity-60"
-                  size={16}
-                  aria-hidden="true"
-                />
-              ),
-            }[header.column.getIsSorted() as string] ?? (
-              <ChevronUp
-                className="shrink-0 group-hover:text-primary"
-                size={16}
-                aria-hidden="true"
-              />
-            )}
-          </Button>
-        )}
-      </div>
-    </TableHead>
-  );
-}
-
-function DragAlongCell({
-  cell,
-}: {
-  cell: Cell<AdminAnnouncementRow, unknown>;
-}) {
-  const { isDragging, setNodeRef, transform, transition } = useSortable({
-    id: cell.column.id,
-  });
-
-  const style: React.CSSProperties = {
-    opacity: isDragging ? 0.8 : 1,
-    position: "relative",
-    transform: CSS.Translate.toString(transform),
-    transition,
-    width: cell.column.getSize(),
-    zIndex: isDragging ? 1 : 0,
-  };
-
-  return (
-    <TableCell ref={setNodeRef} className="truncate" style={style}>
-      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-    </TableCell>
   );
 }

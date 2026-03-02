@@ -1,3 +1,4 @@
+import { APP } from "@/lib/data/utils";
 import {
   createSearchParamsCache,
   parseAsInteger,
@@ -30,7 +31,7 @@ export type LeaveRequestStatus = (typeof leaveRequestStatusValues)[number];
 export const leaveRequestSearchParamsParsers = {
   page: parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true }),
   pageSize: parseAsInteger
-    .withDefault(10)
+    .withDefault(APP.default_page_size)
     .withOptions({ clearOnDefault: true }),
   sortBy: parseAsStringEnum(Object.values(leaveRequestSortByValues))
     .withDefault("createdAt")

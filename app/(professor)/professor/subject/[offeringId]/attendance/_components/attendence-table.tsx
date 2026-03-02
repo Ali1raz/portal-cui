@@ -75,25 +75,33 @@ export function AttendanceTable({
       {
         id: "select",
         header: ({ table }) => (
-          <Checkbox
-            size="sm"
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
+          <div className="flex items-center gap-2 me-2">
+            <Checkbox
+              size="sm"
+              checked={
+                table.getIsAllPageRowsSelected() ||
+                (table.getIsSomePageRowsSelected() && "indeterminate")
+              }
+              onCheckedChange={(value) =>
+                table.toggleAllPageRowsSelected(!!value)
+              }
+              aria-label="Select all"
+            />
+            <span className="text-muted-foreground text-sm">Sr. No</span>
+          </div>
         ),
         cell: ({ row }) => (
-          <Checkbox
-            size="sm"
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
+          <div className="flex items-center gap-2">
+            <Checkbox
+              size="sm"
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              aria-label="Select row"
+            />
+            <span className="text-muted-foreground text-sm">
+              {row.index + 1}
+            </span>
+          </div>
         ),
         enableSorting: false,
         enableHiding: false,

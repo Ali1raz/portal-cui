@@ -1,24 +1,13 @@
 /* eslint-disable react-hooks/incompatible-library */
 "use client";
 
-import {
-  useId,
-  useMemo,
-  useState,
-  useTransition,
-  type CSSProperties,
-} from "react";
+import { useId, useMemo, useState, useTransition } from "react";
 import type {
   ColumnDef,
-  Header,
   PaginationState,
   SortingState,
 } from "@tanstack/react-table";
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import {
   closestCenter,
   DndContext,
@@ -34,20 +23,15 @@ import {
   arrayMove,
   horizontalListSortingStrategy,
   SortableContext,
-  useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import {
   CalendarIcon,
-  ChevronDown,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
   ChevronRight,
-  ChevronUp,
-  GripVertical,
 } from "lucide-react";
 import { ProfessorGetLeaveRequests } from "@/app/data/professor/get-leave-requests";
 import { Badge } from "@/components/ui/badge";
@@ -76,13 +60,16 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { LeaveStatus } from "@/lib/generated/prisma/enums";
-import { cn, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
+import {
+  DragAlongCell,
+  DraggableTableHeader,
+} from "@/components/general/tanstack-table";
 import { useQueryStates } from "nuqs";
 import {
   leaveRequestsSearchParamsParsers,
@@ -176,7 +163,7 @@ export function ProfessorLeaveRequestsTable({
 
   const hasActiveParams =
     queryState.page !== 1 ||
-    queryState.pageSize !== 10 ||
+    queryState.pageSize !== APP.default_page_size ||
     queryState.sortBy !== "createdAt" ||
     queryState.sortDir !== "desc" ||
     queryState.query.length > 0 ||
@@ -517,7 +504,10 @@ export function ProfessorLeaveRequestsTable({
                     strategy={horizontalListSortingStrategy}
                   >
                     {headerGroup.headers.map((header) => (
-                      <DraggableTableHeader key={header.id} header={header} />
+                      <DraggableTableHeader<ProfessorGetLeaveRequests>
+                        key={header.id}
+                        header={header}
+                      />
                     ))}
                   </SortableContext>
                 </TableRow>
@@ -533,7 +523,7 @@ export function ProfessorLeaveRequestsTable({
                         items={columnOrder}
                         strategy={horizontalListSortingStrategy}
                       >
-                        <DragAlongCell cell={cell} />
+                        <DragAlongCell<ProfessorGetLeaveRequests> cell={cell} />
                       </SortableContext>
                     ))}
                   </TableRow>
@@ -663,140 +653,5 @@ export function ProfessorLeaveRequestsTable({
         </div>
       </div>
     </div>
-  );
-}
-
-function DraggableTableHeader({
-  header,
-}: {
-  header: Header<ProfessorGetLeaveRequests, unknown>;
-}) {
-  const {
-    attributes,
-    isDragging,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({
-    id: header.column.id,
-  });
-
-  const style: CSSProperties = {
-    opacity: isDragging ? 0.8 : 1,
-    position: "relative",
-    transform: CSS.Translate.toString(transform),
-    transition,
-    whiteSpace: "nowrap",
-    width: header.column.getSize(),
-    zIndex: isDragging ? 1 : 0,
-  };
-
-  return (
-    <TableHead
-      ref={setNodeRef}
-      className="before:bg-border relative h-10 border-t before:absolute before:inset-y-0 before:left-0 before:w-px first:before:bg-transparent"
-      style={style}
-      aria-sort={
-        header.column.getIsSorted() === "asc"
-          ? "ascending"
-          : header.column.getIsSorted() === "desc"
-            ? "descending"
-            : "none"
-      }
-    >
-      <div className="flex items-center justify-start gap-0.5">
-        <Button
-          size="icon"
-          variant="ghost"
-          className="-ml-2 size-7"
-          {...attributes}
-          {...listeners}
-          aria-label="Drag to reorder"
-        >
-          <GripVertical
-            className={cn(
-              "opacity-60 cursor-grab",
-              isDragging && "cursor-grabbing"
-            )}
-            aria-hidden="true"
-          />
-        </Button>
-        <span className="grow truncate">
-          {header.isPlaceholder
-            ? null
-            : flexRender(header.column.columnDef.header, header.getContext())}
-        </span>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="group -mr-1 size-7"
-          onClick={header.column.getToggleSortingHandler()}
-          onKeyDown={(event) => {
-            if (
-              header.column.getCanSort() &&
-              (event.key === "Enter" || event.key === " ")
-            ) {
-              event.preventDefault();
-              header.column.getToggleSortingHandler()?.(event);
-            }
-          }}
-          aria-label="Toggle sorting"
-        >
-          {header.column.getCanSort()
-            ? ({
-                asc: (
-                  <ChevronUp
-                    className="shrink-0 opacity-60"
-                    size={16}
-                    aria-hidden="true"
-                  />
-                ),
-                desc: (
-                  <ChevronDown
-                    className="shrink-0 opacity-60"
-                    size={16}
-                    aria-hidden="true"
-                  />
-                ),
-              }[header.column.getIsSorted() as string] ?? (
-                <ChevronUp
-                  className="shrink-0 opacity-0 group-hover:opacity-60"
-                  size={16}
-                  aria-hidden="true"
-                />
-              ))
-            : null}
-        </Button>
-      </div>
-    </TableHead>
-  );
-}
-
-function DragAlongCell({
-  cell,
-}: {
-  cell: import("@tanstack/react-table").Cell<
-    ProfessorGetLeaveRequests,
-    unknown
-  >;
-}) {
-  const { isDragging, setNodeRef, transform, transition } = useSortable({
-    id: cell.column.id,
-  });
-
-  const style: CSSProperties = {
-    opacity: isDragging ? 0.8 : 1,
-    position: "relative",
-    transform: CSS.Translate.toString(transform),
-    transition,
-    width: cell.column.getSize(),
-    zIndex: isDragging ? 1 : 0,
-  };
-
-  return (
-    <TableCell ref={setNodeRef} className="truncate" style={style}>
-      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-    </TableCell>
   );
 }

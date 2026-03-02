@@ -5,6 +5,7 @@ import {
   parseAsStringEnum,
 } from "nuqs/server";
 import { AttendanceStatus } from "@/lib/generated/prisma/enums";
+import { APP } from "@/lib/data/utils";
 
 export const attendanceSortByValues = [
   "date",
@@ -23,7 +24,7 @@ export type AttendanceStatusFilter = (typeof attendanceStatusValues)[number];
 /// Shared nuqs parsers for attendance search params.
 export const attendanceSearchParamsParsers = {
   page: parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true }),
-  pageSize: parseAsInteger.withDefault(10).withOptions({
+  pageSize: parseAsInteger.withDefault(APP.default_page_size).withOptions({
     clearOnDefault: true,
   }),
   sortBy: parseAsStringEnum(Object.values(attendanceSortByValues))

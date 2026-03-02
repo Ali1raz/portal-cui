@@ -8,6 +8,7 @@ import {
   ComplaintCategory,
   ComplaintStatus,
 } from "@/lib/generated/prisma/enums";
+import { APP } from "@/lib/data/utils";
 
 export const complaintsSortByValues = [
   "title",
@@ -29,7 +30,7 @@ export type ComplaintAttachmentFilter =
 /// Shared nuqs parsers for complaints search params.
 export const complaintsSearchParamsParsers = {
   page: parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true }),
-  pageSize: parseAsInteger.withDefault(20).withOptions({
+  pageSize: parseAsInteger.withDefault(APP.default_page_size).withOptions({
     clearOnDefault: true,
   }),
   sortBy: parseAsStringEnum(Object.values(complaintsSortByValues))

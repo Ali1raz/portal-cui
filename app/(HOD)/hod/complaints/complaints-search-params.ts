@@ -1,3 +1,4 @@
+import { APP } from "@/lib/data/utils";
 import {
   createSearchParamsCache,
   parseAsInteger,
@@ -30,7 +31,7 @@ export type ComplaintAttachmentFilter =
 /// URL search parameters parsers for HOD complaints list.
 export const hodComplaintsSearchParamsParsers = {
   page: parseAsInteger.withDefault(1),
-  pageSize: parseAsInteger.withDefault(20),
+  pageSize: parseAsInteger.withDefault(APP.default_page_size),
   sortBy: parseAsStringEnum(
     Object.values(hodComplaintsSortByValues)
   ).withDefault("createdAt"),

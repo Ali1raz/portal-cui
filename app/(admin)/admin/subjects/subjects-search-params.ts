@@ -1,3 +1,4 @@
+import { APP } from "@/lib/data/utils";
 import {
   createSearchParamsCache,
   parseAsInteger,
@@ -19,7 +20,7 @@ export type SubjectsSortDir = (typeof sortDirValues)[number];
 export const subjectsSearchParamsParsers = {
   page: parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true }),
   pageSize: parseAsInteger
-    .withDefault(10)
+    .withDefault(APP.default_page_size)
     .withOptions({ clearOnDefault: true }),
   sortBy: parseAsStringEnum(Object.values(subjectsSortByValues))
     .withDefault("name")
