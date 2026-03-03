@@ -47,8 +47,8 @@ import { adminCreateAnnouncement } from "../../actions";
 /// Form for HODs to create draft announcements.
 export function AdminCreateAnnoucenmentForm() {
   const [isPending, startTransition] = useTransition();
-  const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>();
+  const [resetKey, setResetKey] = useState(0);
   const form = useForm<AdminAnnouncementSchemaType>({
     resolver: zodResolver(adminAnnouncementSchema),
     defaultValues: {
@@ -67,6 +67,10 @@ export function AdminCreateAnnoucenmentForm() {
   const scheduledFor = useWatch({
     control: form.control,
     name: "scheduledFor",
+  });
+  const status = useWatch({
+    control: form.control,
+    name: "status",
   });
 
   const today = useMemo(() => {
@@ -107,7 +111,7 @@ export function AdminCreateAnnoucenmentForm() {
   };
 
   function onSubmit(values: AdminAnnouncementSchemaType) {
-    if (scheduleEnabled && !values.scheduledFor) {
+    if (values.status === "SCHEDULED" && !values.scheduledFor) {
       form.setError("scheduledFor", {
         message: "Pick a publish date.",
       });
@@ -126,9 +130,9 @@ export function AdminCreateAnnoucenmentForm() {
         toast.error(result.message);
       } else if (result.status === "success") {
         toast.success(result.message);
+        setScheduledDate(undefined);
+        setResetKey((prev) => prev + 1);
         form.reset();
-        setScheduleEnabled(false);
-        form.setValue("imageKey", "");
       }
     });
   }
@@ -136,6 +140,7 @@ export function AdminCreateAnnoucenmentForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Title */}
         <FormField
           control={form.control}
           name="title"
@@ -154,6 +159,7 @@ export function AdminCreateAnnoucenmentForm() {
           )}
         />
 
+        {/* Content */}
         <FormField
           control={form.control}
           name="content"
@@ -248,6 +254,7 @@ export function AdminCreateAnnoucenmentForm() {
               </FormLabel>
               <FormControl>
                 <Uploader
+                  key={resetKey}
                   fileTypeAccepted="image"
                   onChange={field.onChange}
                   value={field.value}
@@ -257,60 +264,41 @@ export function AdminCreateAnnoucenmentForm() {
             </FormItem>
           )}
         />
-        <div className="space-y-2">
-          <FormField
-            control={form.control}
-            name="isPinned"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center gap-2">
-                  <FormControl>
-                    <Checkbox
-                      id="announcement-pin"
-                      checked={field.value}
-                      onCheckedChange={(checked) =>
-                        field.onChange(checked === true)
-                      }
-                    />
-                  </FormControl>
-                  <FormLabel htmlFor="announcement-pin">
-                    Pin announcement
-                  </FormLabel>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
-          <FormItem>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="announcement-schedule"
-                checked={scheduleEnabled}
-                onCheckedChange={(checked) => {
-                  const enabled = checked === true;
-                  setScheduleEnabled(enabled);
-                  if (!enabled) {
-                    form.setValue("scheduledFor", null, {
-                      shouldValidate: true,
-                    });
-                    setScheduledDate(undefined);
-                  }
-                }}
-              />
-              <FormLabel htmlFor="announcement-schedule">
-                Schedule publish date (max 2 days)
-              </FormLabel>
-            </div>
-          </FormItem>
-        </div>
+        {/* Status */}
+        <FormField
+          name="status"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="announcement-status">Status</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger id="announcement-status" className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(AnnouncementStatus).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      <span>{type}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-        {scheduleEnabled ? (
+        {/* Schedule Date (only if status is SCHEDULED) */}
+        {status === "SCHEDULED" && (
           <FormField
             control={form.control}
             name="scheduledFor"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>Schedule Date</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -354,28 +342,27 @@ export function AdminCreateAnnoucenmentForm() {
               </FormItem>
             )}
           />
-        ) : null}
+        )}
 
         <FormField
-          name="status"
           control={form.control}
+          name="isPinned"
           render={({ field }) => (
             <FormItem>
-              <FormLabel htmlFor="announcement-status">Status</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <div className="flex items-center gap-2">
                 <FormControl>
-                  <SelectTrigger id="announcement-status" className="w-full">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
+                  <Checkbox
+                    id="announcement-pin"
+                    checked={field.value}
+                    onCheckedChange={(checked) =>
+                      field.onChange(checked === true)
+                    }
+                  />
                 </FormControl>
-                <SelectContent>
-                  {Object.values(AnnouncementStatus).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      <span>{type}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <FormLabel htmlFor="announcement-pin">
+                  Pin announcement
+                </FormLabel>
+              </div>
               <FormMessage />
             </FormItem>
           )}

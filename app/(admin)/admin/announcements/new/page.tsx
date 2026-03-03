@@ -2,8 +2,8 @@ import { AdminCreateAnnoucenmentForm } from "./_components/admin-create-announce
 
 export default function AdminNewAnnoucenmtPage() {
   return (
-    <div className="@container/main space-y-4">
-      <h2 className="text-2xl font-bold">Create new Annoucement</h2>
+    <div className="@container/main space-y-4 max-w-5xl w-full">
+      <h2 className="text-lg font-semibold">New Annoucement</h2>
 
       <AdminCreateAnnoucenmentForm />
     </div>
