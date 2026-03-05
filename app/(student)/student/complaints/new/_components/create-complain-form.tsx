@@ -106,12 +106,10 @@ export function CreateComplaintForm() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="subject-form-creditHours">
-                  Credit Hours
-                </FieldLabel>
+                <FieldLabel htmlFor="complaint-category">Category</FieldLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select professor" />
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.values(ComplaintCategory).map((catg) => (
