@@ -2,55 +2,52 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogHeader,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogHeader,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
 import { tryCatch } from "@/hooks/tryCatch";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { setUserRole } from "../actions";
-import { Role } from "@/lib/generated/prisma/enums";
-import { ASSIGNABLE_ROLES } from "@/lib/utils";
+import { Department } from "@/lib/generated/prisma/enums";
+import { setProfessorDepartment } from "../actions";
 
-export function ChangeUserRoleDialog({
+/// Dialog for assigning department to professor
+export function SetDepartmentDialog({
   children,
   userId,
-  userRole,
   name,
 }: {
   children?: React.ReactNode;
   userId: string;
   name: string | null;
-  userRole: Role;
 }) {
-  const [role, setRole] = useState<Role>(userRole);
+  const [dept, setDept] = useState<Department>("BA");
   const [open, setOpen] = useState<boolean>(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   function handleChange() {
     startTransition(async () => {
-      const { data: result, error } = await tryCatch(setUserRole(userId, role));
-
+      const { data: result, error } = await tryCatch(
+        setProfessorDepartment(userId, dept)
+      );
       if (error) {
         toast.error("Something went wrong.");
         return;
       }
-
       if (result.status === "error") {
         toast.error(result.message);
       } else if (result.status === "success") {
@@ -66,27 +63,25 @@ export function ChangeUserRoleDialog({
       <DialogTrigger asChild>
         {children || (
           <Button size="sm" variant="outline">
-            Change user role
+            Set Department
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader className="text-start">
-          <DialogTitle>Are sure to change role of {name}?</DialogTitle>
-          <DialogDescription>
-            Current user role is{" "}
-            <span className="font-extrabold">{userRole}</span>.
-          </DialogDescription>
+          <DialogTitle>Assign department for {name}</DialogTitle>
         </DialogHeader>
-        <Select onValueChange={(value) => setRole(value as Role)} value={role}>
+        <Select
+          onValueChange={(value) => setDept(value as Department)}
+          value={dept}
+        >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select role" />
+            <SelectValue placeholder="Select department" />
           </SelectTrigger>
-
           <SelectContent>
-            {Object.values(ASSIGNABLE_ROLES).map((role) => (
-              <SelectItem key={role} value={role}>
-                {role}
+            {Object.values(Department).map((d) => (
+              <SelectItem key={d} value={d}>
+                {d}
               </SelectItem>
             ))}
           </SelectContent>

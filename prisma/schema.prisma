@@ -21,10 +21,11 @@ model User {
   role    Role     @default(USER)
   student Student?
 
-  hod        Hod?
-  professor  Professor?
-  director   Director?
-  accountant Accountant?
+  hod          Hod?
+  professor    Professor?
+  director     Director?
+  accountant   Accountant?
+  batchAdvisor BatchAdvisor?
 
   banned        Boolean?       @default(false)
   banReason     String?
@@ -93,6 +94,7 @@ enum Role {
   PROFESSOR
   STUDENT
   USER
+  BATCH_ADVISOR
 }
 
 enum Department {
@@ -150,6 +152,27 @@ model Hod {
   @@map("hod")
 }
 
+model BatchAdvisor {
+  id         String     @id @default(uuid())
+  department Department @unique // one BA per department, enforced at DB
+
+  // A BA must already be a professor
+  professorId String    @unique
+  professor   Professor @relation(fields: [professorId], references: [id], onDelete: Cascade)
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  appointedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reviewedComplaints ComplaintReview[] // BA's review log
+  complaints         Complaint[]
+
+  @@map("batch_advisor")
+}
+
 model Professor {
   id         String @id @default(uuid())
   employeeNo String @unique // EMP-001
@@ -157,12 +180,13 @@ model Professor {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  department Department // Professors belong to a specific department
+  department Department? // Professors belong to a specific department
   programs   Program[] // Professors can be associated with a specific program or multiple programs
 
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   teachingAssignments TeachingAssignment[]
+  batchAdvisor        BatchAdvisor?
 
   @@index([department, employeeNo])
   @@map("professor")
@@ -377,33 +401,82 @@ model Complaint {
   studentId String
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
+  // ── BA Review ──────────────────────────────────────────
+  baRemarks    String? // BA's remarks on accept or reject
+  baReviewedAt DateTime? // timestamp of BA action
+
+  // ── HOD Review ─────────────────────────────────────────
+  hodReviewedAt    DateTime? // timestamp of HOD action
   // Current department HOD this sits with
   // Starts as student's own department, updated on each assignment
   targetDepartment Department
+  hodRemarks       String? // HOD's response on accept/reject
 
   category ComplaintCategory // UC-9 Business Rule: must have valid category
   title    String
   details  String
   imageKey String?
 
-  status     ComplaintStatus @default(PENDING)
-  hodRemarks String? // HOD's response on accept/reject
+  status ComplaintStatus @default(BA_PENDING)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  assignments ComplaintAssignment[] // renamed from transfers — matches UC-10 language
+  assignments    ComplaintAssignment[] // renamed from transfers — matches UC-10 language
+  reviews        ComplaintReview[] // ← NEW: full audit trail
+  batchAdvisor   BatchAdvisor?         @relation(fields: [batchAdvisorId], references: [id])
+  batchAdvisorId String?
 
   @@index([studentId]) // UC-9: "only student's complaints shown"
-  @@index([targetDepartment]) // UC-10: HOD queries by their department
+  @@index([targetDepartment, status]) // 
   @@map("complaint")
 }
 
 enum ComplaintStatus {
-  PENDING // just submitted, waiting for HOD
-  ASSIGNED // HOD has assigned it to a department (UC-10 post condition)
-  ACCEPTED // HOD resolved it positively
-  REJECTED // HOD resolved it negatively
+  BA_PENDING // submitted by student, in BA queue
+  BA_REJECTED // BA rejected — student notified, terminal
+  HOD_PENDING // BA accepted, now in HOD queue
+  HOD_ACCEPTED // HOD resolved positively, terminal
+  HOD_REJECTED // HOD resolved negatively, terminal
+  REASSIGNED // HOD transferred to another dept (transient)
+}
+
+model ComplaintReview {
+  id String @id @default(uuid())
+
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+  // Who acted
+  actorRole ActorRole // STUDENT | BATCH_ADVISOR | HOD
+  actorId   String // User.id of the actor
+
+  // What happened
+  action  ReviewAction
+  remarks String? // optional note left by actor
+
+  // State transition (for timeline rendering)
+  fromStatus ComplaintStatus
+  toStatus   ComplaintStatus
+
+  // Department context (important for reassignment history)
+  department Department
+
+  createdAt DateTime @default(now())
+
+  // FK to BatchAdvisor if actor is BA (for BA's own review history)
+  batchAdvisorId String?
+  batchAdvisor   BatchAdvisor? @relation(fields: [batchAdvisorId], references: [id])
+
+  @@index([complaintId]) // fetch timeline for a complaint
+  @@index([batchAdvisorId]) // BA's own review history
+  @@map("complaint_review")
+}
+
+enum ActorRole {
+  STUDENT
+  BATCH_ADVISOR
+  HOD
 }
 
 // Append-only log — covers UC-10 "HOD reassigns" alternative flow too
@@ -421,6 +494,19 @@ model ComplaintAssignment {
 
   @@index([complaintId])
   @@map("complaint_assignment")
+}
+
+// Immutable log of every action taken on a complaint
+// Replaces guessing from status history — every actor's action is recorded
+
+enum ReviewAction {
+  SUBMITTED // student submitted
+  BA_ACCEPTED // BA forwarded to HOD
+  BA_REJECTED // BA rejected
+  HOD_ASSIGNED // HOD assigned to department
+  HOD_ACCEPTED // HOD resolved positively
+  HOD_REJECTED // HOD resolved negatively
+  HOD_REASSIGNED // HOD sent to different department
 }
 
 enum AnnouncementStatus {
