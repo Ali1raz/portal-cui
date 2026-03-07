@@ -22,7 +22,8 @@ export async function SendEmail({
   };
 }) {
   if (process.env.NODE_ENV !== "production") {
-    console.log({ link: meta.link });
+    // Log full email payload for debugging in development
+    console.log("[DEV EMAIL]", { to, subject, meta });
     return { success: true };
   }
 

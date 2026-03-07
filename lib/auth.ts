@@ -17,10 +17,15 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: process.env.NODE_ENV === "production",
+    requireEmailVerification: true,
     autoSignIn: true,
     passwordResetExpiresIn: 60 * 15,
     sendResetPassword: async ({ user, url }) => {
+      if (process.env.NODE_ENV !== "production") {
+        // Log full email payload for debugging in development
+        console.log("[DEV PASSWORD RESET]", { to: user.email, url });
+        return;
+      }
       await SendEmail({
         to: user.email,
         subject: "Reset password",
@@ -50,6 +55,15 @@ export const auth = betterAuth({
     sendVerificationEmail: async ({ user, url }) => {
       const link = new URL(url);
       link.searchParams.set("callbackURL", "/");
+
+      if (process.env.NODE_ENV !== "production") {
+        // Log full email payload for debugging in development
+        console.log("[DEV EMAIL VERIFICATION]", {
+          to: user.email,
+          link: link.toString(),
+        });
+        return;
+      }
 
       await SendEmail({
         to: user.email,
