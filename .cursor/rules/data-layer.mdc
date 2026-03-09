@@ -1,0 +1,12 @@
+---
+description: All DB reads go through app/data/; use requireSession/requirePermission; prisma from @/lib/prisma
+globs: "app/data/**/*.ts"
+alwaysApply: false
+---
+
+# Data Layer
+
+- **Location**: All DB reads go in `app/data/` (e.g. `data/admin/get-users.ts`, `data/hod/get-leave-requests.ts`).
+- **Prisma**: `import prisma from "@/lib/prisma"`. Schema: `prisma/schema.prisma`.
+- **Auth**: Use `requireSession()` from `app/data/session/require-session.ts`. Use `requirePermission()` from `app/data/permission/require-permission.ts` where needed.
+- **Exports**: Export inferred row/entity types from data functions for use in table components (e.g. `GetLeaveRequestsType`).

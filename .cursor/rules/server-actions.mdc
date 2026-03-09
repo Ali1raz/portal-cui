@@ -1,0 +1,31 @@
+---
+description: Server actions pattern — actions.ts, ApiResponseType, requireSession, requirePermission, errorMessage
+globs: "**/actions.ts"
+alwaysApply: false
+---
+
+# Server Actions
+
+- Create `actions.ts` in the same directory as the page; put `"use server"` at the top.
+- Return `Promise<ApiResponseType>` (e.g. `{ status: "error", message: "..." }` or `{ status: "success", message: "..." }`). Do not use `throw new Error(...)`.
+- Use `requireSession()` then `requirePermission({ resource: ["action"] })` before mutations.
+- Use `errorMessage(error)` from `@/lib/error-message` in catch blocks. Reference: `app/(auth)/actions.ts`.
+
+```ts
+export async function setUserRole(
+  userId: string,
+  role: Role
+): Promise<ApiResponseType> {
+  await requireSession();
+  const can = await requirePermission({ user: ["set-role"] });
+  if (!can) {
+    /* ... */
+  }
+  try {
+    // schema validation with safeParse, then prisma update
+    return { status: "success", message: "..." };
+  } catch (error) {
+    return { status: "error", message: errorMessage(error) }; // more descriptive ("Error while settings role")
+  }
+}
+```
