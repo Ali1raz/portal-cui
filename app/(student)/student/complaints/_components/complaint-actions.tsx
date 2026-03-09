@@ -22,7 +22,9 @@ export function ComplaintActions({
   complaintId: string;
   status: ComplaintStatus;
 }) {
-  const canEdit = status === ComplaintStatus.PENDING;
+  const canEdit =
+    status === ComplaintStatus.BA_PENDING ||
+    status === ComplaintStatus.BA_REJECTED;
 
   return (
     <DropdownMenu>

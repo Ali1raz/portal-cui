@@ -24,6 +24,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { setUserRole } from "../actions";
 import { Role } from "@/lib/generated/prisma/enums";
+import { ASSIGNABLE_ROLES } from "@/lib/utils";
 
 export function ChangeUserRoleDialog({
   children,
@@ -31,7 +32,7 @@ export function ChangeUserRoleDialog({
   userRole,
   name,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   userId: string;
   name: string | null;
   userRole: Role;
@@ -63,7 +64,11 @@ export function ChangeUserRoleDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {children || <Button>Change user role</Button>}
+        {children || (
+          <Button size="sm" variant="outline">
+            Change user role
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader className="text-start">
@@ -79,7 +84,7 @@ export function ChangeUserRoleDialog({
           </SelectTrigger>
 
           <SelectContent>
-            {Object.values(Role).map((role) => (
+            {Object.values(ASSIGNABLE_ROLES).map((role) => (
               <SelectItem key={role} value={role}>
                 {role}
               </SelectItem>

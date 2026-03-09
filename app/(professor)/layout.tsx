@@ -3,6 +3,7 @@ import { requireSession } from "../data/session/require-session";
 import { redirect } from "next/navigation";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/sidebar/site-header";
+import { isProfessorBA } from "../data/professor/get-professor-details";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 
 export default async function ProfessorLayout({
@@ -11,9 +12,11 @@ export default async function ProfessorLayout({
   children: React.ReactNode;
 }) {
   const session = await requireSession();
+
   if (session.user.role !== Role.PROFESSOR) {
     return redirect("/unauthorized");
   }
+  const isBA = await isProfessorBA();
 
   return (
     <main>
@@ -25,7 +28,7 @@ export default async function ProfessorLayout({
           } as React.CSSProperties
         }
       >
-        <AppSidebar variant="inset" user={session.user} />
+        <AppSidebar variant="inset" user={session.user} isBA={isBA} />
         <SidebarInset>
           <SiteHeader user={session.user} />
           {children}

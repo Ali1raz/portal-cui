@@ -1,0 +1,13 @@
+---
+description: Forms use react-hook-form + zod via zodResolver, sonner toast, startTransition; schemas in lib/zod-schema
+globs: "**/*form*.tsx"
+alwaysApply: false
+---
+
+# Forms and Validation
+
+- **Schema**: Define form schemas in `lib/zod-schema.ts`; export type with `z.infer<typeof schema>`.
+- **Form**: Use `react-hook-form` + `zod` via `zodResolver`. Use shadcn `Field` components.
+- **Feedback**: Use `sonner` `toast` for success/error. Use `startTransition` / `useTransition` for async submit UX.
+- **Dates**: Use `DateTimePicker` in forms; use `Calendar` (not native date picker) for calendar UI. Reference: `app/(professor)/professor/subject/[offeringId]/attendance/_components/attendance-form.tsx`.
+- **Async**: Use `hooks/use-try-catch.ts` for async in forms. Reference: `app/(admin)/admin/subjects/create/_components/create-subject-form.tsx`, `app/(auth)/login/_components/login-form.tsx`.

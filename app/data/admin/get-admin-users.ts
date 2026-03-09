@@ -77,6 +77,11 @@ export async function getAdminUsers({
         professor: {
           select: {
             department: true,
+            batchAdvisor: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
         student: {

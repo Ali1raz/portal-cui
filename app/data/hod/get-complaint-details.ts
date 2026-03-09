@@ -29,6 +29,9 @@ export async function hodGetComplaintDetails({ id }: { id: string }) {
     where: {
       id,
       targetDepartment: hod.department, // Only allow HOD to access complaints from their department
+      status: {
+        notIn: ["BA_PENDING", "BA_REJECTED"], // HOD only sees BA-accepted complaints
+      },
     },
     select: {
       id: true,
@@ -40,6 +43,10 @@ export async function hodGetComplaintDetails({ id }: { id: string }) {
       createdAt: true,
       imageKey: true,
       hodRemarks: true,
+      hodReviewedAt: true,
+      baRemarks: true,
+      baReviewedAt: true,
+      _count: { select: { reviews: true } },
       student: {
         select: {
           registrationNo: true,
@@ -51,6 +58,59 @@ export async function hodGetComplaintDetails({ id }: { id: string }) {
               image: true,
             },
           },
+        },
+      },
+      batchAdvisor: {
+        select: {
+          id: true,
+          department: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
+      },
+      reviews: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          actorRole: true,
+          remarks: true,
+          fromStatus: true,
+          toStatus: true,
+          actorId: true,
+          action: true,
+          department: true,
+          createdAt: true,
+          batchAdvisor: {
+            select: {
+              id: true,
+              department: true,
+              userId: true,
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  image: true,
+                  role: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      assignments: {
+        orderBy: { assignedAt: "desc" },
+        select: {
+          id: true,
+          fromDepartment: true,
+          toDepartment: true,
+          reason: true,
+          assignedAt: true,
         },
       },
     },

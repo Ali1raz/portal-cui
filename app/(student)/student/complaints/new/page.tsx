@@ -7,7 +7,7 @@ export default function NewCompliant() {
         <h1 className="text-lg font-semibold">New Complaint</h1>
         <p className="text-muted-foreground text-sm">
           Fill in the follwing details to create new complaint. This will sent
-          to your department HOD for further analysis.
+          to your department batch-advisor for further review.
         </p>
       </div>
       <CreateComplaintForm />

@@ -7,6 +7,11 @@ import { ComplaintStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
 
+const HOD_VALID_ACTIONS: ComplaintStatus[] = [
+  ComplaintStatus.HOD_ACCEPTED,
+  ComplaintStatus.HOD_REJECTED,
+];
+
 export async function updateComplaintStatus(
   complaintId: string,
   status: ComplaintStatus,
@@ -25,15 +30,22 @@ export async function updateComplaintStatus(
       };
     }
 
+    if (!HOD_VALID_ACTIONS.includes(status)) {
+      return {
+        status: "error",
+        message: "Invalid status. HOD can only Accept or Reject.",
+      };
+    }
+
     const hod = await prisma.hod.findUnique({
       where: { userId: session.user.id },
       select: { id: true, department: true },
     });
 
-    if (!hod) {
+    if (!hod || !hod.department) {
       return {
         status: "error",
-        message: "HOD not found",
+        message: "HOD profile not found",
       };
     }
 
@@ -41,29 +53,50 @@ export async function updateComplaintStatus(
       where: {
         id: complaintId,
         targetDepartment: hod.department,
+        status: ComplaintStatus.HOD_PENDING, // HOD can only act on pending complaints
       },
+      select: { id: true, status: true },
     });
 
     if (!complaint) {
       return {
         status: "error",
-        message: "Complaint not found.",
+        message: "Complaint not found or already reviewed.",
       };
     }
 
-    await prisma.complaint.update({
-      where: {
-        id: complaintId,
-      },
-      data: {
-        status: status,
-        ...(hodRemarks && { hodRemarks }),
-      },
-    });
+    await prisma.$transaction([
+      prisma.complaint.update({
+        where: { id: complaintId },
+        data: {
+          status,
+          hodRemarks: hodRemarks ?? null,
+          hodReviewedAt: new Date(),
+        },
+      }),
+      prisma.complaintReview.create({
+        data: {
+          complaintId,
+          actorRole: "HOD",
+          actorId: session.user.id,
+          action:
+            status === ComplaintStatus.HOD_ACCEPTED
+              ? "HOD_ACCEPTED"
+              : "HOD_REJECTED",
+          remarks: hodRemarks ?? null,
+          fromStatus: ComplaintStatus.HOD_PENDING,
+          toStatus: status,
+          department: hod.department,
+        },
+      }),
+    ]);
 
     return {
       status: "success",
-      message: "Status updated successfully",
+      message:
+        status === ComplaintStatus.HOD_ACCEPTED
+          ? "Complaint accepted and resolved."
+          : "Complaint rejected.",
     };
   } catch (error: unknown) {
     return {

@@ -8,14 +8,15 @@ export default async function EditComplaintPage(
 ) {
   const { id } = await props.params;
   const details = await studentGetComplaintDetails({ id });
-  const isPending = details.status === "PENDING";
+  const isPending =
+    details.status === "BA_PENDING" || details.status === "BA_REJECTED";
 
   return (
-    <div className="px-4 md:px-6 my-6 max-w-6xl w-full">
+    <div className="px-4 md:px-6 max-w-6xl w-full">
       <div className="my-4">
         <h1 className="text-lg font-semibold">Update Complaint</h1>
         <p className="text-muted-foreground text-sm">
-          Update your complaint while it is still pending.
+          Update your complaint while it is still pending or needs revision.
         </p>
       </div>
       {isPending ? (
@@ -32,7 +33,7 @@ export default async function EditComplaintPage(
         <div className="rounded-md border bg-muted/30 p-4 text-sm">
           <p className="font-medium">Updates are no longer available.</p>
           <p className="text-muted-foreground">
-            Only pending complaints can be edited. Current status:{" "}
+            Only pending or returned complaints can be edited. Current status:{" "}
             <span className="font-medium text-foreground">
               {details.status}
             </span>

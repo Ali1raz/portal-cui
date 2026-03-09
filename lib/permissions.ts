@@ -6,7 +6,14 @@ export const statements = {
   ...defaultStatements,
   userProfiles: ["create", "update", "delete", "view"] as const,
   attendance: ["mark", "view", "list"] as const,
-  leaveRequest: ["create", "list", "update", "get", "list:past"] as const,
+  leaveRequest: [
+    "create",
+    "list",
+    "update",
+    "get",
+    "list:past",
+    "approve",
+  ] as const,
   subject: [
     "create",
     "list",
@@ -26,6 +33,7 @@ export const statements = {
     "update",
     "assign",
     "delete:own",
+    "approve",
   ] as const,
   announcements: ["create", "list", "get", "update", "delete"] as const,
 } as const;
@@ -65,7 +73,7 @@ export const roles = {
     leaveRequest: ["get", "list", "list:past"],
     subject: ["list", "get"],
     subjectOfferings: ["list"],
-    complaints: [],
+    complaints: ["get", "update", "list", "assign", "approve"],
     announcements: [],
   }),
   ACCOUNTANT: access.newRole({
@@ -95,10 +103,10 @@ export const roles = {
     user: ["list", "get"],
     session: [],
     attendance: ["view"],
-    leaveRequest: ["get", "list", "update", "list:past"],
+    leaveRequest: ["get", "list", "update", "list:past", "approve"],
     subject: ["list", "get", "update"],
     subjectOfferings: ["list", "get"],
-    complaints: ["list", "assign", "get", "update", "list"],
+    complaints: ["list", "assign", "get", "update", "list", "approve"],
     announcements: ["create", "list", "get", "update", "delete"],
   }),
   USER: access.newRole({
@@ -110,6 +118,17 @@ export const roles = {
     subject: [],
     subjectOfferings: [],
     complaints: [],
+    announcements: [],
+  }),
+  BATCH_ADVISOR: access.newRole({
+    userProfiles: ["view", "update"],
+    user: ["get", "update", "list"],
+    session: [],
+    attendance: ["list", "view", "mark"],
+    leaveRequest: ["get", "list", "update", "list:past", "approve"],
+    subject: ["list", "get"],
+    subjectOfferings: ["list"],
+    complaints: ["get", "update", "list", "assign", "approve"],
     announcements: [],
   }),
 } satisfies Record<Role, ReturnType<typeof access.newRole>>;

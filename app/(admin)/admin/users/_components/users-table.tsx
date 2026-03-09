@@ -172,7 +172,14 @@ export function UsersTable({
       id: "role",
       header: "Role",
       accessorFn: (row) => row.role,
-      cell: ({ row }) => <div>{row.original.role}</div>,
+      cell: ({ row }) => (
+        <div className="text-center flex flex-col gap-1">
+          <span>{row.original.role}</span>
+          <span className="text-xs text-primary/80">
+            {row.original.professor?.batchAdvisor && "Batch Advisor"}
+          </span>
+        </div>
+      ),
     },
     {
       id: "department",
@@ -197,6 +204,10 @@ export function UsersTable({
         <div className="text-center">
           <UserActions
             userId={row.original.id}
+            hasDepartment={
+              row.original.role === "PROFESSOR" &&
+              !!row.original.professor?.department
+            }
             name={row.original.name}
             userRole={row.original.role}
           />
@@ -277,7 +288,7 @@ export function UsersTable({
   return (
     <div className="w-full" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="">
+        <div>
           <Label htmlFor="users-search" className="sr-only">
             Search users
           </Label>

@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format } from "date-fns";
+import { Role } from "./generated/prisma/enums";
 
 /**
  * Merges Tailwind class names, resolving any conflicts.
@@ -43,3 +44,7 @@ export function getRelativeTime(date: Date) {
   const months = Math.floor(days / 30);
   return `${months}mo ago`;
 }
+
+export const ASSIGNABLE_ROLES = Object.values(Role).filter(
+  (r) => r !== Role.BATCH_ADVISOR
+);

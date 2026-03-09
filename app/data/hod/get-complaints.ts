@@ -86,11 +86,25 @@ export async function hodGetComplaints({
   const from = parseDateValue(dateFrom);
   const to = parseDateValue(dateTo);
 
+  // HOD only sees complaints that the BA has accepted (forwarded)
+  const HOD_VISIBLE_STATUSES: ComplaintStatus[] = [
+    ComplaintStatus.HOD_PENDING,
+    ComplaintStatus.HOD_ACCEPTED,
+    ComplaintStatus.HOD_REJECTED,
+    ComplaintStatus.REASSIGNED,
+  ];
+
   const where: Prisma.ComplaintWhereInput = {
     targetDepartment: hod.department,
-    ...(statusFilters.length > 0 && {
-      status: { in: statusFilters as ComplaintStatus[] },
-    }),
+    // Base constraint: only show BA-accepted complaints
+    status:
+      statusFilters.length > 0
+        ? {
+            in: statusFilters.filter((s) =>
+              HOD_VISIBLE_STATUSES.includes(s as ComplaintStatus)
+            ) as ComplaintStatus[],
+          }
+        : { in: HOD_VISIBLE_STATUSES },
     ...(categoryFilters.length > 0 && {
       category: { in: categoryFilters as ComplaintCategory[] },
     }),
@@ -153,6 +167,7 @@ export async function hodGetComplaints({
             user: {
               select: {
                 name: true,
+                image: true,
               },
             },
           },

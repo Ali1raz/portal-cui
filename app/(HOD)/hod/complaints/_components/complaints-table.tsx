@@ -31,6 +31,7 @@ import {
   ChevronRight,
   CalendarIcon,
   XIcon,
+  EyeIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
@@ -84,18 +85,16 @@ import {
   DragAlongCell,
   DraggableTableHeader,
 } from "@/components/general/tanstack-table";
+import { UserImage } from "@/components/user/user-image";
+import Link from "next/link";
 
-const statusVariantMap: Record<
-  ComplaintStatus,
-  "warning" | "info" | "success" | "destructive"
-> = {
-  PENDING: "warning",
-  ASSIGNED: "info",
-  ACCEPTED: "success",
-  REJECTED: "destructive",
-};
-
-const statusOptions = Object.values(ComplaintStatus);
+// HOD only sees complaints forwarded by the BA
+const statusOptions: ComplaintStatus[] = [
+  ComplaintStatus.HOD_PENDING,
+  ComplaintStatus.HOD_ACCEPTED,
+  ComplaintStatus.HOD_REJECTED,
+  ComplaintStatus.REASSIGNED,
+];
 const categoryOptions = Object.values(ComplaintCategory);
 
 function toDateKey(value: Date | undefined) {
@@ -175,13 +174,19 @@ export function HodComplaintsTable({
         header: "Student",
         accessorFn: (row) => row.student.user.name,
         cell: ({ row }) => (
-          <div className="flex flex-col">
-            <span className="font-medium">
-              {row.original.student.user.name}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {row.original.student.registrationNo}
-            </span>
+          <div className="flex items-center gap-2">
+            <UserImage
+              image={row.original.student.user.image}
+              name={row.original.student.user.name}
+            />
+            <div className="flex flex-col">
+              <span className="font-medium">
+                {row.original.student.user.name}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {row.original.student.registrationNo}
+              </span>
+            </div>
           </div>
         ),
       },
@@ -190,10 +195,16 @@ export function HodComplaintsTable({
         header: "Title",
         accessorFn: (row) => row.title,
         cell: ({ row }) => (
-          <MiddleTruncateText
-            text={row.original.title}
-            className="max-w-[300px]"
-          />
+          <div className="block group font-medium">
+            <MiddleTruncateText maxLength={80} text={row.original.title} />
+            <Link
+              href={`/hod/complaints/${row.original.id}`}
+              className="flex items-center mt-2 gap-1 group-hover:text-primary hover:underline underline-offset-4"
+            >
+              <EyeIcon className="size-4" />
+              View Details
+            </Link>
+          </div>
         ),
       },
       {
@@ -206,27 +217,13 @@ export function HodComplaintsTable({
         id: "status",
         header: "Status",
         accessorFn: (row) => row.status,
-        cell: ({ row }) => (
-          <Badge
-            variant={statusVariantMap[row.original.status]}
-            appearance="light"
-            size="sm"
-          >
-            {formatEnumLabel(row.original.status)}
-          </Badge>
-        ),
+        cell: ({ row }) => <Badge size="sm">{row.original.status}</Badge>,
       },
       {
         id: "createdAt",
         header: "Created",
         accessorFn: (row) => row.createdAt,
         cell: ({ row }) => formatDate(row.original.createdAt),
-      },
-      {
-        id: "attachment",
-        header: "Attachment",
-        enableSorting: false,
-        cell: ({ row }) => (row.original.imageKey ? "Yes" : "No"),
       },
       {
         id: "actions",

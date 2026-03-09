@@ -1,0 +1,653 @@
+﻿/* eslint-disable react-hooks/incompatible-library */
+"use client";
+
+import * as React from "react";
+import type {
+  ColumnDef,
+  PaginationState,
+  SortingState,
+} from "@tanstack/react-table";
+import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
+import {
+  arrayMove,
+  horizontalListSortingStrategy,
+  SortableContext,
+} from "@dnd-kit/sortable";
+import {
+  ChevronFirst,
+  ChevronLast,
+  ChevronLeft,
+  ChevronRight,
+  CalendarIcon,
+  XIcon,
+  EyeIcon,
+} from "lucide-react";
+import { format } from "date-fns";
+import type { DateRange } from "react-day-picker";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  ComplaintCategory,
+  ComplaintStatus,
+} from "@/lib/generated/prisma/enums";
+import { cn, formatDate, formatEnumLabel } from "@/lib/utils";
+import { useQueryStates } from "nuqs";
+import {
+  baComplaintsSearchParamsParsers,
+  complaintAttachmentValues,
+  type BaComplaintsSortBy,
+  type ComplaintAttachmentFilter,
+} from "../ba-complaints-search-params";
+import type { BaComplaintRow } from "@/app/data/professor/get-ba-complaints";
+import { APP, LeaveRequestStatusVariantMap } from "@/lib/data/utils";
+import {
+  DragAlongCell,
+  DraggableTableHeader,
+} from "@/components/general/tanstack-table";
+import { MiddleTruncateText } from "@/components/general/truncated-text";
+import { BaComplaintActions } from "./ba-complaint-actions";
+import { UserImage } from "@/components/user/user-image";
+import Link from "next/link";
+
+const statusOptions = Object.values(ComplaintStatus);
+const categoryOptions = Object.values(ComplaintCategory);
+
+function toDateKey(value: Date | undefined) {
+  return value ? format(value, "yyyy-MM-dd") : null;
+}
+
+function parseDateKey(value: string) {
+  if (!value) return undefined;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+/// Batch Advisor complaints table with filters, sorting, pagination, and DND.
+export function BaComplaintsTable({
+  complaints,
+  totalCount,
+}: {
+  /// Complaint rows to display in the table.
+  complaints: BaComplaintRow[];
+  /// Total complaints count for pagination.
+  totalCount: number;
+}) {
+  "use no memo";
+  const tableId = React.useId();
+  const [isPending, startTransition] = React.useTransition();
+
+  const [queryState, setQueryState] = useQueryStates(
+    baComplaintsSearchParamsParsers,
+    {
+      history: "replace",
+      shallow: false,
+      limitUrlUpdates: {
+        method: "throttle",
+        timeMs: 1500,
+      },
+    }
+  );
+
+  const sorting: SortingState = queryState.sortBy
+    ? [{ id: queryState.sortBy, desc: queryState.sortDir === "desc" }]
+    : [];
+
+  const pagination: PaginationState = {
+    pageIndex: Math.max(queryState.page - 1, 0),
+    pageSize: queryState.pageSize,
+  };
+
+  const dateRange = React.useMemo<DateRange>(() => {
+    return {
+      from: parseDateKey(queryState.dateFrom),
+      to: parseDateKey(queryState.dateTo),
+    };
+  }, [queryState.dateFrom, queryState.dateTo]);
+
+  const hasActiveParams =
+    queryState.page !== 1 ||
+    queryState.pageSize !== APP.default_page_size ||
+    queryState.sortBy !== "createdAt" ||
+    queryState.sortDir !== "desc" ||
+    queryState.status.length > 0 ||
+    queryState.category.length > 0 ||
+    queryState.dateFrom.length > 0 ||
+    queryState.dateTo.length > 0 ||
+    queryState.hasAttachment !== "all" ||
+    queryState.query.length > 0;
+
+  const columns = React.useMemo<ColumnDef<BaComplaintRow>[]>(
+    () => [
+      {
+        id: "srNo",
+        header: "Sr No.",
+        enableSorting: false,
+        cell: ({ row }) => <div>{row.index + 1}</div>,
+      },
+      {
+        id: "studentName",
+        header: "Student",
+        accessorFn: (row) => row.student.user.name,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <UserImage
+              image={row.original.student.user.image}
+              name={row.original.student.user.name}
+            />
+            <div className="flex flex-col">
+              <span className="font-medium">
+                {row.original.student.user.name}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {row.original.student.registrationNo}
+              </span>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: "title",
+        header: "Title",
+        accessorFn: (row) => row.title,
+        cell: ({ row }) => (
+          <div className="block group font-medium">
+            <MiddleTruncateText maxLength={80} text={row.original.title} />
+            <Link
+              href={`/batch-advisor/complaints/${row.original.id}`}
+              className="flex items-center mt-2 gap-1 group-hover:text-primary hover:underline underline-offset-4"
+            >
+              <EyeIcon className="size-4" />
+              View Details
+            </Link>
+          </div>
+        ),
+      },
+      {
+        id: "category",
+        header: "Category",
+        accessorFn: (row) => row.category,
+        cell: ({ row }) => formatEnumLabel(row.original.category),
+      },
+      {
+        id: "status",
+        header: "Status",
+        accessorFn: (row) => row.status,
+        cell: ({ row }) => (
+          <Badge
+            variant={LeaveRequestStatusVariantMap[row.original.status]}
+            appearance="light"
+            size="sm"
+          >
+            {row.original.status}
+          </Badge>
+        ),
+      },
+      {
+        id: "createdAt",
+        header: "Created",
+        accessorFn: (row) => row.createdAt,
+        cell: ({ row }) => formatDate(row.original.createdAt),
+      },
+
+      {
+        id: "actions",
+        header: () => <span className="block text-center">Actions</span>,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <div className="text-center">
+            <BaComplaintActions complaintId={row.original.id} />
+          </div>
+        ),
+      },
+    ],
+    []
+  );
+
+  const [columnOrder, setColumnOrder] = React.useState<string[]>(
+    columns.map((column) => column.id as string)
+  );
+
+  const table = useReactTable({
+    data: complaints,
+    columns,
+    columnResizeMode: "onChange",
+    getCoreRowModel: getCoreRowModel(),
+    onSortingChange: (updater) => {
+      const nextSorting =
+        typeof updater === "function" ? updater(sorting) : updater;
+      const next = nextSorting[0];
+
+      startTransition(() => {
+        void setQueryState({
+          sortBy: (next?.id ?? "createdAt") as BaComplaintsSortBy,
+          sortDir: next?.desc ? "desc" : "asc",
+          page: 1,
+        });
+      });
+    },
+    onPaginationChange: (updater) => {
+      const nextPagination =
+        typeof updater === "function" ? updater(pagination) : updater;
+      const nextPageIndex =
+        nextPagination.pageSize === pagination.pageSize
+          ? nextPagination.pageIndex
+          : 0;
+
+      startTransition(() => {
+        void setQueryState({
+          page: nextPageIndex + 1,
+          pageSize: nextPagination.pageSize,
+        });
+      });
+    },
+    state: {
+      sorting,
+      columnOrder,
+      pagination,
+    },
+    onColumnOrderChange: setColumnOrder,
+    enableSortingRemoval: false,
+    manualPagination: true,
+    manualSorting: true,
+    rowCount: totalCount,
+  });
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (active && over && active.id !== over.id) {
+      setColumnOrder((currentOrder) => {
+        const oldIndex = currentOrder.indexOf(active.id as string);
+        const newIndex = currentOrder.indexOf(over.id as string);
+        return arrayMove(currentOrder, oldIndex, newIndex);
+      });
+    }
+  }
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, {}),
+    useSensor(TouchSensor, {}),
+    useSensor(KeyboardSensor, {})
+  );
+
+  function handleStatusChange(value: string) {
+    startTransition(() => {
+      void setQueryState({
+        status: value === "all" ? "" : value,
+        page: 1,
+      });
+    });
+  }
+
+  function handleCategoryChange(value: string) {
+    startTransition(() => {
+      void setQueryState({
+        category: value === "all" ? "" : value,
+        page: 1,
+      });
+    });
+  }
+
+  function handleDateRangeChange(range: DateRange | undefined) {
+    startTransition(() => {
+      void setQueryState({
+        dateFrom: range?.from ? toDateKey(range.from) : "",
+        dateTo: range?.to ? toDateKey(range.to) : "",
+        page: 1,
+      });
+    });
+  }
+
+  function handleAttachmentChange(value: string) {
+    startTransition(() => {
+      void setQueryState({
+        hasAttachment: value as ComplaintAttachmentFilter,
+        page: 1,
+      });
+    });
+  }
+
+  /// URL-synced BA complaints search and filter.
+  return (
+    <div className="w-full" aria-busy={isPending}>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="flex-1 min-w-[200px]">
+          <Label htmlFor="ba-complaints-search" className="sr-only">
+            Search complaints
+          </Label>
+          <Input
+            id="ba-complaints-search"
+            placeholder="Search by title, details, or student..."
+            value={queryState.query}
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              startTransition(() => {
+                void setQueryState({
+                  query: nextValue.trim().length > 0 ? nextValue : "",
+                  page: 1,
+                });
+              });
+            }}
+          />
+        </div>
+
+        <Select
+          value={queryState.status || "all"}
+          onValueChange={handleStatusChange}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            {statusOptions.map((status) => (
+              <SelectItem key={status} value={status}>
+                {formatEnumLabel(status)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={queryState.hasAttachment}
+          onValueChange={handleAttachmentChange}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Attachment" />
+          </SelectTrigger>
+          <SelectContent>
+            {complaintAttachmentValues.map((value) => (
+              <SelectItem key={value} value={value}>
+                {formatEnumLabel(value)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={queryState.category || "all"}
+          onValueChange={handleCategoryChange}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categoryOptions.map((category) => (
+              <SelectItem key={category} value={category}>
+                {formatEnumLabel(category)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-64 justify-start text-left font-normal",
+                !dateRange.from && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dateRange.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "LLL dd, y")} -{" "}
+                    {format(dateRange.to, "LLL dd, y")}
+                  </>
+                ) : (
+                  format(dateRange.from, "LLL dd, y")
+                )
+              ) : (
+                "Pick a date range"
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              defaultMonth={dateRange.from}
+              selected={dateRange}
+              onSelect={handleDateRangeChange}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {hasActiveParams ? (
+        <div className="mb-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              startTransition(() => {
+                void setQueryState(null);
+              });
+            }}
+          >
+            <XIcon className="mr-2 h-4 w-4" />
+            Clear Filters
+          </Button>
+        </div>
+      ) : null}
+
+      <div className="rounded-md border">
+        <DndContext
+          id={tableId}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToHorizontalAxis]}
+          onDragEnd={handleDragEnd}
+          sensors={sensors}
+        >
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow
+                  key={headerGroup.id}
+                  className="bg-muted/50 [&>th]:border-t-0"
+                >
+                  <SortableContext
+                    items={columnOrder}
+                    strategy={horizontalListSortingStrategy}
+                  >
+                    {headerGroup.headers.map((header) => (
+                      <DraggableTableHeader<BaComplaintRow>
+                        key={header.id}
+                        header={header}
+                      />
+                    ))}
+                  </SortableContext>
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    className="group"
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <SortableContext
+                        key={cell.id}
+                        items={columnOrder}
+                        strategy={horizontalListSortingStrategy}
+                      >
+                        <DragAlongCell<BaComplaintRow> cell={cell} />
+                      </SortableContext>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No complaints found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </DndContext>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-4 py-4">
+        <div className="flex items-center gap-3">
+          <Label htmlFor={`${tableId}-page-size`} className="max-sm:sr-only">
+            Rows per page
+          </Label>
+          <Select
+            value={table.getState().pagination.pageSize.toString()}
+            onValueChange={(value) => {
+              table.setPageSize(Number(value));
+            }}
+          >
+            <SelectTrigger
+              id={`${tableId}-page-size`}
+              className="w-fit whitespace-nowrap"
+            >
+              <SelectValue placeholder="Select number of results" />
+            </SelectTrigger>
+            <SelectContent className="[&_*[role=option]]:pr-8 [&_*[role=option]]:pl-2 [&_*[role=option]>span]:right-2 [&_*[role=option]>span]:left-auto">
+              {APP.page_sizes.map((pageSize) => (
+                <SelectItem key={pageSize} value={pageSize.toString()}>
+                  {pageSize}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="text-muted-foreground flex grow justify-end text-sm whitespace-nowrap">
+          <p
+            className="text-muted-foreground text-sm whitespace-nowrap"
+            aria-live="polite"
+          >
+            <span className="text-foreground">
+              {table.getState().pagination.pageIndex *
+                table.getState().pagination.pageSize +
+                1}
+              -
+              {Math.min(
+                Math.max(
+                  table.getState().pagination.pageIndex *
+                    table.getState().pagination.pageSize +
+                    table.getState().pagination.pageSize,
+                  0
+                ),
+                table.getRowCount()
+              )}
+            </span>{" "}
+            of{" "}
+            <span className="text-foreground">
+              {table.getRowCount().toString()}
+            </span>
+          </p>
+        </div>
+
+        <div>
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="disabled:pointer-events-none disabled:opacity-50"
+                  onClick={() => table.firstPage()}
+                  disabled={!table.getCanPreviousPage()}
+                  aria-label="Go to first page"
+                >
+                  <ChevronFirst aria-hidden="true" />
+                </Button>
+              </PaginationItem>
+
+              <PaginationItem>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="disabled:pointer-events-none disabled:opacity-50"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                  aria-label="Go to previous page"
+                >
+                  <ChevronLeft aria-hidden="true" />
+                </Button>
+              </PaginationItem>
+
+              <PaginationItem>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="disabled:pointer-events-none disabled:opacity-50"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                  aria-label="Go to next page"
+                >
+                  <ChevronRight aria-hidden="true" />
+                </Button>
+              </PaginationItem>
+
+              <PaginationItem>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="disabled:pointer-events-none disabled:opacity-50"
+                  onClick={() => table.lastPage()}
+                  disabled={!table.getCanNextPage()}
+                  aria-label="Go to last page"
+                >
+                  <ChevronLast aria-hidden="true" />
+                </Button>
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      </div>
+    </div>
+  );
+}

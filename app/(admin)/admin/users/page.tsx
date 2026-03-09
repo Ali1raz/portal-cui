@@ -17,7 +17,7 @@ import {
 
 export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
   return (
-    <div>
+    <div className="@container/main">
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-xl font-bold">All Users</h1>
       </div>

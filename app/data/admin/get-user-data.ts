@@ -1,5 +1,4 @@
 import "server-only";
-
 import prisma from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import { requirePermission } from "../permission/require-permission";
@@ -12,6 +11,7 @@ export async function adminGetUserData(userId: string) {
   if (!canSeeUser) {
     return redirect("/unauthorized");
   }
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -52,6 +52,20 @@ export async function adminGetUserData(userId: string) {
         select: {
           id: true,
           createdAt: true,
+        },
+      },
+      batchAdvisor: {
+        select: {
+          id: true,
+          department: true,
+          appointedAt: true,
+          createdAt: true,
+          professor: {
+            select: {
+              id: true,
+              employeeNo: true,
+            },
+          },
         },
       },
     },
