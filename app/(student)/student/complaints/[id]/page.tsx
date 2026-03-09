@@ -1,132 +1,270 @@
 import Link from "next/link";
 import { studentGetComplaintDetails } from "@/app/data/student/get-complaint-details";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { GeneralImage } from "@/components/general/general-image";
+import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
-import { ComplaintStatus } from "@/lib/generated/prisma/enums";
+import {
+  IconArrowLeft,
+  IconEdit,
+  IconPaperclip,
+  IconClockHour4,
+} from "@tabler/icons-react";
+import { cn } from "@/lib/utils";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { UserImage } from "@/components/user/user-image";
 
-const statusVariantMap: Record<
-  ComplaintStatus,
-  "warning" | "info" | "success" | "destructive"
-> = {
-  PENDING: "warning",
-  ASSIGNED: "info",
-  ACCEPTED: "success",
-  REJECTED: "destructive",
-};
+import { STATUS_CONFIG } from "@/components/complaints/complaint-constants";
+import { ComplaintStatusBanner } from "@/components/complaints/complaint-status-banner";
+import { ComplaintTimelineItem } from "@/components/complaints/complaint-timeline-item";
+import { ComplaintMetaRow } from "@/components/complaints/complaint-meta-row";
 
 export default async function ComplaintDetailsPage(
   props: PageProps<"/student/complaints/[id]">
 ) {
   const { id } = await props.params;
   const details = await studentGetComplaintDetails({ id });
-  const canEdit = details.status === "PENDING";
+
+  const canEdit =
+    details.status === "BA_PENDING" || details.status === "BA_REJECTED";
+  const statusCfg = STATUS_CONFIG[details.status];
 
   return (
-    <div className="flex w-full max-w-4xl flex-col gap-6 px-4 md:px-6 my-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">Complaint Details</h1>
-          <p className="text-sm text-muted-foreground">
-            Track your complaint status and response.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {canEdit ? (
-            <Button size="sm" asChild>
-              <Link href={`/student/complaints/${id}/edit`}>
-                Update Complaint
-              </Link>
-            </Button>
-          ) : (
-            <Button size="sm" disabled>
-              Update Complaint
-            </Button>
-          )}
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/student/complaints">Back to complaints</Link>
+    <div className="mx-auto max-w-5xl w-full p-4 space-y-4">
+      {/* ── Header ── */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-2 mb-1 text-muted-foreground"
+            asChild
+          >
+            <Link href="/student/complaints">
+              <IconArrowLeft size={14} className="mr-1" />
+              All Complaints
+            </Link>
           </Button>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold tracking-tight leading-tight">
+                {details.title}
+              </h1>
+              <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                <IconClockHour4 size={13} />
+                Submitted {formatDate(details.createdAt)}
+              </p>
+            </div>
+            {canEdit && (
+              <Button size="sm" asChild>
+                <Link href={`/student/complaints/${id}/edit`}>
+                  <IconEdit size={14} className="mr-1.5" />
+                  Edit Complaint
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
-      <Card>
-        <CardHeader className="border-b">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="space-y-1">
-              <CardTitle className="text-lg">{details.title}</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Submitted on {formatDate(details.createdAt)}
-              </p>
-            </div>
-            <Badge
-              variant={statusVariantMap[details.status]}
-              appearance="light"
-            >
-              {details.status}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div>
-              <p className="text-sm text-muted-foreground">Category</p>
-              <p className="font-medium">{details.category}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Status</p>
-              <p className="font-medium">{details.status}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Target Department</p>
-              <p className="font-medium">{details.targetDepartment}</p>
-            </div>
-          </div>
+      {/* ── Status banner ── */}
+      <ComplaintStatusBanner status={details.status} />
 
-          <Separator />
+      {/* ── Main grid ── */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <section className="lg:col-span-2 space-y-4">
+          {/* Complaint content */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Complaint</CardTitle>
+              <CardDescription>{details.title}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">{details.details}</p>
+            </CardContent>
+            <CardFooter>
+              {details.imageKey ? (
+                <div className="rounded-lg border overflow-hidden max-w-lg">
+                  <GeneralImage
+                    src={details.imageKey}
+                    alt="Complaint attachment"
+                    width={600}
+                    height={400}
+                    className="aspect-video w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <IconPaperclip size={11} />
+                  No attachment
+                </p>
+              )}
+            </CardFooter>
+          </Card>
 
-          <div className="space-y-2">
-            <h2 className="text-sm font-semibold text-muted-foreground">
-              Complaint Details
-            </h2>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {details.details}
-            </p>
-          </div>
+          {/* Timeline */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                Activity Timeline
+                {details._count.reviews > 0 && (
+                  <Badge size="md">
+                    {details._count.reviews}{" "}
+                    {details._count.reviews === 1 ? "event" : "events"}
+                  </Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
 
-          <div className="space-y-2">
-            <h2 className="text-sm font-semibold text-muted-foreground">
-              HOD Remarks
-            </h2>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {details.hodRemarks ?? "No remarks provided yet."}
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-sm font-semibold text-muted-foreground">
-              Attachment
-            </h2>
-            {details.imageKey ? (
-              <div className="relative max-w-[650px] rounded-md border p-2">
-                <GeneralImage
-                  src={details.imageKey}
-                  alt="Complaint attachment"
-                  width={600}
-                  height={400}
-                  className="aspect-video w-full rounded-md object-cover"
-                />
-              </div>
+            {details.reviews.length > 0 ? (
+              <CardContent>
+                {details.reviews.map((review, idx) => (
+                  <ComplaintTimelineItem
+                    key={review.id}
+                    review={review}
+                    isLast={idx === details.reviews.length - 1}
+                    actorLabelOverride={{ STUDENT: "You" }}
+                  />
+                ))}
+              </CardContent>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                No attachment added.
-              </p>
+              <CardContent className="py-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No activity yet.
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Your Batch Advisor will review this shortly.
+                </p>
+              </CardContent>
             )}
-          </div>
-        </CardContent>
-      </Card>
+          </Card>
+        </section>
+
+        <section className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <ComplaintMetaRow label="Category" value={details.category} />
+              <ComplaintMetaRow
+                label="Department"
+                value={details.targetDepartment}
+              />
+            </CardContent>
+            <CardFooter className="space-y-2 flex flex-col items-start">
+              <p className="text-xs font-medium uppercase text-muted-foreground">
+                Status
+              </p>
+              <Badge
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1",
+                  statusCfg.color
+                )}
+              >
+                <span className={cn("size-1.5 rounded-full", statusCfg.dot)} />
+                {statusCfg.label}
+              </Badge>
+            </CardFooter>
+          </Card>
+
+          {/* BA info */}
+          {details.batchAdvisor && (
+            <Card className="space-y-5">
+              <CardHeader>
+                <CardTitle>Batch Advisor</CardTitle>
+              </CardHeader>
+              <CardContent className="flex items-center gap-3">
+                {details.batchAdvisor.user.image ? (
+                  <UserImage
+                    image={details.batchAdvisor.user.image}
+                    name={details.batchAdvisor.user.name}
+                  />
+                ) : (
+                  <div className="size-9 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-muted-foreground">
+                    {details.batchAdvisor.user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold truncate">
+                    {details.batchAdvisor.user.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {details.batchAdvisor.department} Dept.
+                  </p>
+                </div>
+              </CardContent>
+              {details.baRemarks && (
+                <CardContent className="space-y-1">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Remarks
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed italic">{`"${details.baRemarks}"`}</p>
+                </CardContent>
+              )}
+              {details.baReviewedAt && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <IconClockHour4 size={11} />
+                  Reviewed {formatDate(details.baReviewedAt)}
+                </p>
+              )}
+            </Card>
+          )}
+
+          {/* HOD remarks */}
+          {details.hodRemarks && (
+            <Card>
+              <CardHeader>
+                <CardTitle>HOD Remarks</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                <p className="text-sm text-muted-foreground leading-relaxed italic">
+                  {`"${details.hodRemarks}"`}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Department transfers */}
+          {details.assignments.length > 0 && (
+            <Card className="space-y-5">
+              <CardHeader>
+                <CardTitle>Transfers</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {details.assignments.map((a) => (
+                  <div key={a.id} className="space-y-1">
+                    <div className="flex items-center gap-1.5 text-xs font-medium">
+                      <span className="rounded bg-muted px-1.5 py-0.5 font-mono">
+                        {a.fromDepartment}
+                      </span>
+                      <span className="text-muted-foreground">→</span>
+                      <span className="rounded bg-muted px-1.5 py-0.5 font-mono">
+                        {a.toDepartment}
+                      </span>
+                    </div>
+                    {a.reason && (
+                      <p className="text-xs text-muted-foreground pl-1 italic">
+                        {a.reason}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground pl-1">
+                      {formatDate(a.assignedAt)}
+                    </p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

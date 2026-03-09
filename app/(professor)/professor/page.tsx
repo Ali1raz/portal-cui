@@ -12,7 +12,7 @@ export default async function ProfessorPage() {
   ]);
 
   const professorDetails = [
-    { label: "Department", value: professor.department },
+    { label: "Department", value: professor.department || "Not specified" },
   ];
 
   return (
@@ -23,20 +23,20 @@ export default async function ProfessorPage() {
           <h1 className="mt-4">
             Welcome back!{" "}
             <span className="font-bold text-primary">{session.user.name}</span>{" "}
-            Here is your teaching overview.
+            Here is your subjects overview.
           </h1>
         </div>
 
         {!assignments || assignments.length === 0 ? (
           <div className="p-4">
             <p className="text-muted-foreground">
-              You are not assigned to any sections yet.
+              You are not assigned to any subjects yet.
             </p>
           </div>
         ) : (
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">Your classes</h2>
+              <h2 className="text-xl font-bold">Your subjects</h2>
               <Link
                 href="/professor/subject"
                 className={buttonVariants({
@@ -47,7 +47,7 @@ export default async function ProfessorPage() {
                 View all subjects
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2">
               {assignments.map((assignment, i) => (
                 <CourseCard key={i} assignment={assignment} />
               ))}

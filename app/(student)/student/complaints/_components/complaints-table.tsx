@@ -22,6 +22,7 @@ import {
   ChevronUp,
   CalendarIcon,
   XIcon,
+  EyeIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
@@ -82,19 +83,9 @@ import { tryCatch } from "@/hooks/tryCatch";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { APP } from "@/lib/data/utils";
-
-const statusVariantMap: Record<
-  ComplaintStatus,
-  "warning" | "info" | "success" | "destructive"
-> = {
-  PENDING: "warning",
-  ASSIGNED: "info",
-  ACCEPTED: "success",
-  REJECTED: "destructive",
-};
-
-const statusOptions = Object.values(ComplaintStatus);
-const categoryOptions = Object.values(ComplaintCategory);
+import { StudentComplaintsRow } from "@/app/data/student/get-complaints";
+import { MiddleTruncateText } from "@/components/general/truncated-text";
+import Link from "next/link";
 
 function toDateKey(value: Date | undefined) {
   return value ? format(value, "yyyy-MM-dd") : null;
@@ -106,22 +97,13 @@ function parseDateKey(value: string) {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }
 
-export type StudentComplaintRow = {
-  id: string;
-  title: string;
-  createdAt: Date;
-  status: ComplaintStatus;
-  category: ComplaintCategory;
-  imageKey: string | null;
-};
-
 /// Student complaints table with filters, sorting, and pagination.
 export function ComplaintsTable({
   complaints,
   totalCount,
 }: {
   /// Complaint rows to display in the table.
-  complaints: StudentComplaintRow[];
+  complaints: StudentComplaintsRow[];
   /// Total complaints count for pagination.
   totalCount: number;
 }) {
@@ -172,7 +154,7 @@ export function ComplaintsTable({
     queryState.dateTo.length > 0 ||
     queryState.hasAttachment !== null;
 
-  const columns = React.useMemo<ColumnDef<StudentComplaintRow>[]>(
+  const columns = React.useMemo<ColumnDef<StudentComplaintsRow>[]>(
     () => [
       {
         id: "select",
@@ -210,9 +192,16 @@ export function ComplaintsTable({
         header: "Title",
         accessorFn: (row) => row.title,
         cell: ({ row }) => (
-          <span className="block max-w-[320px] truncate font-medium">
-            {row.original.title}
-          </span>
+          <div className="block group font-medium">
+            <MiddleTruncateText maxLength={80} text={row.original.title} />
+            <Link
+              href={`/student/complaints/${row.original.id}`}
+              className="flex items-center mt-2 gap-1 group-hover:text-primary hover:underline underline-offset-4"
+            >
+              <EyeIcon className="size-4" />
+              View Details
+            </Link>
+          </div>
         ),
       },
       {
@@ -226,12 +215,8 @@ export function ComplaintsTable({
         header: "Status",
         accessorFn: (row) => row.status,
         cell: ({ row }) => (
-          <Badge
-            variant={statusVariantMap[row.original.status]}
-            appearance="light"
-            size="sm"
-          >
-            {formatEnumLabel(row.original.status)}
+          <Badge appearance="light" size="sm">
+            {row.original.status}
           </Badge>
         ),
       },
@@ -418,7 +403,7 @@ export function ComplaintsTable({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
-                  {statusOptions.map((status) => (
+                  {Object.values(ComplaintStatus).map((status) => (
                     <SelectItem key={status} value={status}>
                       {formatEnumLabel(status)}
                     </SelectItem>
@@ -438,7 +423,7 @@ export function ComplaintsTable({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
-                  {categoryOptions.map((category) => (
+                  {Object.values(ComplaintCategory).map((category) => (
                     <SelectItem key={category} value={category}>
                       {formatEnumLabel(category)}
                     </SelectItem>
@@ -698,7 +683,7 @@ export function ComplaintsTable({
 function SortableTableHeader({
   header,
 }: {
-  header: Header<StudentComplaintRow, unknown>;
+  header: Header<StudentComplaintsRow, unknown>;
 }) {
   return (
     <TableHead

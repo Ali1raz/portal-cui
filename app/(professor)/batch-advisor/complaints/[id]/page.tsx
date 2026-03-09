@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { hodGetComplaintDetails } from "@/app/data/hod/get-complaint-details";
+import { baGetComplaintDetails } from "@/app/data/professor/get-ba-complaint-details";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,17 +25,18 @@ import { ComplaintStatusBanner } from "@/components/complaints/complaint-status-
 import { ComplaintTimelineItem } from "@/components/complaints/complaint-timeline-item";
 import { ComplaintMetaRow } from "@/components/complaints/complaint-meta-row";
 
-export default async function HodComplaintDetailsPage(
-  props: PageProps<"/hod/complaints/[id]">
+/// Batch Advisor complaint details page.
+export default async function BaComplaintDetailsPage(
+  props: PageProps<"/batch-advisor/complaints/[id]">
 ) {
   const { id } = await props.params;
-  const details = await hodGetComplaintDetails({ id });
+  const details = await baGetComplaintDetails({ id });
 
   const statusCfg = STATUS_CONFIG[details.status];
-  const canReview = details.status === "HOD_PENDING";
+  const canReview = details.status === "BA_PENDING";
 
   return (
-    <div className="mx-auto max-w-5xl w-full p-4 space-y-4">
+    <div className="mx-auto max-w-4xl w-full px-4 py-4 space-y-8">
       {/* ── Header ── */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-1">
@@ -45,7 +46,7 @@ export default async function HodComplaintDetailsPage(
             className="-ml-2 mb-1 text-muted-foreground"
             asChild
           >
-            <Link href="/hod/complaints">
+            <Link href="/batch-advisor/complaints">
               <IconArrowLeft size={14} className="mr-1" />
               All Complaints
             </Link>
@@ -62,9 +63,9 @@ export default async function HodComplaintDetailsPage(
             </div>
             {canReview && (
               <Button size="sm" asChild>
-                <Link href={`/hod/complaints/${id}/update-status`}>
+                <Link href={`/batch-advisor/complaints/${id}/update-status`}>
                   <IconEdit size={14} className="mr-1.5" />
-                  Review Complaint
+                  Update Status
                 </Link>
               </Button>
             )}
@@ -77,7 +78,7 @@ export default async function HodComplaintDetailsPage(
 
       {/* ── Main grid ── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* ── Left: Complaint + Timeline ── */}
+        {/* ── Left: Meta sidebar ── */}
         <section className="lg:col-span-2 space-y-4">
           {/* Complaint content */}
           <Card>
@@ -130,7 +131,7 @@ export default async function HodComplaintDetailsPage(
                     key={review.id}
                     review={review}
                     isLast={idx === details.reviews.length - 1}
-                    actorLabelOverride={{ HOD: "You" }}
+                    actorLabelOverride={{ BATCH_ADVISOR: "You" }}
                   />
                 ))}
               </CardContent>
@@ -140,16 +141,15 @@ export default async function HodComplaintDetailsPage(
                   No activity yet.
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Use &apos;Review Complaint&apos; to record the first action.
+                  Update the status to record the first activity.
                 </p>
               </CardContent>
             )}
           </Card>
         </section>
 
-        {/* ── Right: Sidebar ── */}
+        {/* ── Right ── */}
         <section className="space-y-4">
-          {/* Meta */}
           <Card>
             <CardHeader>
               <CardTitle>Details</CardTitle>
@@ -177,14 +177,14 @@ export default async function HodComplaintDetailsPage(
             </CardFooter>
           </Card>
 
-          {/* HOD Remarks */}
+          {/* HOD remarks */}
           {details.hodRemarks && (
             <Card>
               <CardHeader>
                 <CardTitle>HOD Remarks</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground leading-relaxed italic">
+                <p className="text-sm text-muted-foreground">
                   {`"${details.hodRemarks}"`}
                 </p>
               </CardContent>
@@ -201,6 +201,7 @@ export default async function HodComplaintDetailsPage(
                 image={details.student.user.image}
                 name={details.student.user.name}
               />
+
               <div>
                 <p className="text-sm font-semibold truncate">
                   {details.student.user.name}
@@ -223,40 +224,9 @@ export default async function HodComplaintDetailsPage(
             </CardContent>
           </Card>
 
-          {/* BA info */}
-          {details.batchAdvisor && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Batch Advisor</CardTitle>
-              </CardHeader>
-              <CardContent className="flex items-center gap-3">
-                <UserImage
-                  image={details.batchAdvisor.user.image}
-                  name={details.batchAdvisor.user.name}
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate">
-                    {details.batchAdvisor.user.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {details.batchAdvisor.department} Dept.
-                  </p>
-                </div>
-              </CardContent>
-              {details.baRemarks && (
-                <CardContent className="space-y-1">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    BA Remarks
-                  </p>
-                  <p className="text-sm text-muted-foreground leading-relaxed italic">{`"${details.baRemarks}"`}</p>
-                </CardContent>
-              )}
-            </Card>
-          )}
-
           {/* Department transfers */}
           {details.assignments.length > 0 && (
-            <Card>
+            <Card className="space-y-5">
               <CardHeader>
                 <CardTitle>Transfers</CardTitle>
               </CardHeader>

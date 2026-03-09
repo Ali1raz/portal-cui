@@ -73,7 +73,7 @@ export const roles = {
     leaveRequest: ["get", "list", "list:past"],
     subject: ["list", "get"],
     subjectOfferings: ["list"],
-    complaints: [],
+    complaints: ["get", "update", "list", "assign", "approve"],
     announcements: [],
   }),
   ACCOUNTANT: access.newRole({

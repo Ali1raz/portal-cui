@@ -35,6 +35,12 @@ const roleDashboardLinks: Record<Role, RoleDashboardLink<Route> | null> = {
     icon: IconLayoutDashboard,
     role: "PROFESSOR",
   },
+  BATCH_ADVISOR: {
+    title: "Dashboard",
+    href: "/batch-advisor",
+    icon: IconLayoutDashboard,
+    role: "BATCH_ADVISOR",
+  },
   HOD: {
     title: "Dashboard",
     href: "/hod",
@@ -108,6 +114,13 @@ export function getNavLinks({
         title: "Subjects",
         href: "/professor/subject",
         icon: IconBook,
+      },
+    ],
+    BATCH_ADVISOR: [
+      {
+        title: "Complaints",
+        href: "/batch-advisor/complaints",
+        icon: IconMessageReport,
       },
     ],
     HOD: [

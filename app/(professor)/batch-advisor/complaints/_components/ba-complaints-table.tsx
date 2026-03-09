@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/incompatible-library */
+﻿/* eslint-disable react-hooks/incompatible-library */
 "use client";
 
 import * as React from "react";
@@ -72,29 +72,23 @@ import {
 import { cn, formatDate, formatEnumLabel } from "@/lib/utils";
 import { useQueryStates } from "nuqs";
 import {
+  baComplaintsSearchParamsParsers,
   complaintAttachmentValues,
-  hodComplaintsSearchParamsParsers,
+  type BaComplaintsSortBy,
   type ComplaintAttachmentFilter,
-  type HodComplaintsSortBy,
-} from "../complaints-search-params";
-import type { HodComplaintRow } from "@/app/data/hod/get-complaints";
-import { ComplaintActions } from "./complaint-actions";
-import { MiddleTruncateText } from "@/components/general/truncated-text";
-import { APP } from "@/lib/data/utils";
+} from "../ba-complaints-search-params";
+import type { BaComplaintRow } from "@/app/data/professor/get-ba-complaints";
+import { APP, LeaveRequestStatusVariantMap } from "@/lib/data/utils";
 import {
   DragAlongCell,
   DraggableTableHeader,
 } from "@/components/general/tanstack-table";
+import { MiddleTruncateText } from "@/components/general/truncated-text";
+import { BaComplaintActions } from "./ba-complaint-actions";
 import { UserImage } from "@/components/user/user-image";
 import Link from "next/link";
 
-// HOD only sees complaints forwarded by the BA
-const statusOptions: ComplaintStatus[] = [
-  ComplaintStatus.HOD_PENDING,
-  ComplaintStatus.HOD_ACCEPTED,
-  ComplaintStatus.HOD_REJECTED,
-  ComplaintStatus.REASSIGNED,
-];
+const statusOptions = Object.values(ComplaintStatus);
 const categoryOptions = Object.values(ComplaintCategory);
 
 function toDateKey(value: Date | undefined) {
@@ -107,13 +101,13 @@ function parseDateKey(value: string) {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }
 
-/// HOD complaints table with filters, sorting, pagination, and DND.
-export function HodComplaintsTable({
+/// Batch Advisor complaints table with filters, sorting, pagination, and DND.
+export function BaComplaintsTable({
   complaints,
   totalCount,
 }: {
   /// Complaint rows to display in the table.
-  complaints: HodComplaintRow[];
+  complaints: BaComplaintRow[];
   /// Total complaints count for pagination.
   totalCount: number;
 }) {
@@ -122,7 +116,7 @@ export function HodComplaintsTable({
   const [isPending, startTransition] = React.useTransition();
 
   const [queryState, setQueryState] = useQueryStates(
-    hodComplaintsSearchParamsParsers,
+    baComplaintsSearchParamsParsers,
     {
       history: "replace",
       shallow: false,
@@ -161,7 +155,7 @@ export function HodComplaintsTable({
     queryState.hasAttachment !== "all" ||
     queryState.query.length > 0;
 
-  const columns = React.useMemo<ColumnDef<HodComplaintRow>[]>(
+  const columns = React.useMemo<ColumnDef<BaComplaintRow>[]>(
     () => [
       {
         id: "srNo",
@@ -198,7 +192,7 @@ export function HodComplaintsTable({
           <div className="block group font-medium">
             <MiddleTruncateText maxLength={80} text={row.original.title} />
             <Link
-              href={`/hod/complaints/${row.original.id}`}
+              href={`/batch-advisor/complaints/${row.original.id}`}
               className="flex items-center mt-2 gap-1 group-hover:text-primary hover:underline underline-offset-4"
             >
               <EyeIcon className="size-4" />
@@ -217,7 +211,15 @@ export function HodComplaintsTable({
         id: "status",
         header: "Status",
         accessorFn: (row) => row.status,
-        cell: ({ row }) => <Badge size="sm">{row.original.status}</Badge>,
+        cell: ({ row }) => (
+          <Badge
+            variant={LeaveRequestStatusVariantMap[row.original.status]}
+            appearance="light"
+            size="sm"
+          >
+            {row.original.status}
+          </Badge>
+        ),
       },
       {
         id: "createdAt",
@@ -225,13 +227,14 @@ export function HodComplaintsTable({
         accessorFn: (row) => row.createdAt,
         cell: ({ row }) => formatDate(row.original.createdAt),
       },
+
       {
         id: "actions",
         header: () => <span className="block text-center">Actions</span>,
         enableSorting: false,
         cell: ({ row }) => (
           <div className="text-center">
-            <ComplaintActions complaintId={row.original.id} />
+            <BaComplaintActions complaintId={row.original.id} />
           </div>
         ),
       },
@@ -255,7 +258,7 @@ export function HodComplaintsTable({
 
       startTransition(() => {
         void setQueryState({
-          sortBy: (next?.id ?? "createdAt") as HodComplaintsSortBy,
+          sortBy: (next?.id ?? "createdAt") as BaComplaintsSortBy,
           sortDir: next?.desc ? "desc" : "asc",
           page: 1,
         });
@@ -295,7 +298,6 @@ export function HodComplaintsTable({
       setColumnOrder((currentOrder) => {
         const oldIndex = currentOrder.indexOf(active.id as string);
         const newIndex = currentOrder.indexOf(over.id as string);
-
         return arrayMove(currentOrder, oldIndex, newIndex);
       });
     }
@@ -344,21 +346,20 @@ export function HodComplaintsTable({
     });
   }
 
-  /// URL-synced complaints search and filter.
+  /// URL-synced BA complaints search and filter.
   return (
     <div className="w-full" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex-1 min-w-[200px]">
-          <Label htmlFor="complaints-search" className="sr-only">
+          <Label htmlFor="ba-complaints-search" className="sr-only">
             Search complaints
           </Label>
           <Input
-            id="complaints-search"
+            id="ba-complaints-search"
             placeholder="Search by title, details, or student..."
             value={queryState.query}
             onChange={(event) => {
               const nextValue = event.target.value;
-
               startTransition(() => {
                 void setQueryState({
                   query: nextValue.trim().length > 0 ? nextValue : "",
@@ -368,6 +369,7 @@ export function HodComplaintsTable({
             }}
           />
         </div>
+
         <Select
           value={queryState.status || "all"}
           onValueChange={handleStatusChange}
@@ -380,6 +382,22 @@ export function HodComplaintsTable({
             {statusOptions.map((status) => (
               <SelectItem key={status} value={status}>
                 {formatEnumLabel(status)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={queryState.hasAttachment}
+          onValueChange={handleAttachmentChange}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Attachment" />
+          </SelectTrigger>
+          <SelectContent>
+            {complaintAttachmentValues.map((value) => (
+              <SelectItem key={value} value={value}>
+                {formatEnumLabel(value)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -432,26 +450,9 @@ export function HodComplaintsTable({
               defaultMonth={dateRange.from}
               selected={dateRange}
               onSelect={handleDateRangeChange}
-              //   numberOfMonths={2}
             />
           </PopoverContent>
         </Popover>
-
-        <Select
-          value={queryState.hasAttachment}
-          onValueChange={handleAttachmentChange}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Attachment" />
-          </SelectTrigger>
-          <SelectContent>
-            {complaintAttachmentValues.map((value) => (
-              <SelectItem key={value} value={value}>
-                {formatEnumLabel(value)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {hasActiveParams ? (
@@ -492,7 +493,7 @@ export function HodComplaintsTable({
                     strategy={horizontalListSortingStrategy}
                   >
                     {headerGroup.headers.map((header) => (
-                      <DraggableTableHeader<HodComplaintRow>
+                      <DraggableTableHeader<BaComplaintRow>
                         key={header.id}
                         header={header}
                       />
@@ -515,7 +516,7 @@ export function HodComplaintsTable({
                         items={columnOrder}
                         strategy={horizontalListSortingStrategy}
                       >
-                        <DragAlongCell<HodComplaintRow> cell={cell} />
+                        <DragAlongCell<BaComplaintRow> cell={cell} />
                       </SortableContext>
                     ))}
                   </TableRow>
@@ -537,7 +538,7 @@ export function HodComplaintsTable({
 
       <div className="flex flex-wrap items-center justify-between gap-4 py-4">
         <div className="flex items-center gap-3">
-          <Label htmlFor={tableId} className="max-sm:sr-only">
+          <Label htmlFor={`${tableId}-page-size`} className="max-sm:sr-only">
             Rows per page
           </Label>
           <Select
@@ -546,7 +547,10 @@ export function HodComplaintsTable({
               table.setPageSize(Number(value));
             }}
           >
-            <SelectTrigger id={tableId} className="w-fit whitespace-nowrap">
+            <SelectTrigger
+              id={`${tableId}-page-size`}
+              className="w-fit whitespace-nowrap"
+            >
               <SelectValue placeholder="Select number of results" />
             </SelectTrigger>
             <SelectContent className="[&_*[role=option]]:pr-8 [&_*[role=option]]:pl-2 [&_*[role=option]>span]:right-2 [&_*[role=option]>span]:left-auto">

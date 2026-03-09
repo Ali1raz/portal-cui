@@ -403,7 +403,7 @@ model Complaint {
 
   // ── BA Review ──────────────────────────────────────────
   baRemarks    String? // BA's remarks on accept or reject
-  baReviewedAt DateTime? // timestamp of BA action
+  baReviewedAt DateTime? @default(now()) // timestamp of BA action
 
   // ── HOD Review ─────────────────────────────────────────
   hodReviewedAt    DateTime? // timestamp of HOD action

@@ -1,4 +1,3 @@
-import "server-only";
 import { requireSession } from "../session/require-session";
 import { auth } from "@/lib/auth";
 import { PermissionMap } from "@/lib/permissions";

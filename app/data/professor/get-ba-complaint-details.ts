@@ -3,35 +3,28 @@ import "server-only";
 import prisma from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import { requireSession } from "../session/require-session";
-import { requirePermission } from "../permission/require-permission";
 
-/// Fetch complaint details for HOD from their department.
-export async function hodGetComplaintDetails({ id }: { id: string }) {
+/// Fetch complaint details for Batch Advisor from their department.
+export async function baGetComplaintDetails({ id }: { id: string }) {
   const session = await requireSession();
-  const can = await requirePermission({
-    complaints: ["get"],
-  });
 
-  if (!can) {
-    return redirect("/unauthorized");
-  }
-
-  const hod = await prisma.hod.findUnique({
+  const ba = await prisma.professor.findUnique({
     where: { userId: session.user.id },
-    select: { id: true, department: true },
+    select: {
+      id: true,
+      department: true,
+      batchAdvisor: { select: { id: true } },
+    },
   });
 
-  if (!hod) {
+  if (!ba?.batchAdvisor || !ba.department) {
     return redirect("/unauthorized");
   }
 
   const details = await prisma.complaint.findFirst({
     where: {
       id,
-      targetDepartment: hod.department, // Only allow HOD to access complaints from their department
-      status: {
-        notIn: ["BA_PENDING", "BA_REJECTED"], // HOD only sees BA-accepted complaints
-      },
+      targetDepartment: ba.department,
     },
     select: {
       id: true,
@@ -43,10 +36,6 @@ export async function hodGetComplaintDetails({ id }: { id: string }) {
       createdAt: true,
       imageKey: true,
       hodRemarks: true,
-      hodReviewedAt: true,
-      baRemarks: true,
-      baReviewedAt: true,
-      _count: { select: { reviews: true } },
       student: {
         select: {
           registrationNo: true,
@@ -60,19 +49,7 @@ export async function hodGetComplaintDetails({ id }: { id: string }) {
           },
         },
       },
-      batchAdvisor: {
-        select: {
-          id: true,
-          department: true,
-          user: {
-            select: {
-              name: true,
-              email: true,
-              image: true,
-            },
-          },
-        },
-      },
+      _count: { select: { reviews: true } },
       reviews: {
         orderBy: { createdAt: "desc" },
         select: {
@@ -123,6 +100,6 @@ export async function hodGetComplaintDetails({ id }: { id: string }) {
   return details;
 }
 
-export type HodComplaintDetails = Awaited<
-  ReturnType<typeof hodGetComplaintDetails>
+export type BaComplaintDetails = Awaited<
+  ReturnType<typeof baGetComplaintDetails>
 >;

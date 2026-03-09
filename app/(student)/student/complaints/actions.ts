@@ -84,13 +84,13 @@ export async function UpdateComplaint(
 
     const student = await prisma.student.findFirst({
       where: { userId: session.user.id },
-      select: { id: true },
+      select: { id: true, department: true },
     });
 
-    if (!student) {
+    if (!student || !student.department) {
       return {
         status: "error",
-        message: "Not student",
+        message: "Student profile  missing",
       };
     }
 
@@ -109,10 +109,13 @@ export async function UpdateComplaint(
       };
     }
 
-    if (complaint.status !== "PENDING") {
+    if (
+      complaint.status !== "BA_PENDING" &&
+      complaint.status !== "BA_REJECTED"
+    ) {
       return {
         status: "error",
-        message: "Only pending complaints can be updated",
+        message: "Only pending or rejected complaints can be updated",
       };
     }
 
@@ -124,16 +127,32 @@ export async function UpdateComplaint(
       };
     }
 
-    await prisma.complaint.update({
-      where: {
-        id: complaint.id,
-      },
-      data: {
-        title: validated.data.title,
-        details: validated.data.details,
-        category: validated.data.category,
-        imageKey: validated.data.imageKey?.trim() ?? null,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.complaint.update({
+        where: { id: complaint.id },
+        data: {
+          title: validated.data.title,
+          details: validated.data.details,
+          category: validated.data.category,
+          imageKey: validated.data.imageKey?.trim() ?? null,
+          status: "BA_PENDING", // Reset to pending if it was rejected
+        },
+      });
+
+      if (complaint.status === "BA_REJECTED") {
+        await tx.complaintReview.create({
+          data: {
+            complaintId: complaint.id,
+            actorRole: "STUDENT",
+            actorId: session.user.id,
+            action: "SUBMITTED",
+            remarks: "Complaint updated after revision",
+            fromStatus: "BA_REJECTED",
+            toStatus: "BA_PENDING",
+            department: student.department!,
+          },
+        });
+      }
     });
 
     return {
@@ -190,10 +209,13 @@ export async function DeleteComplaint(id: string): Promise<ApiResponseType> {
       };
     }
 
-    if (complaint.status !== "PENDING") {
+    if (
+      complaint.status !== "BA_PENDING" &&
+      complaint.status !== "BA_REJECTED"
+    ) {
       return {
         status: "error",
-        message: "Only pending complaints can be deleted",
+        message: "Only pending or returned complaints can be deleted",
       };
     }
 
@@ -257,6 +279,7 @@ export async function BulkDeleteComplaints(
       where: {
         id: { in: ids },
         studentId: student.id,
+        status: { in: ["BA_PENDING", "BA_REJECTED"] },
       },
     });
 

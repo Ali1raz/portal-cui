@@ -1,38 +1,17 @@
 import "server-only";
-
 import { requireSession } from "../session/require-session";
 import prisma from "@/lib/prisma";
-import { requirePermission } from "../permission/require-permission";
 import { redirect } from "next/navigation";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import {
   ComplaintCategory,
   ComplaintStatus,
 } from "@/lib/generated/prisma/enums";
-import type { HodComplaintsSearchParams } from "@/app/(HOD)/hod/complaints/complaints-search-params";
+import type { BaComplaintsSearchParams } from "@/app/(professor)/batch-advisor/complaints/ba-complaints-search-params";
+import { requirePermission } from "../permission/require-permission";
 
-type HodComplaintsParams = Pick<
-  HodComplaintsSearchParams,
-  | "page"
-  | "pageSize"
-  | "sortBy"
-  | "sortDir"
-  | "status"
-  | "category"
-  | "dateFrom"
-  | "dateTo"
-  | "hasAttachment"
-  | "query"
->;
-
-function parseDateValue(value: string) {
-  if (!value) return undefined;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
-}
-
-/// Fetch paginated HOD complaints with filters from their department.
-export async function hodGetComplaints({
+/// Fetch paginated BA complaints with filters from their department.
+export async function baGetComplaints({
   page,
   pageSize,
   sortBy,
@@ -43,15 +22,16 @@ export async function hodGetComplaints({
   dateTo,
   hasAttachment,
   query,
-}: HodComplaintsParams) {
+}: BaComplaintsSearchParams) {
   const session = await requireSession();
-  const hod = await prisma.hod.findUnique({
+  const ba = await prisma.professor.findUnique({
     where: {
       userId: session.user.id,
     },
     select: {
       id: true,
       department: true,
+      batchAdvisor: { select: { id: true } },
     },
   });
 
@@ -59,11 +39,7 @@ export async function hodGetComplaints({
     complaints: ["list"],
   });
 
-  if (!can) {
-    return redirect("/unauthorized");
-  }
-
-  if (!hod) {
+  if (!can || !ba || !ba.department) {
     return redirect("/unauthorized");
   }
 
@@ -83,28 +59,20 @@ export async function hodGetComplaints({
     .map((value) => value.trim())
     .filter((value) => categoryValues.has(value as ComplaintCategory));
 
+  function parseDateValue(value: string) {
+    if (!value) return undefined;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+  }
+
   const from = parseDateValue(dateFrom);
   const to = parseDateValue(dateTo);
 
-  // HOD only sees complaints that the BA has accepted (forwarded)
-  const HOD_VISIBLE_STATUSES: ComplaintStatus[] = [
-    ComplaintStatus.HOD_PENDING,
-    ComplaintStatus.HOD_ACCEPTED,
-    ComplaintStatus.HOD_REJECTED,
-    ComplaintStatus.REASSIGNED,
-  ];
-
   const where: Prisma.ComplaintWhereInput = {
-    targetDepartment: hod.department,
-    // Base constraint: only show BA-accepted complaints
-    status:
-      statusFilters.length > 0
-        ? {
-            in: statusFilters.filter((s) =>
-              HOD_VISIBLE_STATUSES.includes(s as ComplaintStatus)
-            ) as ComplaintStatus[],
-          }
-        : { in: HOD_VISIBLE_STATUSES },
+    targetDepartment: ba.department,
+    ...(statusFilters.length > 0 && {
+      status: { in: statusFilters as ComplaintStatus[] },
+    }),
     ...(categoryFilters.length > 0 && {
       category: { in: categoryFilters as ComplaintCategory[] },
     }),
@@ -160,7 +128,6 @@ export async function hodGetComplaints({
         category: true,
         status: true,
         createdAt: true,
-        imageKey: true,
         student: {
           select: {
             registrationNo: true,
@@ -183,7 +150,7 @@ export async function hodGetComplaints({
   };
 }
 
-/// Return type for HOD complaints query result.
-export type HodComplaintRow = Awaited<
-  ReturnType<typeof hodGetComplaints>
+/// Return type for BA complaints query result.
+export type BaComplaintRow = Awaited<
+  ReturnType<typeof baGetComplaints>
 >["complaints"][number];

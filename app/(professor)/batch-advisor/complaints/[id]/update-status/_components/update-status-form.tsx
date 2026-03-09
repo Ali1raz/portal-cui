@@ -20,21 +20,23 @@ import {
 } from "@/components/ui/field";
 import { ComplaintStatus } from "@/lib/generated/prisma/enums";
 import { tryCatch } from "@/hooks/tryCatch";
-import { updateComplaintStatus } from "../../actions";
+import { baUpdateComplaintStatus } from "../../../actions";
 import { useTransition } from "react";
 
 type UpdateStatusFormData = {
-  status: "HOD_ACCEPTED" | "HOD_REJECTED";
-  hodRemarks: string;
+  status: "HOD_PENDING" | "BA_REJECTED"; // FIX 1: only valid BA actions, no BA_PENDING
+  remarks: string;
 };
 
 const ALREADY_REVIEWED: ComplaintStatus[] = [
+  ComplaintStatus.BA_REJECTED,
+  ComplaintStatus.HOD_PENDING,
   ComplaintStatus.HOD_ACCEPTED,
   ComplaintStatus.HOD_REJECTED,
+  ComplaintStatus.REASSIGNED,
 ];
 
-/// Form for updating complaint status by HOD.
-export function UpdateComplaintStatusForm({
+export function BaUpdateComplaintStatusForm({
   complaintId,
   currentStatus,
   currentRemarks,
@@ -46,27 +48,28 @@ export function UpdateComplaintStatusForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
+  // FIX 3: if already reviewed, render read-only summary instead of the form
   const alreadyReviewed = ALREADY_REVIEWED.includes(currentStatus);
 
   const { control, handleSubmit, watch } = useForm<UpdateStatusFormData>({
     defaultValues: {
-      status: "HOD_ACCEPTED",
-      hodRemarks: currentRemarks ?? "",
+      status: "HOD_PENDING", // default to Accept — more common action
+      remarks: currentRemarks ?? "",
     },
   });
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const selectedStatus = watch("status");
-  const isRejecting = selectedStatus === "HOD_REJECTED";
+  const isRejecting = selectedStatus === "BA_REJECTED";
 
   async function onSubmit(data: UpdateStatusFormData) {
     startTransition(async () => {
       const { data: response, error } = await tryCatch(
-        updateComplaintStatus(
+        baUpdateComplaintStatus({
           complaintId,
-          data.status as ComplaintStatus,
-          data.hodRemarks
-        )
+          status: data.status,
+          remarks: data.remarks,
+        })
       );
 
       if (error || response?.status === "error") {
@@ -75,11 +78,12 @@ export function UpdateComplaintStatusForm({
       }
 
       toast.success(response.message);
-      router.push(`/hod/complaints/${complaintId}`);
+      router.push(`/batch-advisor/complaints/${complaintId}`);
       router.refresh();
     });
   }
 
+  // FIX 3: already reviewed — show read-only state, no form
   if (alreadyReviewed) {
     return (
       <div className="rounded-md border border-muted bg-muted/30 p-4 text-sm text-muted-foreground">
@@ -89,7 +93,7 @@ export function UpdateComplaintStatusForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form id="update-status-form" onSubmit={handleSubmit(onSubmit)}>
       <FieldGroup>
         <Controller
           name="status"
@@ -106,12 +110,13 @@ export function UpdateComplaintStatusForm({
                 <SelectTrigger id="status">
                   <SelectValue placeholder="Select decision" />
                 </SelectTrigger>
+                {/* FIX 1: only Accept or Reject — BA_PENDING removed */}
                 <SelectContent>
-                  <SelectItem value={ComplaintStatus.HOD_ACCEPTED}>
-                    Accept — Resolve Complaint
+                  <SelectItem value={ComplaintStatus.HOD_PENDING}>
+                    Accept — Forward to HOD
                   </SelectItem>
-                  <SelectItem value={ComplaintStatus.HOD_REJECTED}>
-                    Reject — Dismiss Complaint
+                  <SelectItem value={ComplaintStatus.BA_REJECTED}>
+                    Ask for Revision
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -121,8 +126,9 @@ export function UpdateComplaintStatusForm({
         />
 
         <Controller
-          name="hodRemarks"
+          name="remarks"
           control={control}
+          // FIX 2: required when rejecting, optional when accepting
           rules={{
             validate: (value) => {
               if (isRejecting && !value?.trim()) {
@@ -133,7 +139,7 @@ export function UpdateComplaintStatusForm({
           }}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="hodRemarks">
+              <FieldLabel htmlFor="remarks">
                 Remarks
                 {isRejecting ? (
                   <span className="text-destructive ml-1">*</span>
@@ -145,11 +151,11 @@ export function UpdateComplaintStatusForm({
               </FieldLabel>
               <Textarea
                 {...field}
-                id="hodRemarks"
+                id="remarks"
                 placeholder={
                   isRejecting
-                    ? "Explain why this complaint is being rejected..."
-                    : "Add any remarks for the student (optional)..."
+                    ? "Explain why this complaint needs revision..."
+                    : "Add any remarks for the HOD (optional)..."
                 }
                 rows={6}
                 disabled={isPending}
@@ -168,7 +174,9 @@ export function UpdateComplaintStatusForm({
           type="button"
           variant="outline"
           disabled={isPending}
-          onClick={() => router.push(`/hod/complaints/${complaintId}`)}
+          onClick={() =>
+            router.push(`/batch-advisor/complaints/${complaintId}`)
+          }
         >
           Cancel
         </Button>
@@ -180,8 +188,8 @@ export function UpdateComplaintStatusForm({
           {isPending
             ? "Submitting..."
             : isRejecting
-              ? "Reject Complaint"
-              : "Accept & Resolve"}
+              ? "Ask for Revision"
+              : "Accept & Forward to HOD"}
         </Button>
       </Field>
     </form>
