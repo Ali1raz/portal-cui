@@ -235,6 +235,33 @@ erDiagram
         datetime updatedAt
     }
 
+    %% ── FEE INSTALLMENTS ──────────────────────────────────────────────────────────
+
+    FEE_INSTALLMENT {
+        string id PK
+        string studentId FK
+        string accountantId FK
+        decimal amount
+        datetime dueDate
+        string description
+        boolean isBase
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    INSTALLMENT_REQUEST {
+        string id PK
+        string installmentId FK
+        decimal requestedAmount
+        string status
+        string hodRemarks
+        datetime hodReviewedAt
+        string accRemarks
+        datetime accReviewedAt
+        datetime createdAt
+        datetime updatedAt
+    }
+
     %% ── TRANSACTION & LOG ────────────────────────────────────────────────────────
 
     COMPLAINT_REVIEW {
@@ -295,6 +322,10 @@ erDiagram
 
     COMPLAINT ||--o{ COMPLAINT_REVIEW : "1:N"
     COMPLAINT ||--o{ COMPLAINT_ASSIGNMENT : "1:N"
+
+    STUDENT ||--o{ FEE_INSTALLMENT : "1:N"
+    ACCOUNTANT ||--o{ FEE_INSTALLMENT : "1:N"
+    FEE_INSTALLMENT ||--o| INSTALLMENT_REQUEST : "1:1"
 ```
 
 ---
@@ -349,11 +380,14 @@ erDiagram
 | -------------- | ---- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `announcement` | `id` | `authorId → user` | All four targeting columns (`targetDepartment`, `targetProgram`, `targetBatch`, `targetYear`) are nullable — null means match all. |
 
-**Complaints**
-
-| Table       | PK   | Key FKs                                                            | Notes                                                             |
-| ----------- | ---- | ------------------------------------------------------------------ | ----------------------------------------------------------------- |
 | `complaint` | `id` | `studentId → student`, `batchAdvisorId → batch_advisor` (nullable) | `targetDepartment` is mutable — changes on each HOD reassignment. |
+
+**Fee installments**
+
+| Table                 | PK   | Key FKs                                            | Notes                                                              |
+| --------------------- | ---- | -------------------------------------------------- | ------------------------------------------------------------------ |
+| `fee_installment`     | `id` | `studentId → student`, `accountantId → accountant` | `isBase` flags if it's a structural installment or a split result. |
+| `installment_request` | `id` | `installmentId → fee_installment`                  | Follows HOD → Accountant approval chain.                           |
 
 ---
 

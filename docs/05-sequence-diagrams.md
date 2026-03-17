@@ -33,7 +33,14 @@ sequenceDiagram
     DB-->>Portal: Pending requests list
     Portal-->>BA: Render queue
 
-    alt BA rejects
+    alt BA requests more info
+        BA->>Portal: POST request-info { requestId, remarks }
+        Portal->>DB: UPDATE LeaveRequest SET status = REVIEW_REQUESTED
+        Portal-->>Student: Notify – more info requested with remarks
+        Student->>Portal: PATCH resubmit { requestId, updatedFields }
+        Portal->>DB: UPDATE LeaveRequest SET status = PENDING, updated fields
+        Portal-->>Student: Resubmitted – back in BA queue
+    else BA rejects
         BA->>Portal: POST reject { requestId }
         Portal->>DB: UPDATE LeaveRequest SET status = REJECTED
         Portal-->>Student: Notify – request rejected
@@ -68,6 +75,7 @@ sequenceDiagram
 
 - Student submits → Portal validates and duplicate-checks against DB before inserting
 - Inngest fires at submission and sleeps until the request date — auto-rejects if no human has acted
+- BA can request more info before making a decision — sets status to `REVIEW_REQUESTED`; student resubmits and request resets to `PENDING`
 - BA and HOD each query their own department slice; status gates which queue the request appears in
 - Admin attendance override only becomes available after HOD approval — it writes directly to `StudentAttendance`
 
@@ -233,7 +241,16 @@ sequenceDiagram
     DB-->>Portal: Complaint list
     Portal-->>HOD: Render queue
 
-    alt HOD rejects
+    alt HOD requests more info
+        HOD->>Portal: POST request-info { complaintId, remarks }
+        Portal->>DB: UPDATE Complaint SET status = HOD_REVIEW_REQUESTED, hodRemarks, hodReviewedAt
+        Portal->>DB: INSERT ComplaintReview (actorRole = HOD, action = HOD_REVIEW_REQUESTED, fromStatus = HOD_PENDING, toStatus = HOD_REVIEW_REQUESTED)
+        Portal-->>Student: Notify – more info requested with remarks
+        Student->>Portal: PATCH edit complaint { complaintId, updatedFields }
+        Portal->>DB: UPDATE Complaint SET status = HOD_PENDING, updated fields
+        Portal->>DB: INSERT ComplaintReview (actorRole = STUDENT, action = SUBMITTED, fromStatus = HOD_REVIEW_REQUESTED, toStatus = HOD_PENDING)
+        Portal-->>Student: Resubmitted – back in HOD queue
+    else HOD rejects
         HOD->>Portal: POST reject { complaintId, remarks }
         Portal->>DB: UPDATE Complaint SET status = HOD_REJECTED, hodRemarks, hodReviewedAt
         Portal->>DB: INSERT ComplaintReview (actorRole = HOD, action = HOD_REJECTED, fromStatus = HOD_PENDING, toStatus = HOD_REJECTED)
@@ -260,6 +277,8 @@ sequenceDiagram
 
 - Student's department is read from DB at submission — `targetDepartment` is never sent by the client
 - Every state transition writes two DB rows in a transaction: the `Complaint` update and a `ComplaintReview` audit entry
+- BA can request more info before deciding — sets status to `BA_REVIEW_REQUESTED`; student resubmits and status resets to `BA_PENDING`
+- HOD can also request more info before deciding — sets status to `HOD_REVIEW_REQUESTED`; student resubmits and status resets to `HOD_PENDING`
 - Reassignment writes three rows: `Complaint` update, `ComplaintAssignment` log, `ComplaintReview` entry — then immediately flips status back to `HOD_PENDING` for the receiving department
 - The `BA_REJECTED → BA_PENDING` resubmit loop also creates a review entry so the full edit history is preserved
 

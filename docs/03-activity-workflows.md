@@ -9,19 +9,18 @@ Activity diagrams describe the step-by-step process within each system function,
 1. Student opens the leave request form and picks a subject and a date
 2. System checks for a duplicate — same student, same subject offering, same date
    - Duplicate found → reject with validation error, stop
-3. System stores the request with status `PENDING` and fires a scheduled job (inngest) keyed to the request date
-4. Inngest job sleeps until the request date arrives
-   - Request date reached and status is still `PENDING` → system auto-sets status to `REJECTED`
-5. Teacher opens the attendance table for their subject — leave request status is visible inline, no action required
-6. Batch advisor opens the leave requests queue for their department, sees all `PENDING` requests
-7. Batch advisor reviews each request (individually or in bulk):
+3. System stores the request with status `PENDING`; request remains `PENDING` until a reviewer acts on it
+4. Teacher opens the attendance table for their subject — leave request status is visible inline, no action required
+5. Batch advisor opens the leave requests queue for their department, sees all `PENDING` and `REVIEW_REQUESTED` requests
+6. Batch advisor reviews each request (individually or in bulk):
+   - Requests more info → status set to `REVIEW_REQUESTED`, student notified with remarks; student updates details and resubmits → status resets to `PENDING`
    - Rejects → status set to `REJECTED`, student notified, workflow ends
    - Accepts → status set to `HOD_PENDING`, student notified, request moves to HOD queue
-8. HOD opens the leave requests queue, sees all `HOD_PENDING` requests for their department
-9. HOD reviews each request:
+7. HOD opens the leave requests queue, sees all `HOD_PENDING` requests for their department
+8. HOD reviews each request:
    - Rejects → status set to `REJECTED`, student notified, workflow ends
    - Accepts → status set to `APPROVED`, student notified
-10. Admin sees the approved leave request flagged in the attendance record and can override the attendance status even if already marked by the teacher
+9. Admin sees the approved leave request flagged in the attendance record and can override the attendance status even if already marked by the teacher
 
 ---
 
@@ -61,15 +60,17 @@ Activity diagrams describe the step-by-step process within each system function,
 
 1. Student opens the complaint form and fills in category, title, details, and an optional attachment
 2. System stores the complaint with status `BA_PENDING` and `targetDepartment` set to the student's own department
-3. Student can edit or delete the complaint while it is in `BA_PENDING` or `BA_REJECTED`
-4. Batch advisor opens the complaints queue for their department, sees all `BA_PENDING` complaints
+3. Student can edit or delete the complaint while it is in `BA_PENDING`, `BA_REVIEW_REQUESTED`, or `BA_REJECTED`
+4. Batch advisor opens the complaints queue for their department, sees all `BA_PENDING` and `BA_REVIEW_REQUESTED` complaints
 5. Batch advisor reviews each complaint:
+   - Requests more info → status set to `BA_REVIEW_REQUESTED`, remarks added, student notified; student updates details and resubmits → status resets to `BA_PENDING`
    - Rejects → status set to `BA_REJECTED`, review log entry created, student notified
      - Student can revise and resubmit → status resets to `BA_PENDING`, new review log entry created
      - Student can delete instead → complaint removed permanently
    - Accepts → status set to `HOD_PENDING`, review log entry created, student notified
-6. HOD opens the complaints queue, sees all `HOD_PENDING` complaints targeting their department
+6. HOD opens the complaints queue, sees all `HOD_PENDING` and `HOD_REVIEW_REQUESTED` complaints targeting their department
 7. HOD reviews each complaint:
+   - Requests more info → status set to `HOD_REVIEW_REQUESTED`, remarks added, student notified; student updates details and resubmits → status resets to `HOD_PENDING`
    - Rejects → status set to `HOD_REJECTED`, review log entry created, student notified, workflow ends
    - Accepts → status set to `HOD_ACCEPTED`, review log entry created, student notified, workflow ends
    - Reassigns → HOD picks a different target department and provides a reason; `targetDepartment` updated, assignment log entry created, status set to `REASSIGNED` then immediately to `HOD_PENDING` in the receiving department

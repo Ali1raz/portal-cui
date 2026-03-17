@@ -31,7 +31,7 @@ The portal is a single system. Everything flows through it.
 
 ### P1 — Manage leave requests
 
-- **Inputs:** Leave request form (student) · subject and date (student) · review decision + remarks (BA, HOD)
+- **Inputs:** Leave request form (student) · subject and date (student) · review decision, more-info requests + remarks (BA, HOD)
 - **Outputs:** Leave status updates → student · leave visibility → teacher attendance table · attendance correction permission → admin
 - **Stores read:** Students, Subject offerings, Enrollments
 - **Stores written:** Leave requests, Student attendance
@@ -52,7 +52,7 @@ The portal is a single system. Everything flows through it.
 
 ### P4 — Manage complaints
 
-- **Inputs:** Complaint form with category, details, attachment (Student) · review decision + remarks (BA, HOD) · department assignment (HOD)
+- **Inputs:** Complaint form with category, details, attachment (Student) · review decision, more-info requests + remarks (BA, HOD) · department assignment (HOD)
 - **Outputs:** Complaint status updates → student · full audit trail (review log) → HOD, BA · reassignment routing → receiving HOD
 - **Stores read:** Students, Batch advisors, HODs
 - **Stores written:** Complaints, Complaint reviews, Complaint assignments

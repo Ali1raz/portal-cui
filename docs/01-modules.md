@@ -7,11 +7,12 @@ Students submit leave requests tied to a specific subject and date. The system r
 - **Student** submits form → status: `PENDING`
 - **Teacher** sees the leave status inline in the attendance table (read-only)
 - **Batch advisor** reviews all requests from their department:
-  - Accepts → forwarded to HOD, student notified
-  - Rejects → deleted, student notified
+  - Requests more info → `REVIEW_REQUESTED`, student notified with remarks; student updates and resubmits → back to `PENDING`
+  - Accepts → forwarded to HOD (`HOD_PENDING`), student notified
+  - Rejects → `REJECTED`, student notified
 - **HOD** makes the final call:
-  - Accepts → admin can update attendance retroactively, even if already marked
-  - Rejects → deleted, student notified
+  - Accepts → `APPROVED`; admin can update attendance retroactively, even if already marked
+  - Rejects → `REJECTED`, student notified
 
 **State transition:**
 
@@ -22,13 +23,17 @@ stateDiagram-v2
     [*] --> PENDING : Student submits
 
     PENDING --> PENDING : Teacher views (read-only)
+    PENDING --> REVIEW_REQUESTED : BA requests more info · student notified
     PENDING --> HOD_PENDING : BA accepts · student notified
-    PENDING --> [*] : BA rejects · deleted · student notified
+    PENDING --> REJECTED : BA rejects · student notified
+
+    REVIEW_REQUESTED --> PENDING : Student resubmits
 
     HOD_PENDING --> APPROVED : HOD accepts · admin can edit attendance
-    HOD_PENDING --> [*] : HOD rejects · deleted · student notified
+    HOD_PENDING --> REJECTED : HOD rejects · student notified
 
     APPROVED --> [*]
+    REJECTED --> [*]
 ```
 
 ---
@@ -67,9 +72,34 @@ stateDiagram-v2
 
 ## 3. Fee installments module
 
-Accountants define up to three installments per semester. Students can view theirs, download a PDF voucher on the spot, or submit a request to split payments differently. HODs and accountants review and handle those requests.
+Accountants define a base installment structure (e.g., 70+30). Students can request to further split any due installment, provided the total count doesn't exceed 3. These requests follow a two-step approval chain.
 
-> Module not yet implemented — state transitions TBD.
+- **Accountant** pre-defines base installments (70+30, etc.)
+- **Student** can request a split (e.g., pay 50 of 70) → status: `PENDING`
+- **HOD** reviews the split request:
+  - Accepts → forwarded to Accountant (`HOD_APPROVED`)
+  - Rejects → status: `REJECTED`, student notified
+- **Accountant** makes the final call on HOD-approved requests:
+  - Accepts → status: `APPROVED`, new vouchers generated
+  - Rejects → status: `REJECTED`, student notified
+
+**State transition:**
+
+```mermaid
+stateDiagram-v2
+    direction LR
+
+    [*] --> PENDING : Student requests split
+
+    PENDING --> HOD_APPROVED : HOD accepts
+    PENDING --> REJECTED : HOD rejects
+
+    HOD_APPROVED --> APPROVED : Accountant accepts
+    HOD_APPROVED --> REJECTED : Accountant rejects
+
+    APPROVED --> [*] : Balance zero
+    REJECTED --> [*] : Student deletes/ends
+```
 
 ---
 
@@ -77,13 +107,15 @@ Accountants define up to three installments per semester. Students can view thei
 
 Students file complaints with a category, description, and an optional attachment. There are two stages of review before anything gets acted on:
 
-- **Student** submits → status: `BA_PENDING`
+- **Student** submits → status: `BA_PENDING`; can edit or delete while in `BA_PENDING`, `BA_REVIEW_REQUESTED`, or `BA_REJECTED`
 - **Batch advisor** reviews complaints from their department:
+  - Requests more info → `BA_REVIEW_REQUESTED`, remarks added, student notified; student updates and resubmits → back to `BA_PENDING`
   - Accepts → forwarded to HOD (`HOD_PENDING`), student notified
-  - Rejects → deleted (`BA_REJECTED`), student notified
+  - Rejects → `BA_REJECTED`, student notified; student can revise & resubmit → back to `BA_PENDING`, or delete permanently
 - **HOD** reviews batch-advisor-approved complaints:
+  - Requests more info → `HOD_REVIEW_REQUESTED`, remarks added, student notified; student updates and resubmits → back to `HOD_PENDING`
   - Accepts → resolved (`HOD_ACCEPTED`), student notified
-  - Rejects → deleted (`HOD_REJECTED`), student notified
+  - Rejects → `HOD_REJECTED`, student notified
   - Reassigns → routed to another department (`REASSIGNED`)
 
 **State transition:**
@@ -95,15 +127,21 @@ stateDiagram-v2
     [*] --> BA_PENDING : Student submits
 
     BA_PENDING --> BA_PENDING : Student edits (still pending)
+    BA_PENDING --> BA_REVIEW_REQUESTED : BA requests more info · student notified
     BA_PENDING --> HOD_PENDING : BA accepts · student notified
     BA_PENDING --> BA_REJECTED : BA rejects · student notified
+
+    BA_REVIEW_REQUESTED --> BA_PENDING : Student resubmits
 
     BA_REJECTED --> BA_PENDING : Student revises & resubmits
     BA_REJECTED --> [*] : Student deletes
 
+    HOD_PENDING --> HOD_REVIEW_REQUESTED : HOD requests more info · student notified
     HOD_PENDING --> HOD_ACCEPTED : HOD accepts · resolved · student notified
     HOD_PENDING --> HOD_REJECTED : HOD rejects · student notified
     HOD_PENDING --> REASSIGNED : HOD reassigns to another dept
+
+    HOD_REVIEW_REQUESTED --> HOD_PENDING : Student resubmits
 
     REASSIGNED --> HOD_PENDING : Receiving HOD picks up
 

@@ -191,7 +191,7 @@ classDiagram
 
 - `AttendanceRecord` is the professor's write surface — they create it per lecture and mark each student.
 - `StudentAttendance` is what the percentage calculation and at-risk logic reads from.
-- `LeaveRequest` drives the approval workflow. When approved, admin can go back and flip the corresponding `StudentAttendance` status from `ABSENT` to `LEAVE`.
+- `LeaveRequest` drives the approval workflow. Status flows `PENDING` → (optionally `REVIEW_REQUESTED` if BA needs more info, back to `PENDING` on resubmit) → `HOD_PENDING` → `APPROVED` or `REJECTED`. When approved, admin can go back and flip the corresponding `StudentAttendance` status from `ABSENT` to `LEAVE`.
 
 ---
 
@@ -300,6 +300,61 @@ classDiagram
 
 **Responsibilities**
 
-- `Complaint` owns current state. It is the record that gets updated on each transition.
-- `ComplaintReview` owns history. Nothing in `ComplaintReview` is ever updated — only inserted. The timeline UI reads from this table, not from `Complaint`.
-- `ComplaintAssignment` owns routing history. It answers "which departments has this complaint passed through and why" without needing to parse review remarks.
+- `Complaint` owns current state. It is the record that gets updated on each transition. Status flows `BA_PENDING` → (optionally `BA_REVIEW_REQUESTED` if BA needs more info, back to `BA_PENDING` on resubmit) → `HOD_PENDING` → (optionally `HOD_REVIEW_REQUESTED` if HOD needs more info, back to `HOD_PENDING` on resubmit) → `HOD_ACCEPTED`, `HOD_REJECTED`, or `REASSIGNED`. Students may edit or delete the complaint while it remains in `BA_PENDING`, `BA_REVIEW_REQUESTED`, or `BA_REJECTED`.
+- `ComplaintReview` owns history. Nothing in `ComplaintReview` is ever updated — only inserted. The timeline UI reads from this table, not from `Complaint`. Every state transition — including each `REVIEW_REQUESTED` cycle and each student resubmission — creates one immutable row so the full back-and-forth is reconstructable.
+
+---
+
+## 6. Fee installments
+
+```mermaid
+classDiagram
+    class FeeInstallment {
+        +String id
+        +Decimal amount
+        +DateTime dueDate
+        +String description
+        +Boolean isBase
+    }
+
+    class InstallmentRequest {
+        +String id
+        +Decimal requestedAmount
+        +InstallmentStatus status
+        +String hodRemarks
+        +DateTime hodReviewedAt
+        +String accRemarks
+        +DateTime accReviewedAt
+        +DateTime createdAt
+    }
+
+    class Student {
+        +String id
+        +String registrationNo
+    }
+
+    class Accountant {
+        +String id
+    }
+
+    Student "1" --> "many" FeeInstallment : has
+    Student "1" --> "many" InstallmentRequest : submits
+    Accountant "1" --> "many" FeeInstallment : defines
+    InstallmentRequest "1" --> "1" FeeInstallment : splits
+```
+
+**Key classes**
+
+- `FeeInstallment` represents a single payment block. `isBase` flags whether it was part of the initial plan set by the Accountant or a result of a split request.
+- `InstallmentRequest` tracks the student's request to split an existing `FeeInstallment`. It follows the dual-approval chain (HOD → Accountant).
+
+**Relationships**
+
+- `Student` → `FeeInstallment` is one-to-many. A student typically has 2-3 active installments per semester.
+- `InstallmentRequest` → `FeeInstallment` is one-to-one; it targets a specific due installment to be broken down.
+- `Accountant` → `FeeInstallment` reflects the authorship of the base fee structure.
+
+**Responsibilities**
+
+- `FeeInstallment` is the source of truth for vouchers and balance checks.
+- `InstallmentRequest` manages the lifecycle of a custom split. Once approved, the original `FeeInstallment` records are updated or replaced to reflect the new split amount and remaining balance.
