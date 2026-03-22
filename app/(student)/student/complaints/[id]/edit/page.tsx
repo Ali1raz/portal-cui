@@ -2,14 +2,16 @@ import { studentGetComplaintDetails } from "@/app/data/student/get-complaint-det
 import { UpdateComplaintForm } from "./_components/update-complaint-form";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ALREADY_REVIEWED_COMPLAINT_STATUS } from "@/lib/data/utils";
 
 export default async function EditComplaintPage(
   props: PageProps<"/student/complaints/[id]/edit">
 ) {
   const { id } = await props.params;
   const details = await studentGetComplaintDetails({ id });
-  const isPending =
-    details.status === "BA_PENDING" || details.status === "BA_REJECTED";
+  const alreadyReviewed = ALREADY_REVIEWED_COMPLAINT_STATUS.includes(
+    details.status
+  );
 
   return (
     <div className="px-4 md:px-6 max-w-6xl w-full">
@@ -19,7 +21,7 @@ export default async function EditComplaintPage(
           Update your complaint while it is still pending or needs revision.
         </p>
       </div>
-      {isPending ? (
+      {!alreadyReviewed ? (
         <UpdateComplaintForm
           complaintId={id}
           initialValues={{
@@ -33,7 +35,7 @@ export default async function EditComplaintPage(
         <div className="rounded-md border bg-muted/30 p-4 text-sm">
           <p className="font-medium">Updates are no longer available.</p>
           <p className="text-muted-foreground">
-            Only pending or returned complaints can be edited. Current status:{" "}
+            This complaint cannot be edited anymore. Current status:{" "}
             <span className="font-medium text-foreground">
               {details.status}
             </span>

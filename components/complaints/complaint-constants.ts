@@ -3,6 +3,22 @@ import {
   ActorRole,
   ReviewAction,
 } from "@/lib/generated/prisma/enums";
+import {
+  IconArrowBackUp,
+  IconArrowLeftRight,
+  IconArrowRight,
+  IconCircleCheck,
+  IconFileDescription,
+  IconMessage2Question,
+  IconRefresh,
+  IconX,
+} from "@tabler/icons-react";
+import type { ComponentType } from "react";
+
+export type TimelineActionIcon = ComponentType<{
+  className?: string;
+  size?: string | number;
+}>;
 
 export const STATUS_CONFIG: Record<
   ComplaintStatus,
@@ -21,6 +37,13 @@ export const STATUS_CONFIG: Record<
       "bg-red-50 text-red-700 ring-red-200 dark:bg-red-900/20 dark:text-red-400 dark:ring-red-800",
     dot: "bg-red-500",
     description: "The Batch Advisor has returned this complaint for revision.",
+  },
+  BA_REVIEW_REQUESTED: {
+    label: "Revision Requested",
+    color:
+      "bg-orange-50 text-orange-700 ring-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:ring-orange-800",
+    dot: "bg-orange-500",
+    description: "The Batch Advisor requested more details before proceeding.",
   },
   HOD_PENDING: {
     label: "Escalated to HOD",
@@ -43,7 +66,7 @@ export const STATUS_CONFIG: Record<
     dot: "bg-red-500",
     description: "The HOD has dismissed this complaint.",
   },
-  REASSIGNED: {
+  ASSIGNED: {
     label: "Transferred",
     color:
       "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700",
@@ -54,41 +77,46 @@ export const STATUS_CONFIG: Record<
 
 export const ACTION_CONFIG: Record<
   ReviewAction,
-  { label: string; icon: string; color: string }
+  { label: string; icon: TimelineActionIcon; color: string }
 > = {
   SUBMITTED: {
     label: "Submitted",
-    icon: "📝",
+    icon: IconFileDescription,
     color: "border-slate-200 dark:border-slate-700",
   },
   BA_ACCEPTED: {
     label: "Forwarded to HOD",
-    icon: "✅",
+    icon: IconArrowRight,
     color: "border-blue-200 dark:border-blue-800",
   },
   BA_REJECTED: {
     label: "Returned for Revision",
-    icon: "↩️",
+    icon: IconArrowBackUp,
     color: "border-red-200 dark:border-red-800",
+  },
+  BA_REVIEW_REQUESTED: {
+    label: "Revision Requested",
+    icon: IconMessage2Question,
+    color: "border-orange-200 dark:border-orange-800",
+  },
+  RESUBMITTED: {
+    label: "Resubmitted",
+    icon: IconRefresh,
+    color: "border-green-200 dark:border-green-800",
   },
   HOD_ACCEPTED: {
     label: "Resolved by HOD",
-    icon: "🎉",
+    icon: IconCircleCheck,
     color: "border-emerald-200 dark:border-emerald-800",
   },
   HOD_REJECTED: {
     label: "Dismissed by HOD",
-    icon: "🚫",
+    icon: IconX,
     color: "border-red-200 dark:border-red-800",
-  },
-  HOD_REASSIGNED: {
-    label: "Transferred",
-    icon: "🔀",
-    color: "border-slate-200 dark:border-slate-700",
   },
   HOD_ASSIGNED: {
     label: "Assigned to HOD",
-    icon: "🔀",
+    icon: IconArrowLeftRight,
     color: "border-slate-200 dark:border-slate-700",
   },
 };

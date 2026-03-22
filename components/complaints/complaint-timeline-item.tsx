@@ -1,5 +1,10 @@
 import { formatDate } from "@/lib/utils";
-import { IconUser, IconBuilding } from "@tabler/icons-react";
+import {
+  IconUser,
+  IconBuilding,
+  IconPoint,
+  IconArrowRight,
+} from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { ACTION_CONFIG, ACTOR_LABEL } from "./complaint-constants";
 import {
@@ -36,9 +41,10 @@ export function ComplaintTimelineItem({
 }) {
   const actionCfg = ACTION_CONFIG[review.action] ?? {
     label: review.action,
-    icon: "•",
+    icon: IconPoint,
     color: "border-slate-200",
   };
+  const ActionIcon = actionCfg.icon;
 
   const actorLabel =
     actorLabelOverride?.[review.actorRole] ??
@@ -55,7 +61,7 @@ export function ComplaintTimelineItem({
             actionCfg.color
           )}
         >
-          {actionCfg.icon}
+          <ActionIcon size={16} />
         </div>
         {!isLast && <div className="mt-1 w-px flex-1 bg-border" />}
       </div>
@@ -88,7 +94,7 @@ export function ComplaintTimelineItem({
         {/* Status transition pill */}
         <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground font-mono">
           <span>{review.fromStatus}</span>
-          <span>→</span>
+          <IconArrowRight size={12} />
           <span className="text-foreground font-semibold">
             {review.toStatus}
           </span>

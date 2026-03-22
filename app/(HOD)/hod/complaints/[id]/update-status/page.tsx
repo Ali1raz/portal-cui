@@ -1,8 +1,9 @@
 import { hodGetComplaintDetails } from "@/app/data/hod/get-complaint-details";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { UpdateComplaintStatusForm } from "./_components/update-status-form";
+import { STATUS_CONFIG } from "@/components/complaints/complaint-constants";
 
 /// Page for HOD to update complaint status and remarks.
 export default async function UpdateComplaintStatusPage(
@@ -10,9 +11,10 @@ export default async function UpdateComplaintStatusPage(
 ) {
   const { id } = await props.params;
   const details = await hodGetComplaintDetails({ id });
+  const statusCfg = STATUS_CONFIG[details.status];
 
   return (
-    <div className="flex w-full max-w-3xl flex-col gap-6 px-4 md:px-6 my-6">
+    <div className="flex w-full max-w-5xl flex-col gap-6 px-4 md:px-6 my-6">
       <div>
         <h1 className="text-xl font-semibold">Update Complaint</h1>
         <p className="text-sm text-muted-foreground">
@@ -30,14 +32,21 @@ export default async function UpdateComplaintStatusPage(
                 {formatDate(details.createdAt)}
               </p>
             </div>
-            <Badge>{details.status}</Badge>
+            <Badge
+              className={cn(
+                "items-center gap-1.5 py-1 text-xs font-medium ring-1",
+                statusCfg.color
+              )}
+            >
+              <span className={cn("size-1.5 rounded-full", statusCfg.dot)} />
+              {statusCfg.label}
+            </Badge>
           </div>
         </CardHeader>
         <CardContent className="pt-6">
           <UpdateComplaintStatusForm
             complaintId={id}
             currentStatus={details.status}
-            currentRemarks={details.hodRemarks}
           />
         </CardContent>
       </Card>

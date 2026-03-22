@@ -23,7 +23,6 @@ import { cn } from "@/lib/utils";
 import { STATUS_CONFIG } from "@/components/complaints/complaint-constants";
 import { ComplaintStatusBanner } from "@/components/complaints/complaint-status-banner";
 import { ComplaintTimelineItem } from "@/components/complaints/complaint-timeline-item";
-import { ComplaintMetaRow } from "@/components/complaints/complaint-meta-row";
 
 /// Batch Advisor complaint details page.
 export default async function BaComplaintDetailsPage(
@@ -36,18 +35,18 @@ export default async function BaComplaintDetailsPage(
   const canReview = details.status === "BA_PENDING";
 
   return (
-    <div className="mx-auto max-w-4xl w-full px-4 py-4 space-y-8">
+    <div className="max-w-5xl w-full px-4 md:px-8 py-4 space-y-4 md:space-y-6">
       {/* ── Header ── */}
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Button
             variant="ghost"
             size="sm"
-            className="-ml-2 mb-1 text-muted-foreground"
+            className="text-muted-foreground"
             asChild
           >
             <Link href="/batch-advisor/complaints">
-              <IconArrowLeft size={14} className="mr-1" />
+              <IconArrowLeft className="size-4" />
               All Complaints
             </Link>
           </Button>
@@ -57,14 +56,14 @@ export default async function BaComplaintDetailsPage(
                 {details.title}
               </h1>
               <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                <IconClockHour4 size={13} />
+                <IconClockHour4 className="size-4" />
                 Submitted {formatDate(details.createdAt)}
               </p>
             </div>
             {canReview && (
               <Button size="sm" asChild>
                 <Link href={`/batch-advisor/complaints/${id}/update-status`}>
-                  <IconEdit size={14} className="mr-1.5" />
+                  <IconEdit className="size-4" />
                   Update Status
                 </Link>
               </Button>
@@ -81,11 +80,26 @@ export default async function BaComplaintDetailsPage(
         {/* ── Left: Meta sidebar ── */}
         <section className="lg:col-span-2 space-y-4">
           {/* Complaint content */}
-          <Card>
+          <Card className="pb-2">
             <CardHeader>
-              <CardTitle>Complaint</CardTitle>
+              <CardTitle className="text-2xl font-bold">Complaint</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Badge
+                  className={cn(
+                    "items-center gap-1.5 py-1 text-xs font-medium ring-1",
+                    statusCfg.color
+                  )}
+                >
+                  <span
+                    className={cn("size-1.5 rounded-full", statusCfg.dot)}
+                  />
+                  {statusCfg.label}
+                </Badge>
+                <Badge>{details.category}</Badge>
+                <Badge>{details.targetDepartment}</Badge>
+              </div>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {details.details}
               </p>
@@ -113,7 +127,7 @@ export default async function BaComplaintDetailsPage(
           {/* Timeline */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-bold flex items-center justify-between">
                 Activity Timeline
                 {details._count.reviews > 0 && (
                   <Badge size="md">
@@ -150,51 +164,12 @@ export default async function BaComplaintDetailsPage(
 
         {/* ── Right ── */}
         <section className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <ComplaintMetaRow label="Category" value={details.category} />
-              <ComplaintMetaRow
-                label="Department"
-                value={details.targetDepartment}
-              />
-            </CardContent>
-            <CardFooter className="space-y-2 flex flex-col items-start">
-              <p className="text-xs font-medium uppercase text-muted-foreground">
-                Status
-              </p>
-              <Badge
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1",
-                  statusCfg.color
-                )}
-              >
-                <span className={cn("size-1.5 rounded-full", statusCfg.dot)} />
-                {statusCfg.label}
-              </Badge>
-            </CardFooter>
-          </Card>
-
-          {/* HOD remarks */}
-          {details.hodRemarks && (
-            <Card>
-              <CardHeader>
-                <CardTitle>HOD Remarks</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {`"${details.hodRemarks}"`}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Student info */}
           <Card>
             <CardHeader>
-              <CardTitle>Student Information</CardTitle>
+              <CardTitle className="text-2xl font-bold">
+                Student Information
+              </CardTitle>
             </CardHeader>
             <CardContent className="flex items-center gap-3">
               <UserImage
@@ -228,7 +203,7 @@ export default async function BaComplaintDetailsPage(
           {details.assignments.length > 0 && (
             <Card className="space-y-5">
               <CardHeader>
-                <CardTitle>Transfers</CardTitle>
+                <CardTitle className="text-2xl font-bold">Transfers</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {details.assignments.map((a) => (

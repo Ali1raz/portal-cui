@@ -3,19 +3,17 @@
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireSession } from "@/app/data/session/require-session";
 import { errorMessage } from "@/lib/error-message";
-import { ComplaintStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
+import {
+  BaUpdateComplaintStatusInput,
+  baUpdateComplaintStatusSchema,
+} from "./schemas";
+import { ALREADY_REVIEWED_COMPLAINT_STATUS } from "@/lib/data/utils";
 
-export async function baUpdateComplaintStatus({
-  complaintId,
-  status,
-  remarks,
-}: {
-  complaintId: string;
-  status: ComplaintStatus;
-  remarks: string | undefined;
-}): Promise<ApiResponseType> {
+export async function baUpdateComplaintStatus(
+  data: BaUpdateComplaintStatusInput
+): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
 
@@ -26,6 +24,13 @@ export async function baUpdateComplaintStatus({
 
     if (!can) {
       return { status: "error", message: "Unauthorized action." };
+    }
+
+    const { data: parsed, success } =
+      baUpdateComplaintStatusSchema.safeParse(data);
+
+    if (!success) {
+      return { status: "error", message: "Invalid input." };
     }
 
     const ba = await prisma.batchAdvisor.findUnique({
@@ -39,37 +44,41 @@ export async function baUpdateComplaintStatus({
 
     const complaint = await prisma.complaint.findUnique({
       where: {
-        id: complaintId,
+        id: parsed.complaintId,
         targetDepartment: ba.department,
-        status: "BA_PENDING",
+        status: {
+          notIn: ALREADY_REVIEWED_COMPLAINT_STATUS,
+        },
+      },
+      select: {
+        status: true,
       },
     });
 
     if (!complaint) {
       return {
         status: "error",
-        message: "Complaint not found.",
+        message: "Complaint not found or already reviewed.",
       };
     }
 
     await prisma.$transaction([
       prisma.complaint.update({
-        where: { id: complaintId },
+        where: { id: parsed.complaintId },
         data: {
-          status,
-          baRemarks: remarks,
-          baReviewedAt: new Date(),
+          status: parsed.status,
         },
       }),
       prisma.complaintReview.create({
         data: {
-          complaintId,
+          complaintId: parsed.complaintId,
           actorRole: "BATCH_ADVISOR",
           actorId: session.user.id,
-          action: status === "HOD_PENDING" ? "BA_ACCEPTED" : "BA_REJECTED",
-          remarks: remarks ?? null,
-          fromStatus: "BA_PENDING",
-          toStatus: status,
+          action:
+            parsed.status === "HOD_PENDING" ? "BA_ACCEPTED" : parsed.status,
+          remarks: parsed.remarks ?? null,
+          fromStatus: complaint.status,
+          toStatus: parsed.status,
           department: ba.department,
           batchAdvisorId: ba.id,
         },

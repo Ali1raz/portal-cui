@@ -42,10 +42,7 @@ export async function hodGetComplaintDetails({ id }: { id: string }) {
       targetDepartment: true,
       createdAt: true,
       imageKey: true,
-      hodRemarks: true,
-      hodReviewedAt: true,
-      baRemarks: true,
-      baReviewedAt: true,
+
       _count: { select: { reviews: true } },
       student: {
         select: {
@@ -60,19 +57,7 @@ export async function hodGetComplaintDetails({ id }: { id: string }) {
           },
         },
       },
-      batchAdvisor: {
-        select: {
-          id: true,
-          department: true,
-          user: {
-            select: {
-              name: true,
-              email: true,
-              image: true,
-            },
-          },
-        },
-      },
+
       reviews: {
         orderBy: { createdAt: "desc" },
         select: {

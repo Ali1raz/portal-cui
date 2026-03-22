@@ -78,7 +78,7 @@ import {
   type ComplaintAttachmentFilter,
 } from "../ba-complaints-search-params";
 import type { BaComplaintRow } from "@/app/data/professor/get-ba-complaints";
-import { APP, LeaveRequestStatusVariantMap } from "@/lib/data/utils";
+import { APP } from "@/lib/data/utils";
 import {
   DragAlongCell,
   DraggableTableHeader,
@@ -211,15 +211,7 @@ export function BaComplaintsTable({
         id: "status",
         header: "Status",
         accessorFn: (row) => row.status,
-        cell: ({ row }) => (
-          <Badge
-            variant={LeaveRequestStatusVariantMap[row.original.status]}
-            appearance="light"
-            size="sm"
-          >
-            {row.original.status}
-          </Badge>
-        ),
+        cell: ({ row }) => <Badge size="sm">{row.original.status}</Badge>,
       },
       {
         id: "createdAt",

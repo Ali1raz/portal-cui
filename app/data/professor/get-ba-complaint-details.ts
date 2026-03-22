@@ -35,7 +35,6 @@ export async function baGetComplaintDetails({ id }: { id: string }) {
       targetDepartment: true,
       createdAt: true,
       imageKey: true,
-      hodRemarks: true,
       student: {
         select: {
           registrationNo: true,

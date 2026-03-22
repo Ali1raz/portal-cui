@@ -163,12 +163,10 @@ model BatchAdvisor {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  appointedAt DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   reviewedComplaints ComplaintReview[] // BA's review log
-  complaints         Complaint[]
 
   @@map("batch_advisor")
 }
@@ -401,16 +399,7 @@ model Complaint {
   studentId String
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  // ── BA Review ──────────────────────────────────────────
-  baRemarks    String? // BA's remarks on accept or reject
-  baReviewedAt DateTime? @default(now()) // timestamp of BA action
-
-  // ── HOD Review ─────────────────────────────────────────
-  hodReviewedAt    DateTime? // timestamp of HOD action
-  // Current department HOD this sits with
-  // Starts as student's own department, updated on each assignment
-  targetDepartment Department
-  hodRemarks       String? // HOD's response on accept/reject
+  targetDepartment Department // 
 
   category ComplaintCategory // UC-9 Business Rule: must have valid category
   title    String
@@ -422,10 +411,8 @@ model Complaint {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  assignments    ComplaintAssignment[] // renamed from transfers — matches UC-10 language
-  reviews        ComplaintReview[] // ← NEW: full audit trail
-  batchAdvisor   BatchAdvisor?         @relation(fields: [batchAdvisorId], references: [id])
-  batchAdvisorId String?
+  assignments ComplaintAssignment[] // renamed from transfers — matches UC-10 language
+  reviews     ComplaintReview[] // ← full audit trail
 
   @@index([studentId]) // UC-9: "only student's complaints shown"
   @@index([targetDepartment, status]) // 
@@ -434,11 +421,12 @@ model Complaint {
 
 enum ComplaintStatus {
   BA_PENDING // submitted by student, in BA queue
-  BA_REJECTED // BA rejected — student notified, terminal
+  BA_REVIEW_REQUESTED // BA ASK to UPDATE COMPLAINT DETAILS
+  BA_REJECTED // BA rejected — student can revise & resubmit → BA_PENDING, or delete
   HOD_PENDING // BA accepted, now in HOD queue
   HOD_ACCEPTED // HOD resolved positively, terminal
   HOD_REJECTED // HOD resolved negatively, terminal
-  REASSIGNED // HOD transferred to another dept (transient)
+  ASSIGNED // HOD transferred to another dept (transient)
 }
 
 model ComplaintReview {
@@ -503,10 +491,11 @@ enum ReviewAction {
   SUBMITTED // student submitted
   BA_ACCEPTED // BA forwarded to HOD
   BA_REJECTED // BA rejected
+  BA_REVIEW_REQUESTED // BA asked student to update details
+  RESUBMITTED // student updated and resubmitted after BA review request
   HOD_ASSIGNED // HOD assigned to department
   HOD_ACCEPTED // HOD resolved positively
   HOD_REJECTED // HOD resolved negatively
-  HOD_REASSIGNED // HOD sent to different department
 }
 
 enum AnnouncementStatus {

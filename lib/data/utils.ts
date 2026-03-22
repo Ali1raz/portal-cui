@@ -6,14 +6,10 @@ export const APP = {
   EFFECTIVE_THRESHOLD_PCT: 80,
 };
 
-export const LeaveRequestStatusVariantMap: Record<
-  ComplaintStatus,
-  "warning" | "info" | "success" | "destructive"
-> = {
-  BA_PENDING: "warning",
-  HOD_PENDING: "warning",
-  REASSIGNED: "info",
-  HOD_ACCEPTED: "success",
-  BA_REJECTED: "destructive",
-  HOD_REJECTED: "destructive",
-};
+export const ALREADY_REVIEWED_COMPLAINT_STATUS: ComplaintStatus[] = [
+  ComplaintStatus.BA_REJECTED,
+  ComplaintStatus.HOD_PENDING,
+  ComplaintStatus.HOD_ACCEPTED,
+  ComplaintStatus.HOD_REJECTED,
+  ComplaintStatus.ASSIGNED,
+];

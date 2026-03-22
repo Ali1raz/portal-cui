@@ -49,29 +49,28 @@ export const auth = betterAuth({
   },
 
   emailVerification: {
-    sendOnSignUp: process.env.NODE_ENV === "production",
+    sendOnSignUp: true,
     expiresIn: 60 * 5,
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       const link = new URL(url);
       link.searchParams.set("callbackURL", "/");
 
-      if (process.env.NODE_ENV !== "production") {
-        // Log full email payload for debugging in development
-        console.log("[DEV EMAIL VERIFICATION]", {
+      if (process.env.NODE_ENV === "production") {
+        await SendEmail({
           to: user.email,
-          link: link.toString(),
+          subject: "Verify your email address",
+          meta: {
+            description: "Please verify your email for registration.",
+            link: String(link),
+          },
         });
         return;
       }
-
-      await SendEmail({
+      // Log full email payload for debugging in development
+      console.log("[DEV EMAIL VERIFICATION]", {
         to: user.email,
-        subject: "Verify your email address",
-        meta: {
-          description: "Please verify your email for registration.",
-          link: String(link),
-        },
+        link: link.toString(),
       });
     },
 

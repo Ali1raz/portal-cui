@@ -20,7 +20,6 @@ export async function baGetComplaintForUpdate({ id }: { id: string }) {
       id: true,
       title: true,
       status: true,
-      hodRemarks: true,
       createdAt: true,
       student: {
         select: {

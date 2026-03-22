@@ -10,6 +10,7 @@ import { ApiResponseType } from "@/lib/types";
 const HOD_VALID_ACTIONS: ComplaintStatus[] = [
   ComplaintStatus.HOD_ACCEPTED,
   ComplaintStatus.HOD_REJECTED,
+  "ASSIGNED",
 ];
 
 export async function updateComplaintStatus(
@@ -53,7 +54,6 @@ export async function updateComplaintStatus(
       where: {
         id: complaintId,
         targetDepartment: hod.department,
-        status: ComplaintStatus.HOD_PENDING, // HOD can only act on pending complaints
       },
       select: { id: true, status: true },
     });
@@ -61,7 +61,7 @@ export async function updateComplaintStatus(
     if (!complaint) {
       return {
         status: "error",
-        message: "Complaint not found or already reviewed.",
+        message: "Complaint not found.",
       };
     }
 
@@ -70,8 +70,6 @@ export async function updateComplaintStatus(
         where: { id: complaintId },
         data: {
           status,
-          hodRemarks: hodRemarks ?? null,
-          hodReviewedAt: new Date(),
         },
       }),
       prisma.complaintReview.create({
@@ -84,7 +82,7 @@ export async function updateComplaintStatus(
               ? "HOD_ACCEPTED"
               : "HOD_REJECTED",
           remarks: hodRemarks ?? null,
-          fromStatus: ComplaintStatus.HOD_PENDING,
+          fromStatus: complaint.status,
           toStatus: status,
           department: hod.department,
         },

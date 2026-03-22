@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/incompatible-library */
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -7,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -22,47 +25,29 @@ import { ComplaintStatus } from "@/lib/generated/prisma/enums";
 import { tryCatch } from "@/hooks/tryCatch";
 import { baUpdateComplaintStatus } from "../../../actions";
 import { useTransition } from "react";
-
-type UpdateStatusFormData = {
-  status: "HOD_PENDING" | "BA_REJECTED"; // FIX 1: only valid BA actions, no BA_PENDING
-  remarks: string;
-};
-
-const ALREADY_REVIEWED: ComplaintStatus[] = [
-  ComplaintStatus.BA_REJECTED,
-  ComplaintStatus.HOD_PENDING,
-  ComplaintStatus.HOD_ACCEPTED,
-  ComplaintStatus.HOD_REJECTED,
-  ComplaintStatus.REASSIGNED,
-];
+import { BaUpdateComplaintStatusInput } from "../../../schemas";
 
 export function BaUpdateComplaintStatusForm({
   complaintId,
-  currentStatus,
-  currentRemarks,
+  // currentStatus,
 }: {
   complaintId: string;
   currentStatus: ComplaintStatus;
-  currentRemarks?: string | null;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  // FIX 3: if already reviewed, render read-only summary instead of the form
-  const alreadyReviewed = ALREADY_REVIEWED.includes(currentStatus);
+  const { control, handleSubmit, watch } =
+    useForm<BaUpdateComplaintStatusInput>({
+      defaultValues: {
+        status: "HOD_PENDING",
+      },
+    });
 
-  const { control, handleSubmit, watch } = useForm<UpdateStatusFormData>({
-    defaultValues: {
-      status: "HOD_PENDING", // default to Accept — more common action
-      remarks: currentRemarks ?? "",
-    },
-  });
-
-  // eslint-disable-next-line react-hooks/incompatible-library
   const selectedStatus = watch("status");
-  const isRejecting = selectedStatus === "BA_REJECTED";
+  const remarksRequired = selectedStatus !== "HOD_PENDING";
 
-  async function onSubmit(data: UpdateStatusFormData) {
+  async function onSubmit(data: BaUpdateComplaintStatusInput) {
     startTransition(async () => {
       const { data: response, error } = await tryCatch(
         baUpdateComplaintStatus({
@@ -79,17 +64,7 @@ export function BaUpdateComplaintStatusForm({
 
       toast.success(response.message);
       router.push(`/batch-advisor/complaints/${complaintId}`);
-      router.refresh();
     });
-  }
-
-  // FIX 3: already reviewed — show read-only state, no form
-  if (alreadyReviewed) {
-    return (
-      <div className="rounded-md border border-muted bg-muted/30 p-4 text-sm text-muted-foreground">
-        This complaint has already been reviewed and cannot be updated.
-      </div>
-    );
   }
 
   return (
@@ -110,13 +85,18 @@ export function BaUpdateComplaintStatusForm({
                 <SelectTrigger id="status">
                   <SelectValue placeholder="Select decision" />
                 </SelectTrigger>
-                {/* FIX 1: only Accept or Reject — BA_PENDING removed */}
                 <SelectContent>
-                  <SelectItem value={ComplaintStatus.HOD_PENDING}>
-                    Accept — Forward to HOD
-                  </SelectItem>
+                  <SelectGroup>
+                    <SelectItem value={ComplaintStatus.HOD_PENDING}>
+                      Accept — Forward to HOD
+                    </SelectItem>
+                    <SelectItem value={ComplaintStatus.BA_REVIEW_REQUESTED}>
+                      Request Revision
+                    </SelectItem>
+                  </SelectGroup>
+                  <SelectSeparator />
                   <SelectItem value={ComplaintStatus.BA_REJECTED}>
-                    Ask for Revision
+                    Reject this complaint
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -128,11 +108,10 @@ export function BaUpdateComplaintStatusForm({
         <Controller
           name="remarks"
           control={control}
-          // FIX 2: required when rejecting, optional when accepting
           rules={{
             validate: (value) => {
-              if (isRejecting && !value?.trim()) {
-                return "Remarks are required when rejecting a complaint";
+              if (remarksRequired && !value?.trim()) {
+                return "Remarks are required when rejecting or requesting revision";
               }
               return true;
             },
@@ -141,20 +120,21 @@ export function BaUpdateComplaintStatusForm({
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor="remarks">
                 Remarks
-                {isRejecting ? (
+                {remarksRequired && (
                   <span className="text-destructive ml-1">*</span>
-                ) : (
-                  <span className="text-muted-foreground text-xs ml-2">
-                    (optional)
-                  </span>
                 )}
               </FieldLabel>
+              <p className="text-xs text-muted-foreground mb-2">
+                {remarksRequired
+                  ? "Required for rejection or revision requests"
+                  : "Optional notes for the HOD"}
+              </p>
               <Textarea
                 {...field}
                 id="remarks"
                 placeholder={
-                  isRejecting
-                    ? "Explain why this complaint needs revision..."
+                  remarksRequired
+                    ? "Explain why you're rejecting or requesting revision..."
                     : "Add any remarks for the HOD (optional)..."
                 }
                 rows={6}
@@ -183,13 +163,15 @@ export function BaUpdateComplaintStatusForm({
         <Button
           type="submit"
           disabled={isPending}
-          variant={isRejecting ? "destructive" : "default"}
+          variant={selectedStatus === "BA_REJECTED" ? "destructive" : "default"}
         >
           {isPending
             ? "Submitting..."
-            : isRejecting
-              ? "Ask for Revision"
-              : "Accept & Forward to HOD"}
+            : selectedStatus === "BA_REJECTED"
+              ? "Reject"
+              : selectedStatus === "BA_REVIEW_REQUESTED"
+                ? "Request Revision"
+                : "Forward to HOD"}
         </Button>
       </Field>
     </form>

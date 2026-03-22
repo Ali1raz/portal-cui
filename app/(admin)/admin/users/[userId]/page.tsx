@@ -153,10 +153,6 @@ export default async function AdminUserDetailsPage(
                       label: "Employee No",
                       value: user.batchAdvisor.professor.employeeNo,
                     },
-                    {
-                      label: "Appointed",
-                      value: formatDate(user.batchAdvisor.appointedAt),
-                    },
                   ]}
                 />
               </>

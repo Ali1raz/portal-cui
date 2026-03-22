@@ -13,6 +13,7 @@ import { EyeIcon, MoreHorizontal, SquarePen, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { ComplaintStatus } from "@/lib/generated/prisma/enums";
 import { DeleteComplaintDialog } from "./delete-complaint-dialog";
+import { ALREADY_REVIEWED_COMPLAINT_STATUS } from "@/lib/data/utils";
 
 /// Actions dropdown for complaint table rows including View Details and Edit options.
 export function ComplaintActions({
@@ -22,9 +23,7 @@ export function ComplaintActions({
   complaintId: string;
   status: ComplaintStatus;
 }) {
-  const canEdit =
-    status === ComplaintStatus.BA_PENDING ||
-    status === ComplaintStatus.BA_REJECTED;
+  const alreadyReviewed = ALREADY_REVIEWED_COMPLAINT_STATUS.includes(status);
 
   return (
     <DropdownMenu>
@@ -44,7 +43,7 @@ export function ComplaintActions({
           </Link>
         </DropdownMenuItem>
 
-        {canEdit ? (
+        {!alreadyReviewed ? (
           <DropdownMenuItem asChild>
             <Link href={`/student/complaints/${complaintId}/edit`}>
               <SquarePen className="size-4" />
@@ -58,7 +57,7 @@ export function ComplaintActions({
           </DropdownMenuItem>
         )}
 
-        {canEdit ? (
+        {!alreadyReviewed ? (
           <DeleteComplaintDialog complaintId={complaintId}>
             <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
               <Trash2 className="size-4" />

@@ -6,6 +6,7 @@ import { errorMessage } from "@/lib/error-message";
 import { requirePermission } from "@/app/data/permission/require-permission";
 import prisma from "@/lib/prisma";
 import { requireSession } from "@/app/data/session/require-session";
+import { ALREADY_REVIEWED_COMPLAINT_STATUS } from "@/lib/data/utils";
 
 export async function CreateComplaint(
   values: ComplaintSchemaType
@@ -90,7 +91,7 @@ export async function UpdateComplaint(
     if (!student || !student.department) {
       return {
         status: "error",
-        message: "Student profile  missing",
+        message: "Student profile missing",
       };
     }
 
@@ -109,13 +110,10 @@ export async function UpdateComplaint(
       };
     }
 
-    if (
-      complaint.status !== "BA_PENDING" &&
-      complaint.status !== "BA_REJECTED"
-    ) {
+    if (ALREADY_REVIEWED_COMPLAINT_STATUS.includes(complaint.status)) {
       return {
         status: "error",
-        message: "Only pending or rejected complaints can be updated",
+        message: "This complaint cannot be updated anymore",
       };
     }
 
@@ -138,21 +136,18 @@ export async function UpdateComplaint(
           status: "BA_PENDING", // Reset to pending if it was rejected
         },
       });
-
-      if (complaint.status === "BA_REJECTED") {
-        await tx.complaintReview.create({
-          data: {
-            complaintId: complaint.id,
-            actorRole: "STUDENT",
-            actorId: session.user.id,
-            action: "SUBMITTED",
-            remarks: "Complaint updated after revision",
-            fromStatus: "BA_REJECTED",
-            toStatus: "BA_PENDING",
-            department: student.department!,
-          },
-        });
-      }
+      await tx.complaintReview.create({
+        data: {
+          complaintId: complaint.id,
+          actorRole: "STUDENT",
+          actorId: session.user.id,
+          action: "RESUBMITTED",
+          remarks: "Complaint updated after revision",
+          fromStatus: complaint.status,
+          toStatus: "BA_PENDING",
+          department: student.department,
+        },
+      });
     });
 
     return {

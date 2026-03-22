@@ -39,9 +39,6 @@ export async function studentGetComplaintDetails({ id }: { id: string }) {
       targetDepartment: true,
       createdAt: true,
       imageKey: true,
-      hodRemarks: true,
-      baReviewedAt: true,
-      baRemarks: true,
       _count: { select: { reviews: true } },
       reviews: {
         orderBy: { createdAt: "desc" },
@@ -83,23 +80,6 @@ export async function studentGetComplaintDetails({ id }: { id: string }) {
           toDepartment: true,
           reason: true,
           assignedAt: true,
-        },
-      },
-
-      batchAdvisor: {
-        select: {
-          id: true,
-          department: true,
-          userId: true,
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              image: true,
-              role: true,
-            },
-          },
         },
       },
     },

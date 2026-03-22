@@ -91,7 +91,7 @@ export async function hodGetComplaints({
     ComplaintStatus.HOD_PENDING,
     ComplaintStatus.HOD_ACCEPTED,
     ComplaintStatus.HOD_REJECTED,
-    ComplaintStatus.REASSIGNED,
+    ComplaintStatus.ASSIGNED,
   ];
 
   const where: Prisma.ComplaintWhereInput = {

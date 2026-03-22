@@ -58,7 +58,6 @@ export async function adminGetUserData(userId: string) {
         select: {
           id: true,
           department: true,
-          appointedAt: true,
           createdAt: true,
           professor: {
             select: {

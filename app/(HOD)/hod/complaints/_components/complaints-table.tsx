@@ -93,7 +93,7 @@ const statusOptions: ComplaintStatus[] = [
   ComplaintStatus.HOD_PENDING,
   ComplaintStatus.HOD_ACCEPTED,
   ComplaintStatus.HOD_REJECTED,
-  ComplaintStatus.REASSIGNED,
+  ComplaintStatus.ASSIGNED,
 ];
 const categoryOptions = Object.values(ComplaintCategory);
 
