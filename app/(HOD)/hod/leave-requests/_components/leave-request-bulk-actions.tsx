@@ -13,8 +13,9 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { bulkUpdateLeaveRequestStatus } from "../actions";
-import type { GetLeaveRequestsType } from "@/app/data/hod/get-leave-requests";
+import { type GetLeaveRequestsType } from "@/app/data/hod/get-leave-requests";
 import { LeaveStatus } from "@/lib/generated/prisma/enums";
+import { HOD_ALLOWED_LEAVE_STATUSES } from "../[requestId]/_components/update-status";
 
 /// Bulk actions component for selected leave request rows to update status.
 export function LeaveRequestBulkActions({
@@ -58,14 +59,14 @@ export function LeaveRequestBulkActions({
   }
 
   return (
-    <div className="flex items-center gap-3 flex-wrap">
+    <div className="flex items-center gap-3 flex-wrap my-4">
       <p className="text-sm text-muted-foreground">
         {selectedIds.length} {selectedIds.length === 1 ? "request" : "requests"}{" "}
         selected
       </p>
 
       {hasUniformStatus && currentStatus ? (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           <span className="text-sm text-muted-foreground">Update status:</span>
           <Select
             value={currentStatus}
@@ -76,7 +77,7 @@ export function LeaveRequestBulkActions({
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
-              {Object.values(LeaveStatus).map((status) => (
+              {Object.values(HOD_ALLOWED_LEAVE_STATUSES).map((status) => (
                 <SelectItem key={status} value={status}>
                   {status}
                 </SelectItem>

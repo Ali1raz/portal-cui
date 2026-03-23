@@ -61,7 +61,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <NuqsAdapter>{children}</NuqsAdapter>
+          <NuqsAdapter
+            defaultOptions={{
+              clearOnDefault: true,
+              limitUrlUpdates: { method: "throttle", timeMs: 1000 },
+            }}
+          >
+            {children}
+          </NuqsAdapter>
           <Toaster
             richColors
             position="top-center"

@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/incompatible-library */
 "use client";
 
-import { useId, useState, useTransition } from "react";
+import * as React from "react";
 import type {
   ColumnDef,
   PaginationState,
@@ -25,14 +25,29 @@ import {
   SortableContext,
 } from "@dnd-kit/sortable";
 import {
+  CalendarIcon,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
   ChevronRight,
-  X,
+  XIcon,
 } from "lucide-react";
-import type { GetLeaveRequestsType } from "@/app/data/hod/get-leave-requests";
+import { format } from "date-fns";
+import type { DateRange } from "react-day-picker";
+import { useQueryStates } from "nuqs";
+
+import type { BaLeaveRequestRow } from "@/app/data/professor/get-ba-leave-requests";
+import { APP } from "@/lib/data/utils";
+import { cn, formatDate, formatEnumLabel } from "@/lib/utils";
+import {
+  DragAlongCell,
+  DraggableTableHeader,
+} from "@/components/general/tanstack-table";
+import { UserImage } from "@/components/user/user-image";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -40,6 +55,11 @@ import {
   PaginationContent,
   PaginationItem,
 } from "@/components/ui/pagination";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -54,45 +74,46 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDate } from "@/lib/utils";
 import {
-  DragAlongCell,
-  DraggableTableHeader,
-} from "@/components/general/tanstack-table";
-import { useQueryStates } from "nuqs";
-import {
-  LeaveRequestStatus,
-  leaveRequestSearchParamsParsers,
-  leaveRequestStatusValues,
-} from "../leave-request-search-params";
-import { UserImage } from "@/components/user/user-image";
+  baLeaveRequestStatusValues,
+  baLeaveRequestsSearchParamsParsers,
+  type BaLeaveRequestsSortBy,
+} from "../leave-requests-search-params";
+import { MiddleTruncateText } from "@/components/general/truncated-text";
 import { RequestActions } from "./request-actions";
-import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { APP } from "@/lib/data/utils";
-import { Checkbox } from "@/components/ui/checkbox";
-import { LeaveRequestBulkActions } from "./leave-request-bulk-actions";
 
-export function LeaveRequestsTable({
-  requests,
+function toDateKey(value: Date | undefined) {
+  return value ? format(value, "yyyy-MM-dd") : "";
+}
+
+function parseDateKey(value: string) {
+  if (!value) return undefined;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+function parseStatusCsv(value: string) {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => baLeaveRequestStatusValues.includes(item as never));
+}
+
+/// Batch Advisor leave requests table with server-side filters and pagination.
+export function BaLeaveRequestsTable({
+  leaveRequests,
   totalCount,
 }: {
-  requests: GetLeaveRequestsType[];
+  leaveRequests: BaLeaveRequestRow[];
   totalCount: number;
 }) {
   "use no memo";
-  const tableId = useId();
-  const [isPending, startTransition] = useTransition();
-  const [rowSelection, setRowSelection] = useState({});
+  const tableId = React.useId();
+  const [isPending, startTransition] = React.useTransition();
+
   const [queryState, setQueryState] = useQueryStates(
-    leaveRequestSearchParamsParsers,
+    baLeaveRequestsSearchParamsParsers,
     {
       history: "replace",
       shallow: false,
@@ -103,147 +124,124 @@ export function LeaveRequestsTable({
     ? [{ id: queryState.sortBy, desc: queryState.sortDir === "desc" }]
     : [];
 
+  const pagination: PaginationState = {
+    pageIndex: Math.max(queryState.page - 1, 0),
+    pageSize: queryState.pageSize,
+  };
+
+  const selectedStatuses = React.useMemo(
+    () => parseStatusCsv(queryState.status),
+    [queryState.status]
+  );
+
+  const dateRange = React.useMemo<DateRange>(() => {
+    return {
+      from: parseDateKey(queryState.dateFrom),
+      to: parseDateKey(queryState.dateTo),
+    };
+  }, [queryState.dateFrom, queryState.dateTo]);
+
   const hasActiveParams =
     queryState.page !== 1 ||
     queryState.pageSize !== APP.default_page_size ||
     queryState.sortBy !== "createdAt" ||
     queryState.sortDir !== "desc" ||
     queryState.query.length > 0 ||
-    queryState.status !== null ||
-    queryState.startDate !== null ||
-    queryState.endDate !== null;
+    queryState.status.length > 0 ||
+    queryState.dateFrom.length > 0 ||
+    queryState.dateTo.length > 0;
 
-  const pagination: PaginationState = {
-    pageIndex: Math.max(queryState.page - 1, 0),
-    pageSize: queryState.pageSize,
-  };
-
-  const columns: ColumnDef<GetLeaveRequestsType>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <div className="flex items-center gap-2 me-2">
-          <Checkbox
-            size="sm"
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-          <span className="text-muted-foreground text-sm">Sr. No</span>
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <Checkbox
-            size="sm"
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-          <span className="text-muted-foreground text-sm">{row.index + 1}</span>
-        </div>
-      ),
-      enableSorting: false,
-    },
-    {
-      id: "studentName",
-      header: "Student",
-      accessorFn: (row) => row.student.user.name,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <UserImage
-            image={row.original.student.user.image}
-            name={row.original.student.user.name}
-            className="size-8"
-          />
-          <div className="flex flex-col">
-            <span className="font-medium">
-              {row.original.student.user.name}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {row.original.student.registrationNo}
-            </span>
+  const columns = React.useMemo<ColumnDef<BaLeaveRequestRow>[]>(
+    () => [
+      {
+        id: "srNo",
+        header: "Sr No.",
+        enableSorting: false,
+        cell: ({ row }) => <div>{row.index + 1}</div>,
+      },
+      {
+        id: "studentName",
+        header: "Student",
+        accessorFn: (row) => row.student.user.name,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <UserImage
+              image={row.original.student.user.image}
+              name={row.original.student.user.name}
+            />
+            <div className="flex flex-col">
+              <span className="font-medium">
+                {row.original.student.user.name}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {row.original.student.registrationNo}
+              </span>
+            </div>
           </div>
-        </div>
-      ),
-    },
-    {
-      id: "subject",
-      header: "Subject",
-      accessorFn: (row) => row.offering.subject.name,
-      cell: ({ row }) => (
-        <div className="flex flex-col gap-1">
-          <span>{row.original.offering.subject.name}</span>
-          <span className="text-xs font-semibold text-muted-foreground">
-            {row.original.offering.subject.code}
-          </span>
-        </div>
-      ),
-    },
-    {
-      id: "reasonTitle",
-      header: "Reason",
-      enableSorting: false,
-      cell: ({ row }) => (
-        <div className="max-w-[30ch] truncate">{row.original.reasonTitle}</div>
-      ),
-    },
-    {
-      id: "date",
-      header: "Leave Date",
-      accessorFn: (row) => row.date,
-      cell: ({ row }) => <div>{formatDate(row.original.date)}</div>,
-    },
-    {
-      id: "createdAt",
-      header: "Requested On",
-      accessorFn: (row) => row.createdAt,
-      cell: ({ row }) => <div>{formatDate(row.original.createdAt)}</div>,
-    },
-    {
-      id: "status",
-      header: "Status",
-      accessorFn: (row) => row.status,
-      cell: ({ row }) => (
-        <Badge
-          variant={
-            row.original.status === "APPROVED"
-              ? "success"
-              : row.original.status === "REJECTED"
-                ? "destructive"
-                : "info"
-          }
-        >
-          {row.original.status}
-        </Badge>
-      ),
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      enableSorting: false,
-      cell: ({ row }) => (
-        <div className="text-center">
-          <RequestActions
-            leaveRequestId={row.original.id}
-            status={row.original.status}
-          />
-        </div>
-      ),
-    },
-  ];
+        ),
+      },
+      {
+        id: "reasonTitle",
+        header: "Reason",
+        accessorFn: (row) => row.reasonTitle,
+        cell: ({ row }) => (
+          <MiddleTruncateText text={row.original.reasonTitle} />
+        ),
+      },
+      {
+        id: "date",
+        header: "Leave Date",
+        accessorFn: (row) => row.date,
+        cell: ({ row }) => formatDate(row.original.date),
+      },
+      {
+        id: "createdAt",
+        header: "Created At",
+        accessorFn: (row) => row.createdAt,
+        cell: ({ row }) => formatDate(row.original.createdAt),
+      },
+      {
+        id: "status",
+        header: "Status",
+        accessorFn: (row) => row.status,
+        cell: ({ row }) => (
+          <Badge
+            variant={
+              row.original.status === "APPROVED"
+                ? "success"
+                : row.original.status === "REJECTED"
+                  ? "destructive"
+                  : "info"
+            }
+            size="sm"
+          >
+            {formatEnumLabel(row.original.status)}
+          </Badge>
+        ),
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        enableSorting: false,
+        cell: ({ row }) => (
+          <div className="text-center">
+            <RequestActions
+              leaveRequestId={row.original.id}
+              status={row.original.status}
+            />
+          </div>
+        ),
+      },
+    ],
+    []
+  );
 
-  const [columnOrder, setColumnOrder] = useState<string[]>(
+  const [columnOrder, setColumnOrder] = React.useState<string[]>(
     columns.map((column) => column.id as string)
   );
 
   const table = useReactTable({
-    data: requests,
+    data: leaveRequests,
     columns,
     columnResizeMode: "onChange",
     getCoreRowModel: getCoreRowModel(),
@@ -254,7 +252,7 @@ export function LeaveRequestsTable({
 
       startTransition(() => {
         void setQueryState({
-          sortBy: (next?.id ?? "createdAt") as typeof queryState.sortBy,
+          sortBy: (next?.id ?? "createdAt") as BaLeaveRequestsSortBy,
           sortDir: next?.desc ? "desc" : "asc",
           page: 1,
         });
@@ -279,11 +277,8 @@ export function LeaveRequestsTable({
       sorting,
       columnOrder,
       pagination,
-      rowSelection,
     },
     onColumnOrderChange: setColumnOrder,
-    enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
     enableSortingRemoval: false,
     manualPagination: true,
     manualSorting: true,
@@ -297,10 +292,22 @@ export function LeaveRequestsTable({
       setColumnOrder((currentOrder) => {
         const oldIndex = currentOrder.indexOf(active.id as string);
         const newIndex = currentOrder.indexOf(over.id as string);
-
         return arrayMove(currentOrder, oldIndex, newIndex);
       });
     }
+  }
+
+  function toggleStatus(status: string, checked: boolean) {
+    const nextStatuses = checked
+      ? [...new Set([...selectedStatuses, status])]
+      : selectedStatuses.filter((value) => value !== status);
+
+    startTransition(() => {
+      void setQueryState({
+        status: nextStatuses.join(","),
+        page: 1,
+      });
+    });
   }
 
   const sensors = useSensors(
@@ -310,98 +317,105 @@ export function LeaveRequestsTable({
   );
 
   return (
-    <div className="max-w-full" aria-busy={isPending}>
+    <div className="w-full space-y-4" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div>
-          <Label htmlFor="leave-request-search" className="sr-only">
+        <div className="flex-1 min-w-55">
+          <Label htmlFor="ba-leave-requests-search" className="sr-only">
             Search leave requests
           </Label>
           <Input
-            id="leave-request-search"
-            className="max-w-[250px]"
-            placeholder="Search by student, subject, or reason"
+            id="ba-leave-requests-search"
+            placeholder="Search by reason or student"
             value={queryState.query}
             onChange={(event) => {
               const nextValue = event.target.value;
-
               startTransition(() => {
                 void setQueryState({
-                  query: nextValue.trim().length > 0 ? nextValue : null,
+                  query: nextValue.trim().length > 0 ? nextValue : "",
                   page: 1,
                 });
               });
             }}
           />
         </div>
-        <Select
-          value={queryState.status ?? "all"}
-          onValueChange={(value) => {
-            startTransition(() => {
-              void setQueryState({
-                status: value === "all" ? null : (value as LeaveRequestStatus),
-                page: 1,
-              });
-            });
-          }}
-        >
-          <SelectTrigger className="max-w-[180px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            {leaveRequestStatusValues.map((status) => (
-              <SelectItem key={status} value={status}>
-                {status}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <div className="flex flex-col gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="justify-start w-[280px]">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {queryState.startDate && queryState.endDate ? (
-                  <span>
-                    {format(new Date(queryState.startDate), "MMM dd, yyyy")} -{" "}
-                    {format(new Date(queryState.endDate), "MMM dd, yyyy")}
-                  </span>
-                ) : queryState.startDate ? (
-                  <span>
-                    From{" "}
-                    {format(new Date(queryState.startDate), "MMM dd, yyyy")}
-                  </span>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="min-w-40 justify-between">
+              {selectedStatuses.length > 0
+                ? `${selectedStatuses.length} selected`
+                : "All Status"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-3" align="start">
+            <div className="space-y-2">
+              {baLeaveRequestStatusValues.map((statusValue) => {
+                const checked = selectedStatuses.includes(statusValue);
+                return (
+                  <Label
+                    key={statusValue}
+                    className="flex items-center gap-2 font-normal"
+                  >
+                    <Checkbox
+                      size="sm"
+                      checked={checked}
+                      onCheckedChange={(value) =>
+                        toggleStatus(statusValue, Boolean(value))
+                      }
+                    />
+                    {formatEnumLabel(statusValue)}
+                  </Label>
+                );
+              })}
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-64 justify-start text-left font-normal",
+                !dateRange.from && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dateRange.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "LLL dd, y")} -{" "}
+                    {format(dateRange.to, "LLL dd, y")}
+                  </>
                 ) : (
-                  <span className="text-muted-foreground">Pick date range</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="range"
-                numberOfMonths={1}
-                selected={{
-                  from: queryState.startDate
-                    ? new Date(queryState.startDate)
-                    : undefined,
-                  to: queryState.endDate
-                    ? new Date(queryState.endDate)
-                    : undefined,
-                }}
-                onSelect={(range) => {
-                  startTransition(() => {
-                    void setQueryState({
-                      startDate: range?.from ?? null,
-                      endDate: range?.to ?? null,
-                      page: 1,
-                    });
+                  format(dateRange.from, "LLL dd, y")
+                )
+              ) : (
+                <span>Pick date range</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              autoFocus
+              mode="range"
+              defaultMonth={dateRange.from}
+              selected={dateRange}
+              onSelect={(range) => {
+                startTransition(() => {
+                  void setQueryState({
+                    dateFrom: range?.from ? toDateKey(range.from) : "",
+                    dateTo: range?.to ? toDateKey(range.to) : "",
+                    page: 1,
                   });
-                }}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+                });
+              }}
+              numberOfMonths={1}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
+
       {hasActiveParams ? (
         <Button
           variant="outline"
@@ -412,25 +426,10 @@ export function LeaveRequestsTable({
             });
           }}
         >
-          <X className="size-4" />
+          <XIcon className="size-4" />
           Clear
         </Button>
       ) : null}
-      <div className="my-2 md:my-4">
-        {Object.keys(rowSelection).length > 0 ? (
-          <LeaveRequestBulkActions
-            selectedIds={table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original.id)}
-            requests={table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original)}
-            onSuccess={() => {
-              setRowSelection({});
-            }}
-          />
-        ) : null}
-      </div>
 
       <div className="rounded-md border">
         <DndContext
@@ -452,7 +451,7 @@ export function LeaveRequestsTable({
                     strategy={horizontalListSortingStrategy}
                   >
                     {headerGroup.headers.map((header) => (
-                      <DraggableTableHeader<GetLeaveRequestsType>
+                      <DraggableTableHeader<BaLeaveRequestRow>
                         key={header.id}
                         header={header}
                       />
@@ -464,17 +463,14 @@ export function LeaveRequestsTable({
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
+                  <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (
                       <SortableContext
                         key={cell.id}
                         items={columnOrder}
                         strategy={horizontalListSortingStrategy}
                       >
-                        <DragAlongCell<GetLeaveRequestsType> cell={cell} />
+                        <DragAlongCell<BaLeaveRequestRow> cell={cell} />
                       </SortableContext>
                     ))}
                   </TableRow>
@@ -483,7 +479,7 @@ export function LeaveRequestsTable({
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className="h-24 text-center"
+                    className="h-24 text-center text-muted-foreground"
                   >
                     No leave requests found.
                   </TableCell>
@@ -518,7 +514,7 @@ export function LeaveRequestsTable({
           </Select>
         </div>
 
-        <div className="text-muted-foreground flex grow justify-end text-sm whitespace-nowrap">
+        <div className="flex items-center gap-3">
           <p
             className="text-muted-foreground text-sm whitespace-nowrap"
             aria-live="polite"
@@ -538,14 +534,9 @@ export function LeaveRequestsTable({
                 table.getRowCount()
               )}
             </span>{" "}
-            of{" "}
-            <span className="text-foreground">
-              {table.getRowCount().toString()}
-            </span>
+            of <span className="text-foreground">{table.getRowCount()}</span>
           </p>
-        </div>
 
-        <div>
           <Pagination>
             <PaginationContent>
               <PaginationItem>

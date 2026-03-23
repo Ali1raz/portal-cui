@@ -316,6 +316,8 @@ enum AttendanceStatus {
 
 enum LeaveStatus {
   PENDING
+  REVIEW_REQUESTED
+  HOD_PENDING
   APPROVED
   REJECTED
 }
@@ -372,7 +374,8 @@ model LeaveRequest {
 
   imageKey String?
 
-  status LeaveStatus @default(PENDING)
+  status  LeaveStatus          @default(PENDING)
+  reviews LeaveRequestReview[] // full audit trail of reviews
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -380,6 +383,46 @@ model LeaveRequest {
   @@index([studentId])
   @@index([offeringId])
   @@map("leave_request")
+}
+
+model LeaveRequestReview {
+  id String @id @default(uuid())
+
+  leaveRequestId String
+  leaveRequest   LeaveRequest @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+
+  // Who acted
+  actorRole LRActorRole // STUDENT | BATCH_ADVISOR | HOD
+  actorId   String // User.id of the actor
+
+  // What happened
+  action  LRAction
+  remarks String? // optional note left by actor
+
+  // State transition (for timeline rendering)
+  fromStatus LeaveStatus
+  toStatus   LeaveStatus
+
+  createdAt DateTime @default(now())
+
+  @@index([leaveRequestId]) // fetch timeline for a leave request
+  @@map("leave_request_review")
+}
+
+enum LRActorRole {
+  STUDENT
+  BATCH_ADVISOR
+  HOD
+}
+
+enum LRAction {
+  SUBMITTED // student submitted
+  BA_APPROVED // BA approved, forwarded to HOD
+  BA_REJECTED // BA rejected
+  BA_REVIEW_REQUESTED // BA asked student to update details
+  RESUBMITTED // student updated and resubmitted after BA review request
+  HOD_APPROVED // HOD approved leave
+  HOD_REJECTED // HOD rejected leave
 }
 
 // Complaint model:

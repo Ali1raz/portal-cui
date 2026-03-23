@@ -1,10 +1,9 @@
 "use server";
 
+import { requirePermission } from "@/app/data/permission/require-permission";
+import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
 import { LeaveRequestFormType, leaveRequestSchema } from "./schema";
-import prisma from "@/lib/prisma";
-import { requirePermission } from "@/app/data/permission/require-permission";
-import { inngest } from "@/lib/inngest/client";
 
 export async function sendLeaveRequest(
   data: LeaveRequestFormType,
@@ -41,30 +40,15 @@ export async function sendLeaveRequest(
         message: "Subject offering not found",
       };
     }
-    await prisma.$transaction(async (tx) => {
-      const lr = await tx.leaveRequest.create({
-        data: {
-          studentId: studentId,
-          date: new Date(validated.data.date),
-          reasonTitle: validated.data.reasonTitle,
-          reasonDetails: validated.data.reasonDetails,
-          imageKey: validated.data.imageKey,
-          offeringId: offering.id,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (lr.id) {
-        await inngest.send({
-          name: "leaveRequest/status.changed",
-          data: {
-            leaveRequestId: lr.id,
-            requestDate: validated.data.date,
-          },
-        });
-      }
+    await prisma.leaveRequest.create({
+      data: {
+        studentId: studentId,
+        date: new Date(validated.data.date),
+        reasonTitle: validated.data.reasonTitle,
+        reasonDetails: validated.data.reasonDetails,
+        imageKey: validated.data.imageKey,
+        offeringId: offering.id,
+      },
     });
 
     return {
@@ -74,7 +58,7 @@ export async function sendLeaveRequest(
   } catch {
     return {
       status: "error",
-      message: "Failed to send leave request.",
+      message: "Failed to create leave request.",
     };
   }
 }

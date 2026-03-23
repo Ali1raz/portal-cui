@@ -20,7 +20,7 @@ type GetLeaveRequestsParams = Pick<
 >;
 
 /// Fetches paginated, filtered, and sorted leave requests for HOD view
-export async function getLeaveRequests({
+export async function hodGetLeaveRequests({
   page,
   pageSize,
   sortBy,
@@ -167,5 +167,5 @@ export async function getLeaveRequests({
 }
 
 export type GetLeaveRequestsType = Awaited<
-  ReturnType<typeof getLeaveRequests>
+  ReturnType<typeof hodGetLeaveRequests>
 >["requests"][number];

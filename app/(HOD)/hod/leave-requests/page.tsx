@@ -1,4 +1,4 @@
-import { getLeaveRequests } from "@/app/data/hod/get-leave-requests";
+import { hodGetLeaveRequests } from "@/app/data/hod/get-leave-requests";
 import {
   Table,
   TableBody,
@@ -45,7 +45,7 @@ async function LeaveRequestsList({
 }) {
   const parsedParams: LeaveRequestSearchParams =
     await leaveRequestSearchParamsCache.parse(searchParams);
-  const { requests, totalCount } = await getLeaveRequests(parsedParams);
+  const { requests, totalCount } = await hodGetLeaveRequests(parsedParams);
 
   return <LeaveRequestsTable requests={requests} totalCount={totalCount} />;
 }

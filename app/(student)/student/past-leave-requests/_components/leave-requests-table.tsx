@@ -65,6 +65,8 @@ import {
   type StudentLeaveRequestsSortBy,
 } from "../leave-requests-search-params";
 import { APP } from "@/lib/data/utils";
+import { MiddleTruncateText } from "@/components/general/truncated-text";
+import { LeaveRequestActions } from "./leave-request-actions";
 
 interface LeaveRequestsTableProps {
   requests: StudentLeaveRequest[];
@@ -93,10 +95,6 @@ export function LeaveRequestsTable({
     {
       history: "replace",
       shallow: false,
-      limitUrlUpdates: {
-        method: "debounce",
-        timeMs: 1000,
-      },
     }
   );
 
@@ -138,7 +136,11 @@ export function LeaveRequestsTable({
       id: "title",
       header: "Title",
       accessorFn: (row) => row.reasonTitle,
-      cell: ({ row }) => <div>{row.original.reasonTitle}</div>,
+      cell: ({ row }) => (
+        <div>
+          <MiddleTruncateText maxLength={70} text={row.original.reasonTitle} />
+        </div>
+      ),
     },
     {
       id: "date",
@@ -172,6 +174,19 @@ export function LeaveRequestsTable({
           {row.original.status}
         </Badge>
       ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <LeaveRequestActions
+            leaveRequestId={row.original.id}
+            status={row.original.status}
+          />
+        </div>
+      ),
+      enableSorting: false,
     },
   ];
 

@@ -15,7 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { InfoIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
 /// Loading skeleton for student leave requests table.
@@ -52,7 +51,7 @@ export default async function LeaveRequestsPage(
   props: PageProps<"/student/past-leave-requests">
 ) {
   return (
-    <div className="@container/main p-4 space-y-4">
+    <div className="@container/main p-4 md:px-8 space-y-4">
       <div className="flex sm:justify-between sm:flex-row items-baseline flex-col gap-4">
         <h2 className="text-2xl font-bold">My Leave Requests</h2>
         <Link
@@ -62,10 +61,7 @@ export default async function LeaveRequestsPage(
           New Leave Request
         </Link>
       </div>
-      <p className="text-sm text-muted-foreground">
-        <InfoIcon className="inline mr-1 size-4 max-w-xl" /> All leave requests
-        will be rejected if HOD did not approve them before the leave date.
-      </p>
+
       <Suspense fallback={<LeaveRequestsTableSkeleton />}>
         <LeaveRequestsList searchParams={props.searchParams} />
       </Suspense>

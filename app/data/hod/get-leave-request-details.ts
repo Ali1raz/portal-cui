@@ -38,6 +38,19 @@ export async function getLeaveRequestDetails(requestId: string) {
       imageKey: true,
       reasonDetails: true,
       createdAt: true,
+      _count: { select: { reviews: true } },
+      reviews: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          action: true,
+          actorRole: true,
+          fromStatus: true,
+          toStatus: true,
+          remarks: true,
+          createdAt: true,
+        },
+      },
       offering: {
         select: {
           department: true,
@@ -54,10 +67,12 @@ export async function getLeaveRequestDetails(requestId: string) {
       student: {
         select: {
           registrationNo: true,
+          department: true,
           user: {
             select: {
               name: true,
               image: true,
+              email: true,
             },
           },
         },

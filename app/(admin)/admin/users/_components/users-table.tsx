@@ -86,10 +86,6 @@ export function UsersTable({
   const [queryState, setQueryState] = useQueryStates(usersSearchParamsParsers, {
     history: "replace",
     shallow: false,
-    limitUrlUpdates: {
-      method: "debounce",
-      timeMs: 1000,
-    },
   });
 
   const sorting: SortingState = queryState.sortBy

@@ -15,7 +15,6 @@ import { LeaveStatus } from "@/lib/generated/prisma/enums";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { updateStatus } from "../actions";
 import {
   Select,
   SelectContent,
@@ -26,6 +25,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { updateStatus } from "../../actions";
+
+// HOD can only approve or reject HOD_PENDING requests
+export const HOD_ALLOWED_LEAVE_STATUSES: LeaveStatus[] = [
+  LeaveStatus.APPROVED,
+  LeaveStatus.REJECTED,
+];
 
 export function UpdateStatusDialog({
   children,
@@ -38,10 +44,12 @@ export function UpdateStatusDialog({
 }) {
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState<LeaveStatus>(prevStatus);
+  const [status, setStatus] = useState<LeaveStatus>(
+    HOD_ALLOWED_LEAVE_STATUSES[0] ?? prevStatus
+  );
   const router = useRouter();
 
-  function onClick() {
+  const onClick = () => {
     startTransition(async () => {
       const { data: result, error } = await tryCatch(
         updateStatus(requestId, status)
@@ -59,23 +67,24 @@ export function UpdateStatusDialog({
         router.push("/hod/leave-requests");
       }
     });
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <form>
         <DialogTrigger asChild>
-          {children || <Button variant="destructive">Update Status</Button>}
+          {children || <Button>Update Status</Button>}
         </DialogTrigger>
 
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl">
-              Are you absolutely sure?
+              Approve or Reject Request
             </DialogTitle>
           </DialogHeader>
+
           <div className="space-y-2">
-            <Label className="">Leave Status</Label>
+            <Label>Update Status</Label>
             <Select
               value={status}
               onValueChange={(value) => setStatus(value as LeaveStatus)}
@@ -85,23 +94,26 @@ export function UpdateStatusDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Status</SelectLabel>
-                  {Object.values(LeaveStatus).map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
+                  <SelectLabel>Update status</SelectLabel>
+                  {HOD_ALLOWED_LEAVE_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s === LeaveStatus.APPROVED ? "Approve" : "Reject"}
                     </SelectItem>
                   ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
           </div>
+
           <DialogFooter className="w-full">
             <Button
               onClick={onClick}
               disabled={isPending}
-              variant="destructive"
+              variant={
+                status === LeaveStatus.APPROVED ? "default" : "destructive"
+              }
             >
-              {isPending ? "Loading..." : "Update Status"}
+              {isPending ? "Updating..." : "Confirm"}
             </Button>
             <DialogClose asChild>
               <Button variant="secondary">Cancel</Button>

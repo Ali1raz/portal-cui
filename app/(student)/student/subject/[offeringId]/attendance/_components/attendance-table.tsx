@@ -100,10 +100,6 @@ export default function AttendanceTable({
     {
       history: "replace",
       shallow: false,
-      limitUrlUpdates: {
-        method: "throttle",
-        timeMs: 1500,
-      },
     }
   );
 

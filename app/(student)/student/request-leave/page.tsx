@@ -17,11 +17,11 @@ export default async function LeaveRequestPage() {
   const { subjects, studentId } = await getStudentEnrolledSubjects();
 
   return (
-    <div className="@container/main p-4 space-y-4">
+    <div className="@container/main p-4 space-y-4 mb-8">
       <div className="space-y-4">
         <h2 className="text-2xl font-bold">New Leave Request</h2>
         <p className="text-sm text-muted-foreground">
-          This will be sent to your respective Head of Department for further
+          This will be sent to your Department&apos;s Batch Advisor for further
           review, so make sure to provide valid reasons to support your leave
           application.
         </p>

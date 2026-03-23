@@ -118,6 +118,11 @@ export function getNavLinks({
     ],
     BATCH_ADVISOR: [
       {
+        title: "Leave Requests",
+        href: "/batch-advisor/leave-requests",
+        icon: IconCalendar,
+      },
+      {
         title: "Complaints",
         href: "/batch-advisor/complaints",
         icon: IconMessageReport,

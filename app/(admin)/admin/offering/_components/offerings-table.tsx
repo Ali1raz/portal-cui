@@ -84,10 +84,6 @@ export function OfferingsTable({
     {
       history: "replace",
       shallow: false,
-      limitUrlUpdates: {
-        method: "throttle",
-        timeMs: 1000,
-      },
     }
   );
 

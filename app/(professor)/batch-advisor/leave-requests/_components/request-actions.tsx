@@ -9,18 +9,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Cog, EyeIcon, MoreHorizontal } from "lucide-react";
-import Link from "next/link";
-import { UpdateStatusDialog } from "../[requestId]/_components/update-status";
 import { LeaveStatus } from "@/lib/generated/prisma/enums";
+import { Cog, EyeIcon, MoreHorizontal } from "lucide-react";
+
+const REVIEWABLE_STATUSES: LeaveStatus[] = ["PENDING", "REVIEW_REQUESTED"];
 
 export function RequestActions({
   leaveRequestId,
   status,
 }: {
-  status: LeaveStatus;
   leaveRequestId: string;
+  status: LeaveStatus;
 }) {
+  const canReview = REVIEWABLE_STATUSES.includes(status);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -29,21 +31,26 @@ export function RequestActions({
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuLabel>User Actions</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={`/hod/leave-requests/${leaveRequestId}`}>
-            <EyeIcon className="size-4" aria-label="View Details" />
+          <a href={`/batch-advisor/leave-requests/${leaveRequestId}`}>
+            <EyeIcon className="size-4" />
             View Details
-          </Link>
+          </a>
         </DropdownMenuItem>
-        <UpdateStatusDialog requestId={leaveRequestId} prevStatus={status}>
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-            <Cog className="size-4" aria-label="View Details" />
-            Update Status
+
+        {canReview ? (
+          <DropdownMenuItem asChild>
+            <a
+              href={`/batch-advisor/leave-requests/${leaveRequestId}/update-status`}
+            >
+              <Cog className="size-4" />
+              Update Status
+            </a>
           </DropdownMenuItem>
-        </UpdateStatusDialog>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );
