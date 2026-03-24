@@ -113,10 +113,9 @@ Students file complaints with a category, description, and an optional attachmen
   - Accepts → forwarded to HOD (`HOD_PENDING`), student notified
   - Rejects → `BA_REJECTED`, student notified; student can revise & resubmit → back to `BA_PENDING`, or delete permanently
 - **HOD** reviews batch-advisor-approved complaints:
-  - Requests more info → `HOD_REVIEW_REQUESTED`, remarks added, student notified; student updates and resubmits → back to `HOD_PENDING`
   - Accepts → resolved (`HOD_ACCEPTED`), student notified
   - Rejects → `HOD_REJECTED`, student notified
-  - Reassigns → routed to another department (`REASSIGNED`)
+  - Assigns → picks target department and reason; complaint routed with status `ASSIGNED` in receiving department
 
 **State transition:**
 
@@ -136,15 +135,11 @@ stateDiagram-v2
     BA_REJECTED --> BA_PENDING : Student revises & resubmits
     BA_REJECTED --> [*] : Student deletes
 
-    HOD_PENDING --> HOD_REVIEW_REQUESTED : HOD requests more info · student notified
     HOD_PENDING --> HOD_ACCEPTED : HOD accepts · resolved · student notified
     HOD_PENDING --> HOD_REJECTED : HOD rejects · student notified
-    HOD_PENDING --> REASSIGNED : HOD reassigns to another dept
-
-    HOD_REVIEW_REQUESTED --> HOD_PENDING : Student resubmits
-
-    REASSIGNED --> HOD_PENDING : Receiving HOD picks up
+    HOD_PENDING --> ASSIGNED : HOD assigns to another dept
 
     HOD_ACCEPTED --> [*]
     HOD_REJECTED --> [*]
+    ASSIGNED --> [*]
 ```
