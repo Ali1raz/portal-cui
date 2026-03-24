@@ -1,4 +1,5 @@
 import { APP } from "@/lib/data/utils";
+import { Batch, Department } from "@/lib/generated/prisma/enums";
 import {
   createSearchParamsCache,
   parseAsInteger,
@@ -18,13 +19,9 @@ export const offeringSortByValues = [
 
 export const offeringSortDirValues = ["asc", "desc"] as const;
 
-export const offeringDepartmentValues = [
-  "CS",
-  "EN",
-  "SE",
-  "MATH",
-  "BA",
-] as const;
+export const offeringDepartmentValues = [...Object.values(Department)] as const;
+
+export const offeringBatchValues = [...Object.values(Batch)] as const;
 
 export const hasTeacherValues = ["all", "yes", "no"] as const;
 export const hasEnrollmentsValues = ["all", "yes", "no"] as const;
@@ -32,6 +29,7 @@ export const hasEnrollmentsValues = ["all", "yes", "no"] as const;
 export type OfferingSortBy = (typeof offeringSortByValues)[number];
 export type OfferingSortDir = (typeof offeringSortDirValues)[number];
 export type OfferingDepartment = (typeof offeringDepartmentValues)[number];
+export type OfferingBatch = (typeof offeringBatchValues)[number];
 export type HasTeacher = (typeof hasTeacherValues)[number];
 export type HasEnrollments = (typeof hasEnrollmentsValues)[number];
 
@@ -53,9 +51,12 @@ export const offeringSearchParamsParsers = {
   ).withOptions({
     clearOnDefault: true,
   }),
+  batch: parseAsStringEnum(Object.values(offeringBatchValues)).withOptions({
+    clearOnDefault: true,
+  }),
+  semesterId: parseAsString.withOptions({ clearOnDefault: true }),
   semester: parseAsInteger.withOptions({ clearOnDefault: true }),
   year: parseAsInteger.withOptions({ clearOnDefault: true }),
-  teacher: parseAsString.withDefault("").withOptions({ clearOnDefault: true }),
   hasTeacher: parseAsStringEnum(Object.values(hasTeacherValues))
     .withDefault("all")
     .withOptions({ clearOnDefault: true }),

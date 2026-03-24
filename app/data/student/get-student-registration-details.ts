@@ -50,8 +50,12 @@ export async function getStudentRegistrationDetails() {
       registration: {
         select: {
           batch: true,
-          semester: true,
-          year: true,
+          semester: {
+            select: {
+              semester: true,
+              year: true,
+            },
+          },
           createdAt: true,
         },
       },

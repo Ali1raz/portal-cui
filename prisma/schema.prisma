@@ -26,6 +26,7 @@ model User {
   director     Director?
   accountant   Accountant?
   batchAdvisor BatchAdvisor?
+  clerk        Clerk?
 
   banned        Boolean?       @default(false)
   banReason     String?
@@ -95,6 +96,7 @@ enum Role {
   STUDENT
   USER
   BATCH_ADVISOR
+  CLERK
 }
 
 enum Department {
@@ -127,13 +129,23 @@ model Student {
   program    Program
   department Department
 
-  registration       Registration?
+  registration       Registration[]
   enrollments        Enrollment[]
   studentAttendances StudentAttendance[]
   leaveRequests      LeaveRequest[]
   complaints         Complaint[]
 
   @@map("student")
+}
+
+model Clerk {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("clerk")
 }
 
 model Hod {
@@ -230,8 +242,9 @@ model SubjectOffering {
   subjectId String
   subject   Subject @relation(fields: [subjectId], references: [id])
 
-  semester      Int
-  year          Int // 2024
+  semesterId String?
+  semester   Semester? @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+
   totalLectures Int @default(30)
 
   department Department
@@ -244,30 +257,77 @@ model SubjectOffering {
   attendanceRecords   AttendanceRecord[]
   leaveRequests       LeaveRequest[]
 
-  @@unique([subjectId, semester, year, department])
+  @@unique([subjectId, semesterId, department])
   @@map("subject_offering")
 }
 
+model Semester {
+  id         String     @id @default(uuid())
+  semester   Int
+  year       Int
+  department Department
+  batch      Batch
+
+  registrationStart DateTime // when students can apply
+  registrationEnd   DateTime
+  enrollmentStart   DateTime // when subject selection opens (after BA approvals)
+  enrollmentEnd     DateTime // subject selection deadline
+  addDeadline       DateTime // last day to add a subject
+
+  dropDeadline     DateTime // Drop the subject → completely removed, like you never enrolled. Nothing on your transcript
+  lateDropDeadline DateTime // late drop deadline (W grade appears)
+  isActive         Boolean  @default(false) // only one active window per dept+sem
+
+  startDate DateTime
+  endDate   DateTime
+
+  registrations Registration[]
+
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  subjectOfferings SubjectOffering[]
+
+  @@unique([semester, year, department, batch]) // ensures no duplicate semesters for same dept+batch
+  @@map("semester")
+}
+
 model Enrollment {
-  id        String  @id @default(uuid())
-  section   String? @default("A") // Default section is "A"
+  id      String           @id @default(uuid())
+  section String?          @default("A") // Default section is "A"
+  status  EnrollmentStatus @default(PENDING)
+
   studentId String
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   offeringId String
   offering   SubjectOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
 
+  registration   Registration? @relation(fields: [registrationId], references: [id])
+  registrationId String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([studentId, offeringId])
+  @@index([registrationId]) // fetch all enrollments for a registration
   @@map("enrollment")
+}
+
+enum EnrollmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  DROPPED // student dropped the subject before drop deadline, removed from enrollment and transcript
+  WITHDRAWN // 
+  COMPLETED
 }
 
 enum RegistrationStatus {
   PENDING
   APPROVED
   REJECTED
+  REVIEW_REQUESTED
+  RESUBMITTED
   WITHDRAWN
 }
 
@@ -277,17 +337,56 @@ model Registration {
   studentId String
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  semester Int
-  year     Int
-
   status RegistrationStatus @default(PENDING)
   batch  Batch
+
+  semesterId  String?
+  semester    Semester?            @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  reviews     RegistrationReview[] // full audit trail of registration reviews
+  enrollments Enrollment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([studentId])
+  @@unique([studentId, semesterId])
   @@map("registration")
+}
+
+model RegistrationReview {
+  id String @id @default(uuid())
+
+  registrationId String
+  registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  // Who acted
+  actorRole RegistrationActorRole // STUDENT | CLERK
+  actorId   String // User.id of the actor
+
+  // What happened
+  action  RegistrationAction
+  remarks String? // optional note left by actor
+
+  // State transition (for timeline rendering)
+  fromStatus RegistrationStatus
+  toStatus   RegistrationStatus
+
+  createdAt DateTime @default(now())
+
+  @@index([registrationId]) // fetch timeline for a registration
+  @@map("registration_review")
+}
+
+enum RegistrationAction {
+  SUBMITTED // student submitted
+  CLERK_APPROVED // CLERK approved, can enroll subjects
+  CLERK_REJECTED // CLERK rejected
+  CLERK_REVIEW_REQUESTED // CLERK asked student to update details
+  RESUBMITTED // student updated and resubmitted after CLERK review request
+}
+
+enum RegistrationActorRole {
+  STUDENT
+  CLERK
 }
 
 model TeachingAssignment {

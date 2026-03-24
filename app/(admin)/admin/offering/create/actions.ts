@@ -33,20 +33,31 @@ export async function createOffering(
     }
 
     const result = validated.data;
-    const existing = await prisma.subjectOffering.count({
+
+    const semester = await prisma.semester.findUnique({
       where: {
-        // AND: [
-        //   {
-        year: result.year,
-        department: result.department,
-        semester: result.semester,
-        subjectId: result.subjectId,
-        //   },
-        // ],
+        id: result.semesterId,
+      },
+      select: {
+        id: true,
+        department: true,
       },
     });
 
-    console.log(existing);
+    if (!semester) {
+      return {
+        status: "error",
+        message: "Selected semester does not exist.",
+      };
+    }
+
+    const existing = await prisma.subjectOffering.count({
+      where: {
+        subjectId: result.subjectId,
+        semesterId: semester.id,
+        department: semester.department,
+      },
+    });
 
     if (existing) {
       return {
@@ -58,10 +69,9 @@ export async function createOffering(
     const offering = await prisma.subjectOffering.create({
       data: {
         subjectId: result.subjectId,
-        semester: result.semester,
-        year: result.year,
+        semesterId: semester.id,
         totalLectures: result.totalLectures,
-        department: result.department,
+        department: semester.department,
       },
     });
 

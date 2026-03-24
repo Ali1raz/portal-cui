@@ -20,7 +20,7 @@ export default async function AssignTeacherPage(
   return (
     <main className="space-y-6">
       <section>
-        <h1 className="text-lg font-semibold">Assign Teacher</h1>
+        <h1 className="text-2xl font-bold">Assign Teacher</h1>
         <p className="text-sm text-muted-foreground">
           Choose a professor for this subject offering.
         </p>
@@ -36,8 +36,10 @@ export default async function AssignTeacherPage(
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">{offering.department}</Badge>
-            <Badge variant="secondary">Semester {offering.semester}</Badge>
-            <Badge variant="secondary">{offering.year}</Badge>
+            <Badge variant="secondary">
+              Semester {offering.semester?.semester}
+            </Badge>
+            <Badge variant="secondary">{offering.semester?.year}</Badge>
             {currentAssignment && (
               <Badge variant="secondary">
                 Section {currentAssignment.section ?? "A"}

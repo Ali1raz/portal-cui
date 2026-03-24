@@ -43,7 +43,7 @@ export function CourseCard({
             </div>
             <div className="flex items-center gap-2 *:not-first:text-accent-foreground *:not-first:font-bold">
               <h2>Semester</h2>
-              <span>{assignment.offering.semester}</span>
+              <span>{assignment.offering.semester?.semester}</span>
             </div>
           </div>
           <div className="flex items-center justify-between">
