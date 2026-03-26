@@ -28,10 +28,11 @@ model User {
   batchAdvisor BatchAdvisor?
   clerk        Clerk?
 
-  banned        Boolean?       @default(false)
-  banReason     String?
-  banExpires    DateTime?
-  announcements Announcement[]
+  banned              Boolean?             @default(false)
+  banReason           String?
+  banExpires          DateTime?
+  announcements       Announcement[]
+  studentApplications StudentApplication[]
 
   @@unique([email])
   @@map("user")
@@ -291,6 +292,88 @@ model Semester {
   @@map("semester")
 }
 
+model StudentApplication {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName            String
+  dateOfBirth         DateTime
+  gender              Gender
+  address             String
+  city                String
+  phoneNo             String
+  // Previous academics
+  previousDegree      String //— e.g. "Intermediate FSc Pre-Engineering"
+  previousInstitution String
+  previousPassingYear Int
+  percentage          Decimal
+
+  preferredDepartment Department
+
+  // Status + clerk fields
+  status      StudentApplicationStatus @default(PENDING)
+  attemptNo   Int                      @default(1) // increments on each resubmit after rejection
+  submittedAt DateTime? // when user finalized and submitted
+
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  applicationReviews ApplicationReview[]
+
+  @@unique([userId, attemptNo])
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum StudentApplicationStatus {
+  PENDING
+  REVIEW_REQUESTED
+  APPROVED
+  REJECTED
+}
+
+model ApplicationReview {
+  id String @id @default(uuid())
+
+  applicationId String
+  application   StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  // Who acted
+  actorRole ApplicationActorRole // STUDENT | CLERK
+  actorId   String // User.id of the actor
+
+  // What happened
+  action  ApplicationAction
+  remarks String? // optional note left by actor
+
+  // State transition (for timeline rendering)
+  fromStatus StudentApplicationStatus? // optional when submitting
+  toStatus   StudentApplicationStatus?
+
+  createdAt DateTime @default(now())
+
+  @@index([applicationId]) // fetch timeline for an application
+  @@map("application_review")
+}
+
+enum ApplicationActorRole {
+  STUDENT
+  CLERK
+}
+
+enum ApplicationAction {
+  SUBMITTED // student submitted
+  CLERK_APPROVED // CLERK approved, moves to next step in admission process
+  CLERK_REJECTED // CLERK rejected — student can revise & resubmit → PENDING, or delete
+  CLERK_REVIEW_REQUESTED // CLERK asked student to update details
+  RESUBMITTED // student updated and resubmitted after CLERK review request
+}
+
 model Enrollment {
   id      String           @id @default(uuid())
   section String?          @default("A") // Default section is "A"
@@ -338,7 +421,6 @@ model Registration {
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   status RegistrationStatus @default(PENDING)
-  batch  Batch
 
   semesterId  String?
   semester    Semester?            @relation(fields: [semesterId], references: [id], onDelete: Cascade)
