@@ -38,6 +38,16 @@ export const statements = {
     "delete:own",
     "approve",
   ] as const,
+  applications: [
+    "list",
+    "get",
+    "get:own",
+    "update",
+    "dashboard",
+    "list:own",
+    "update:own",
+    "create",
+  ] as const,
   announcements: ["create", "list", "get", "update", "delete"] as const,
 } as const;
 
@@ -61,6 +71,7 @@ export const roles = {
     semesters: [],
     subjectOfferings: ["list"],
     complaints: ["list:own", "get", "create", "update:own", "delete:own"],
+    applications: ["list:own", "get:own", "update:own"],
     announcements: ["list", "get"],
   }),
 
@@ -74,6 +85,7 @@ export const roles = {
     semesters: ["create", "list", "get", "update", "delete"],
     subjectOfferings: ["list", "get", "update", "delete", "create"],
     complaints: [],
+    applications: [],
     announcements: ["create", "list", "get", "update", "delete"],
   }),
 
@@ -87,6 +99,7 @@ export const roles = {
     semesters: ["list", "get"],
     subjectOfferings: ["list"],
     complaints: ["get", "update", "list", "assign", "approve"],
+    applications: [],
     announcements: [],
   }),
   ACCOUNTANT: access.newRole({
@@ -99,6 +112,7 @@ export const roles = {
     semesters: ["list", "get"],
     subjectOfferings: ["list"],
     complaints: [],
+    applications: [],
     announcements: ["create", "list", "get", "update", "delete"],
   }),
   DIRECTOR: access.newRole({
@@ -111,6 +125,7 @@ export const roles = {
     semesters: ["list", "get"],
     subjectOfferings: ["list", "get", "update"],
     complaints: [],
+    applications: [],
     announcements: [],
   }),
   HOD: access.newRole({
@@ -123,6 +138,7 @@ export const roles = {
     semesters: ["list", "get"],
     subjectOfferings: ["list", "get"],
     complaints: ["list", "assign", "get", "update", "list", "approve"],
+    applications: [],
     announcements: ["create", "list", "get", "update", "delete"],
   }),
   USER: access.newRole({
@@ -135,6 +151,7 @@ export const roles = {
     semesters: [],
     subjectOfferings: [],
     complaints: [],
+    applications: ["update:own", "list:own", "get:own", "create"],
     announcements: [],
   }),
   BATCH_ADVISOR: access.newRole({
@@ -147,6 +164,7 @@ export const roles = {
     semesters: ["list", "get"],
     subjectOfferings: ["list"],
     complaints: ["get", "update", "list", "assign", "approve"],
+    applications: [],
     announcements: [],
   }),
   CLERK: access.newRole({
@@ -159,6 +177,7 @@ export const roles = {
     semesters: [],
     subjectOfferings: [],
     complaints: [],
+    applications: ["list", "get", "update", "dashboard"],
     announcements: [],
   }),
 } satisfies Record<Role, ReturnType<typeof access.newRole>>;

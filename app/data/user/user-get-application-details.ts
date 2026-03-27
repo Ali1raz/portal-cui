@@ -2,10 +2,16 @@ import "server-only";
 
 import prisma from "@/lib/prisma";
 import { requireSession } from "../session/require-session";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { requirePermission } from "../permission/require-permission";
 
 export async function userGetApplicationDetails(applicationId: string) {
   const session = await requireSession();
+  const can = await requirePermission({ applications: ["get:own"] });
+
+  if (!can) {
+    return redirect("/unauthorized");
+  }
 
   const application = await prisma.studentApplication.findFirst({
     where: {

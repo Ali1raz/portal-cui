@@ -2,12 +2,19 @@
 "use client";
 
 import { useId, useState, useTransition } from "react";
+import { format } from "date-fns";
+import type { DateRange } from "react-day-picker";
 import type {
   ColumnDef,
   PaginationState,
+  RowSelectionState,
   SortingState,
 } from "@tanstack/react-table";
-import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import {
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import {
   closestCenter,
   DndContext,
@@ -25,13 +32,17 @@ import {
   SortableContext,
 } from "@dnd-kit/sortable";
 import {
+  CalendarIcon,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
   ChevronRight,
+  XIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -39,6 +50,11 @@ import {
   PaginationContent,
   PaginationItem,
 } from "@/components/ui/pagination";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -50,11 +66,13 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { useQueryStates } from "nuqs";
-import { formatDate } from "@/lib/utils";
+import { Department } from "@/lib/generated/prisma/enums";
+import { cn, formatDate } from "@/lib/utils";
 import {
   DragAlongCell,
   DraggableTableHeader,
@@ -68,6 +86,17 @@ import {
 import { APP } from "@/lib/data/utils";
 import { ClerkApplicationListItem } from "@/app/data/clerk/get-clerk-applications";
 import { ClerkApplicationActions } from "./clerk-application-actions";
+import { ClerkApplicationsBulkActions } from "./clerk-applications-bulk-actions";
+
+function toDateKey(value: Date | undefined) {
+  return value ? format(value, "yyyy-MM-dd") : "";
+}
+
+function parseDateKey(value: string) {
+  if (!value) return undefined;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
 
 export function ClerkApplicationsTable({
   applications,
@@ -79,7 +108,9 @@ export function ClerkApplicationsTable({
   "use no memo";
   const tableId = useId();
   const [isPending, startTransition] = useTransition();
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [columnOrder, setColumnOrder] = useState<string[]>([
+    "select",
     "fullName",
     "submittedAt",
     "preferredDepartment",
@@ -104,15 +135,47 @@ export function ClerkApplicationsTable({
     pageSize: queryState.pageSize,
   };
 
+  const submittedDateRange = {
+    from: parseDateKey(queryState.submittedFrom),
+    to: parseDateKey(queryState.submittedTo),
+  } satisfies DateRange;
+
   const hasActiveParams =
     queryState.page !== 1 ||
     queryState.pageSize !== APP.default_page_size ||
     queryState.sortBy !== "submittedAt" ||
     queryState.sortDir !== "desc" ||
     queryState.query.length > 0 ||
-    queryState.status !== null;
+    queryState.status !== null ||
+    queryState.department !== null ||
+    queryState.submittedFrom.length > 0 ||
+    queryState.submittedTo.length > 0;
 
   const columns: ColumnDef<ClerkApplicationListItem>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          size="sm"
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          size="sm"
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       id: "fullName",
       header: "Name",
@@ -206,8 +269,11 @@ export function ClerkApplicationsTable({
       sorting,
       columnOrder,
       pagination,
+      rowSelection,
     },
     onColumnOrderChange: setColumnOrder,
+    enableRowSelection: true,
+    onRowSelectionChange: setRowSelection,
     enableSortingRemoval: false,
     manualPagination: true,
     manualSorting: true,
@@ -233,8 +299,17 @@ export function ClerkApplicationsTable({
     useSensor(KeyboardSensor, {})
   );
 
+  const selectedRows = table.getSelectedRowModel().rows;
+  const selectedStatuses = new Set(
+    selectedRows.map((row) => row.original.status)
+  );
+  const hasUniformSelectedStatus = selectedStatuses.size === 1;
+  const currentSelectedStatus = hasUniformSelectedStatus
+    ? Array.from(selectedStatuses)[0]
+    : undefined;
+
   return (
-    <div className="w-full" aria-busy={isPending}>
+    <div className="w-full space-y-4" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div>
           <Label htmlFor="clerk-applications-search" className="sr-only">
@@ -287,20 +362,105 @@ export function ClerkApplicationsTable({
           </Select>
         </div>
 
-        {hasActiveParams ? (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
+        <div>
+          <Label htmlFor="clerk-applications-department" className="sr-only">
+            Filter by department
+          </Label>
+          <Select
+            value={queryState.department ?? "all"}
+            onValueChange={(value) => {
               startTransition(() => {
-                void setQueryState(null);
+                void setQueryState({
+                  department: value === "all" ? null : (value as Department),
+                  page: 1,
+                });
               });
             }}
           >
-            Clear
-          </Button>
-        ) : null}
+            <SelectTrigger id="clerk-applications-department" className="w-44">
+              <SelectValue placeholder="Filter department" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All departments</SelectItem>
+              {Object.values(Department).map((department) => (
+                <SelectItem key={department} value={department}>
+                  {department}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-64 justify-start text-left font-normal",
+                !submittedDateRange.from && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {submittedDateRange.from ? (
+                submittedDateRange.to ? (
+                  <>
+                    {format(submittedDateRange.from, "LLL dd, y")} -{" "}
+                    {format(submittedDateRange.to, "LLL dd, y")}
+                  </>
+                ) : (
+                  format(submittedDateRange.from, "LLL dd, y")
+                )
+              ) : (
+                <span>Submitted date range</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              autoFocus
+              mode="range"
+              defaultMonth={submittedDateRange.from}
+              selected={submittedDateRange}
+              onSelect={(range) => {
+                startTransition(() => {
+                  void setQueryState({
+                    submittedFrom: range?.from ? toDateKey(range.from) : "",
+                    submittedTo: range?.to ? toDateKey(range.to) : "",
+                    page: 1,
+                  });
+                });
+              }}
+              numberOfMonths={1}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
+      {hasActiveParams ? (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            startTransition(() => {
+              void setQueryState(null);
+            });
+          }}
+        >
+          <XIcon className="size-4" />
+          Clear
+        </Button>
+      ) : null}
+
+      {selectedRows.length > 0 &&
+      hasUniformSelectedStatus &&
+      currentSelectedStatus ? (
+        <ClerkApplicationsBulkActions
+          selectedIds={selectedRows.map((row) => row.original.id)}
+          currentStatus={currentSelectedStatus}
+          onSuccess={() => {
+            setRowSelection({});
+          }}
+        />
+      ) : null}
 
       <div className="rounded-md border">
         <DndContext
@@ -321,12 +481,31 @@ export function ClerkApplicationsTable({
                     items={columnOrder}
                     strategy={horizontalListSortingStrategy}
                   >
-                    {headerGroup.headers.map((header) => (
-                      <DraggableTableHeader<ClerkApplicationListItem>
-                        key={header.id}
-                        header={header}
-                      />
-                    ))}
+                    {headerGroup.headers.map((header) =>
+                      header.column.id === "select" ? (
+                        <TableHead
+                          key={header.id}
+                          className="before:bg-border group relative h-10 border-t before:absolute before:inset-y-0 before:left-0 before:w-px first:before:bg-transparent"
+                          style={{ width: header.column.getSize() }}
+                        >
+                          <div className="flex items-center justify-start gap-0.5">
+                            <span className="grow truncate">
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                            </span>
+                          </div>
+                        </TableHead>
+                      ) : (
+                        <DraggableTableHeader<ClerkApplicationListItem>
+                          key={header.id}
+                          header={header}
+                        />
+                      )
+                    )}
                   </SortableContext>
                 </TableRow>
               ))}
@@ -334,16 +513,34 @@ export function ClerkApplicationsTable({
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <SortableContext
-                        key={cell.id}
-                        items={columnOrder}
-                        strategy={horizontalListSortingStrategy}
-                      >
-                        <DragAlongCell<ClerkApplicationListItem> cell={cell} />
-                      </SortableContext>
-                    ))}
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) =>
+                      cell.column.id === "select" ? (
+                        <TableCell
+                          key={cell.id}
+                          className="truncate"
+                          style={{ width: cell.column.getSize() }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ) : (
+                        <SortableContext
+                          key={cell.id}
+                          items={columnOrder}
+                          strategy={horizontalListSortingStrategy}
+                        >
+                          <DragAlongCell<ClerkApplicationListItem>
+                            cell={cell}
+                          />
+                        </SortableContext>
+                      )
+                    )}
                   </TableRow>
                 ))
               ) : (

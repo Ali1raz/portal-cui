@@ -4,7 +4,10 @@ import {
   parseAsString,
   parseAsStringEnum,
 } from "nuqs/server";
-import { StudentApplicationStatus } from "@/lib/generated/prisma/enums";
+import {
+  Department,
+  StudentApplicationStatus,
+} from "@/lib/generated/prisma/enums";
 import { APP } from "@/lib/data/utils";
 
 export const clerkApplicationsSortByValues = [
@@ -41,6 +44,15 @@ export const clerkApplicationsSearchParamsParsers = {
   status: parseAsStringEnum(
     Object.values(clerkApplicationsStatusValues)
   ).withOptions({ clearOnDefault: true }),
+  department: parseAsStringEnum(Object.values(Department)).withOptions({
+    clearOnDefault: true,
+  }),
+  submittedFrom: parseAsString.withDefault("").withOptions({
+    clearOnDefault: true,
+  }),
+  submittedTo: parseAsString.withDefault("").withOptions({
+    clearOnDefault: true,
+  }),
 };
 
 export const clerkApplicationsSearchParamsCache = createSearchParamsCache(

@@ -1,9 +1,16 @@
 import "server-only";
 import { requireSession } from "../session/require-session";
+import { requirePermission } from "../permission/require-permission";
 import prisma from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 export async function userGetApplications() {
   const session = await requireSession();
+  const can = await requirePermission({ applications: ["list:own"] });
+
+  if (!can) {
+    return redirect("/unauthorized");
+  }
 
   const applications = await prisma.studentApplication.findMany({
     where: {

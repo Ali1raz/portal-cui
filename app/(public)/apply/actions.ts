@@ -1,6 +1,7 @@
 "use server";
 
 import { requireSession } from "@/app/data/session/require-session";
+import { requirePermission } from "@/app/data/permission/require-permission";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
 import { errorMessage } from "@/lib/error-message";
@@ -11,6 +12,14 @@ export async function submitApplication(
   values: ApplyFormSchemaType
 ): Promise<ApiResponseType> {
   const session = await requireSession();
+  const can = await requirePermission({ applications: ["create"] });
+
+  if (!can) {
+    return {
+      status: "error",
+      message: "You are not allowed to create an application.",
+    };
+  }
 
   try {
     const validated = applyFormSchema.safeParse(values);

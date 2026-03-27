@@ -1,6 +1,7 @@
 "use server";
 
 import { requireSession } from "@/app/data/session/require-session";
+import { requirePermission } from "@/app/data/permission/require-permission";
 import { errorMessage } from "@/lib/error-message";
 import {
   ApplicationAction,
@@ -33,6 +34,14 @@ export async function updateMyApplication(
 ): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+    const can = await requirePermission({ applications: ["update:own"] });
+
+    if (!can) {
+      return {
+        status: "error",
+        message: "You are not allowed to update your application.",
+      };
+    }
 
     const parsed = updateMyApplicationPayloadSchema.safeParse({
       applicationId,

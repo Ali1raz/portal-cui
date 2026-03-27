@@ -1,12 +1,15 @@
 "use server";
 
 import { requireSession } from "@/app/data/session/require-session";
+import { requirePermission } from "@/app/data/permission/require-permission";
 import { getStudentRegistrationSeqCount } from "@/app/data/clerk/get-student-registration-seq-count";
 import { errorMessage } from "@/lib/error-message";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
 import { Batch, Department, Program } from "@/lib/generated/prisma/enums";
 import {
+  clerkBulkUpdateApplicationStatusSchema,
+  type ClerkBulkUpdateApplicationStatusInput,
   clerkUpdateApplicationStatusSchema,
   type ClerkUpdateApplicationStatusInput,
 } from "./schemas";
@@ -36,6 +39,14 @@ export async function clerkUpdateApplicationStatus(
 ): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+    const can = await requirePermission({ applications: ["update"] });
+
+    if (!can) {
+      return {
+        status: "error",
+        message: "You are not allowed to update applications.",
+      };
+    }
 
     const { data: parsed, success } =
       clerkUpdateApplicationStatusSchema.safeParse(data);
@@ -182,6 +193,86 @@ export async function clerkUpdateApplicationStatus(
     };
   } catch (error: unknown) {
     console.log(error);
+    return {
+      status: "error",
+      message: errorMessage(error),
+    };
+  }
+}
+
+export async function clerkBulkUpdateApplicationStatus(
+  data: ClerkBulkUpdateApplicationStatusInput
+): Promise<ApiResponseType> {
+  try {
+    await requireSession();
+    const can = await requirePermission({ applications: ["update"] });
+
+    if (!can) {
+      return {
+        status: "error",
+        message: "You are not allowed to update applications.",
+      };
+    }
+
+    const { data: parsed, success } =
+      clerkBulkUpdateApplicationStatusSchema.safeParse(data);
+
+    if (!success) {
+      return {
+        status: "error",
+        message: "Invalid input.",
+      };
+    }
+
+    const uniqueApplicationIds = Array.from(new Set(parsed.applicationIds));
+
+    if (uniqueApplicationIds.length === 0) {
+      return {
+        status: "error",
+        message: "No applications selected.",
+      };
+    }
+
+    let successCount = 0;
+    let failedCount = 0;
+    let firstErrorMessage = "";
+
+    for (const applicationId of uniqueApplicationIds) {
+      const result = await clerkUpdateApplicationStatus({
+        applicationId,
+        status: parsed.status,
+        remarks: parsed.remarks,
+      });
+
+      if (result.status === "success") {
+        successCount += 1;
+      } else {
+        failedCount += 1;
+        if (!firstErrorMessage) {
+          firstErrorMessage = result.message;
+        }
+      }
+    }
+
+    if (successCount === 0) {
+      return {
+        status: "error",
+        message: firstErrorMessage || "No applications were updated.",
+      };
+    }
+
+    if (failedCount > 0) {
+      return {
+        status: "success",
+        message: `Updated ${successCount} ${successCount === 1 ? "application" : "applications"}. ${failedCount} ${failedCount === 1 ? "application was" : "applications were"} skipped.`,
+      };
+    }
+
+    return {
+      status: "success",
+      message: `Successfully updated ${successCount} ${successCount === 1 ? "application" : "applications"}.`,
+    };
+  } catch (error) {
     return {
       status: "error",
       message: errorMessage(error),
