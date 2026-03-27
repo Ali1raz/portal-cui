@@ -4,13 +4,12 @@ import prisma from "@/lib/prisma";
 import { requireSession } from "../session/require-session";
 import { notFound } from "next/navigation";
 
-export async function userGetApplicationDetails(applicationId: string) {
-  const session = await requireSession();
+export async function getClerkApplicationDetails(applicationId: string) {
+  await requireSession();
 
-  const application = await prisma.studentApplication.findFirst({
+  const application = await prisma.studentApplication.findUnique({
     where: {
       id: applicationId,
-      userId: session.user.id,
     },
     select: {
       id: true,
@@ -30,7 +29,6 @@ export async function userGetApplicationDetails(applicationId: string) {
       submittedAt: true,
       createdAt: true,
       updatedAt: true,
-      semesterId: true,
       _count: {
         select: {
           applicationReviews: true,
@@ -59,7 +57,3 @@ export async function userGetApplicationDetails(applicationId: string) {
 
   return application;
 }
-
-export type UserGetApplicationDetailsType = Awaited<
-  ReturnType<typeof userGetApplicationDetails>
->;

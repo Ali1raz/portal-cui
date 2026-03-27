@@ -21,7 +21,7 @@ export async function getCurrentSemester() {
     },
     select: {
       id: true,
-      _count: { select: { registrations: true } },
+      _count: { select: { registrations: true, studentApplications: true } },
       // batch: true,
       semester: true,
       registrationEnd: true,

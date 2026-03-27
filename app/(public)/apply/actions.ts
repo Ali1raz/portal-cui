@@ -109,6 +109,7 @@ export async function submitApplication(
       const prevAttempts = await tx.studentApplication.findFirst({
         where: {
           userId: session.user.id,
+          semesterId: validated.data.semesterId,
         },
         select: {
           attemptNo: true,
@@ -134,6 +135,7 @@ export async function submitApplication(
           userId: session.user.id,
           status: StudentApplicationStatus.PENDING,
           attemptNo: prevAttempts ? prevAttempts.attemptNo + 1 : 1,
+          semesterId: validated.data.semesterId,
         },
         select: {
           id: true,
@@ -144,7 +146,7 @@ export async function submitApplication(
         data: {
           applicationId: id,
           actorId: session.user.id,
-          actorRole: "STUDENT",
+          actorRole: "USER",
           action: "SUBMITTED",
         },
       });

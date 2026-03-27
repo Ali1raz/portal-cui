@@ -7,9 +7,9 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <main className="max-w-5xl mx-auto">
+    <main>
       <HeroHeader />
-      {children}
+      <div className="max-w-5xl mx-auto px-4 md:px-8 mt-32">{children}</div>
       <Footer />
     </main>
   );

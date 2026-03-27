@@ -34,6 +34,8 @@ model User {
   announcements       Announcement[]
   studentApplications StudentApplication[]
 
+  registration Registration?
+
   @@unique([email])
   @@map("user")
 }
@@ -282,11 +284,12 @@ model Semester {
   startDate DateTime
   endDate   DateTime
 
-  registrations Registration[]
+  registrations       Registration[]
+  studentApplications StudentApplication[]
+  subjectOfferings    SubjectOffering[]
 
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  subjectOfferings SubjectOffering[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([semester, year, department, batch]) // ensures no duplicate semesters for same dept+batch
   @@map("semester")
@@ -297,6 +300,9 @@ model StudentApplication {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  semesterId String?
+  semester   Semester? @relation(fields: [semesterId], references: [id], onDelete: Cascade)
 
   fullName            String
   dateOfBirth         DateTime
@@ -322,6 +328,7 @@ model StudentApplication {
   applicationReviews ApplicationReview[]
 
   @@unique([userId, attemptNo])
+  @@index([semesterId]) // for semester-wise application listing
 }
 
 enum Gender {
@@ -344,7 +351,7 @@ model ApplicationReview {
   application   StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   // Who acted
-  actorRole ApplicationActorRole // STUDENT | CLERK
+  actorRole ApplicationActorRole @default(USER) // USER | CLERK
   actorId   String // User.id of the actor
 
   // What happened
@@ -362,7 +369,7 @@ model ApplicationReview {
 }
 
 enum ApplicationActorRole {
-  STUDENT
+  USER
   CLERK
 }
 
@@ -420,6 +427,9 @@ model Registration {
   studentId String
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   status RegistrationStatus @default(PENDING)
 
   semesterId  String?
@@ -430,7 +440,8 @@ model Registration {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([studentId, semesterId])
+  @@unique([studentId, semesterId, userId])
+  @@index([studentId, userId, semesterId])
   @@map("registration")
 }
 

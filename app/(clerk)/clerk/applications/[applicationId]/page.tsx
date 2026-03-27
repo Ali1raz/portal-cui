@@ -1,36 +1,36 @@
-import { userGetApplicationDetails } from "@/app/data/user/user-get-application-details";
+import { getClerkApplicationDetails } from "@/app/data/clerk/get-clerk-application-details";
 import { StudentApplicationStatusBanner } from "@/components/student-applications/student-application-status-banner";
 import { StudentApplicationTimelineItem } from "@/components/student-applications/student-application-timeline-item";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CLERK_APPLICATION_REVIEWABLE_STATUSES } from "@/lib/data/utils";
 import { formatDate } from "@/lib/utils";
 import { IconArrowLeft, IconClockHour4 } from "@tabler/icons-react";
 import Link from "next/link";
 import { Suspense } from "react";
-import { MY_APPLICATION_EDITABLE_STATUSES } from "../my-application-constants";
 
-export default async function MyApplicationDetailsPage(
-  props: PageProps<"/my-applications/[applicationId]">
+export default async function ClerkApplicationDetailsPage(
+  props: PageProps<"/clerk/applications/[applicationId]">
 ) {
   const { applicationId } = await props.params;
 
   return (
-    <main className="py-4 space-y-4 md:space-y-6">
-      <Suspense fallback={<MyApplicationDetailsSkeleton />}>
-        <MyApplicationDetailsContent applicationId={applicationId} />
+    <main className="max-w-5xl w-full px-4 md:px-8 py-4 space-y-4 md:space-y-6">
+      <Suspense fallback={<ClerkApplicationDetailsSkeleton />}>
+        <ClerkApplicationDetailsContent applicationId={applicationId} />
       </Suspense>
     </main>
   );
 }
 
-async function MyApplicationDetailsContent({
+async function ClerkApplicationDetailsContent({
   applicationId,
 }: {
   applicationId: string;
 }) {
-  const details = await userGetApplicationDetails(applicationId);
+  const details = await getClerkApplicationDetails(applicationId);
 
   if (!details) {
     return (
@@ -46,7 +46,9 @@ async function MyApplicationDetailsContent({
 
   const reviews = details.applicationReviews ?? [];
   const reviewCount = details._count?.applicationReviews ?? reviews.length;
-  const canEdit = MY_APPLICATION_EDITABLE_STATUSES.includes(details.status);
+  const canReview = CLERK_APPLICATION_REVIEWABLE_STATUSES.includes(
+    details.status
+  );
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -57,7 +59,7 @@ async function MyApplicationDetailsContent({
           className="text-muted-foreground"
           asChild
         >
-          <Link href="/my-applications">
+          <Link href="/clerk/applications">
             <IconArrowLeft className="size-4" />
             All Applications
           </Link>
@@ -71,10 +73,10 @@ async function MyApplicationDetailsContent({
           Submitted {formatDate(details.submittedAt || details.createdAt)}
         </p>
 
-        {canEdit ? (
+        {canReview ? (
           <Button asChild size="sm" className="mt-2">
-            <Link href={`/my-applications/${applicationId}/edit`}>
-              Edit Application
+            <Link href={`/clerk/applications/${applicationId}/update-status`}>
+              Update Status
             </Link>
           </Button>
         ) : null}
@@ -194,7 +196,7 @@ async function MyApplicationDetailsContent({
                   No activity yet.
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Timeline events appear here as reviewers process your
+                  Timeline events appear here as reviewers process this
                   application.
                 </p>
               </CardContent>
@@ -205,7 +207,6 @@ async function MyApplicationDetailsContent({
                     key={review.id}
                     review={review}
                     isLast={index === reviews.length - 1}
-                    actorLabelOverride={{ USER: "You" }}
                   />
                 ))}
               </CardContent>
@@ -218,18 +219,24 @@ async function MyApplicationDetailsContent({
             <CardHeader>
               <CardTitle className="text-2xl font-bold">Meta</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-xs font-medium">Created</p>
+            <CardContent className="space-y-2">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Created
+              </p>
               <p className="text-sm text-muted-foreground">
                 {formatDate(details.createdAt)}
               </p>
 
-              <p className="text-xs font-medium ">Updated</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mt-3">
+                Updated
+              </p>
               <p className="text-sm text-muted-foreground">
                 {formatDate(details.updatedAt)}
               </p>
 
-              <p className="text-xs font-medium ">Submitted</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mt-3">
+                Submitted
+              </p>
               <p className="text-sm text-muted-foreground">
                 {formatDate(details.submittedAt || details.createdAt)}
               </p>
@@ -241,7 +248,7 @@ async function MyApplicationDetailsContent({
   );
 }
 
-function MyApplicationDetailsSkeleton() {
+function ClerkApplicationDetailsSkeleton() {
   return (
     <div className="space-y-4 md:space-y-6">
       <div className="space-y-3">

@@ -20,45 +20,6 @@ export async function seedSubjects() {
     });
     console.log(`  ✓ Subject: ${subject.name} (${subject.code})`);
   }
-}
 
-export async function seedOfferings() {
-  console.log("\n🗓️ Seeding Offerings...");
-  const currentYear = new Date().getFullYear();
-  const semester = 1; // Default seeding semester
-
-  for (const subject of SEED_SUBJECTS) {
-    // Create an offering for EACH department that offers this subject
-    for (const department of subject.departments) {
-      const primaryDept = department; // Just take the current loop iteration?
-
-      if (department !== subject.departments[0]) continue;
-
-      const offeringId = `offering-${subject.code}-${semester}-${currentYear}`;
-
-      await prisma.subjectOffering.upsert({
-        where: {
-          subjectId_semester_year_department: {
-            subjectId: subject.id,
-            semester,
-            year: currentYear,
-            department: primaryDept,
-          },
-        },
-        update: {
-          totalLectures: 32,
-          department: primaryDept,
-        },
-        create: {
-          id: offeringId,
-          subjectId: subject.id,
-          semester,
-          totalLectures: 32,
-          year: currentYear,
-          department: primaryDept,
-        },
-      });
-      console.log(`  ✓ Offering: ${subject.code} for ${primaryDept}`);
-    }
-  }
+  console.log(`All subjects (${SEED_SUBJECTS.length}) seeded successfully.`);
 }

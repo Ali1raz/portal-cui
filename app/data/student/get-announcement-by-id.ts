@@ -22,7 +22,6 @@ export async function studentGetAnnouncementById(id: string) {
       registrationNo: true,
       registration: {
         select: {
-          batch: true,
           semester: { select: { semester: true, year: true, batch: true } },
         },
       },

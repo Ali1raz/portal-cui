@@ -17,7 +17,7 @@ export default async function RegisterPAge(props: PageProps<"/apply">) {
 
   if (currentSemesters.length === 0) {
     return (
-      <div className="w-full mt-64 min-h-72 flex flex-col items-center gap-4">
+      <div className="w-full min-h-72 flex flex-col items-center gap-4">
         <h1 className="text-3xl font-bold">No registrations Available</h1>
         <p className="text-muted-foreground">
           There are currently no active registrations open.
@@ -28,7 +28,7 @@ export default async function RegisterPAge(props: PageProps<"/apply">) {
 
   if (activeApplications) {
     return (
-      <div className="w-full mt-64 min-h-72 flex flex-col items-center gap-4">
+      <div className="w-full min-h-72 flex flex-col items-center gap-4">
         <h1 className="text-3xl font-bold">
           You already have existing application
         </h1>
@@ -50,7 +50,7 @@ export default async function RegisterPAge(props: PageProps<"/apply">) {
   }
 
   return (
-    <main className="my-32 px-4 max-w-5xl space-y-6 mx-auto">
+    <main className="mb-32 space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Apply for Registeration</h1>
         <p className="text-muted-foreground">
@@ -59,7 +59,7 @@ export default async function RegisterPAge(props: PageProps<"/apply">) {
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
         {currentSemesters.map((semester) => (
-          <a
+          <Link
             href={`/apply?id=${semester.id}`}
             key={semester.id}
             className={cn(
@@ -81,6 +81,12 @@ export default async function RegisterPAge(props: PageProps<"/apply">) {
                   {semester._count.registrations}
                 </span>
               </div>
+              <div className="text-muted-foreground">
+                Applications:{" "}
+                <span className="text-foreground">
+                  {semester._count.studentApplications}
+                </span>
+              </div>
             </div>
             <div className="text-sm dark:text-red-300 text-red-500">
               Closes on{" "}
@@ -88,7 +94,7 @@ export default async function RegisterPAge(props: PageProps<"/apply">) {
                 {formatDate(semester.registrationEnd)}
               </span>
             </div>
-          </a>
+          </Link>
         ))}
       </div>
 

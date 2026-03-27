@@ -9,7 +9,7 @@ import Link from "next/link";
 
 export default async function MyApplicationsPage() {
   return (
-    <main className="mt-40 px-6">
+    <main>
       <div>
         <h1 className="text-3xl font-bold">My Applications</h1>
       </div>
@@ -25,7 +25,7 @@ async function MyApplicationsList() {
 
   if (applications.length === 0) {
     return (
-      <div className="w-full mt-64 min-h-72 flex flex-col items-center gap-4">
+      <div className="w-full min-h-72 flex flex-col items-center gap-4">
         <h1 className="text-3xl font-bold">
           You don&apos;t have submitted any application
         </h1>

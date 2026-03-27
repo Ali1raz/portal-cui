@@ -5,10 +5,6 @@ import {
   Role,
 } from "../../lib/generated/prisma/enums";
 
-export const DEPARTMENTS = Object.values(Department);
-export const BATCHES = Object.values(Batch);
-export const PROGRAMS = Object.values(Program);
-
 export interface SeedUser {
   id: string;
   name: string;

@@ -51,7 +51,9 @@ export default async function RegistrationPage() {
             <div className="flex items-center gap-4">
               <span>Batch:</span>
               <span className="font-semibold text-xl">
-                {data?.registration?.batch}
+                {data?.registration
+                  ?.map((reg) => reg.semester?.batch)
+                  .join(", ")}
               </span>
             </div>
           </div>

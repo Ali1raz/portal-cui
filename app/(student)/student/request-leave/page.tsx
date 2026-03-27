@@ -32,10 +32,16 @@ export default async function LeaveRequestPage() {
           <span>View all leave Requests</span>
           <ArrowUpRightIcon className="size-4 origin-left group-hover:scale-125 transition duration-100" />
         </Link>
-        <div>
+      </div>
+      {subjects.length > 0 ? (
+        <div className="mt-8">
           <LeaveRequestForm subjects={subjects} studentId={studentId} />
         </div>
-      </div>
+      ) : (
+        <div className="mt-8">
+          <p>You are not enrolled in any subjects.</p>
+        </div>
+      )}
     </div>
   );
 }

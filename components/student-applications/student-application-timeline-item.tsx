@@ -63,8 +63,8 @@ const ACTION_CONFIG: Partial<
 };
 
 const ACTOR_LABEL: Record<ApplicationActorRole, string> = {
-  [ApplicationActorRole.STUDENT]: "Student",
-  [ApplicationActorRole.CLERK]: "Clerk",
+  USER: "User",
+  CLERK: "Clerk",
 };
 
 export function StudentApplicationTimelineItem({

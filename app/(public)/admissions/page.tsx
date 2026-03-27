@@ -13,7 +13,7 @@ const variants = {
 
 export default function AdmissionsPage() {
   return (
-    <main className="max-w-5xl mt-32 mx-auto p-4">
+    <main>
       <section className="grid items-center grid-cols-1 gap-10 md:grid-cols-3">
         <div className="space-y-2">
           <TextEffect

@@ -22,7 +22,6 @@ export async function studentGetSidebarAnnouncements() {
       department: true,
       program: true,
       registrationNo: true,
-      registration: { select: { batch: true } },
     },
   });
 

@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function AboutPage() {
   return (
     <div className="min-h-screen">
-      <main className="mx-auto mt-32 max-w-4xl space-y-8 p-4 pb-16">
+      <main className="space-y-8 pb-16">
         <section className="space-y-4">
           <h1 className="md:text-2xl text-xl font-bold text-primary">
             About COMSATS University Islamabad

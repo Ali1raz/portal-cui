@@ -291,7 +291,18 @@ export function getNavLinks({
       },
     ],
     USER: [],
-    CLERK: [],
+    CLERK: [
+      {
+        title: "Dashboard",
+        href: "/clerk",
+        icon: IconLayoutDashboard,
+      },
+      {
+        title: "Applications",
+        href: "/clerk/applications",
+        icon: IconUsers,
+      },
+    ],
   } satisfies Record<Role, NavLink<Route>[]>;
   const roleSpecific = roleLinks[userRole] ?? [];
 
