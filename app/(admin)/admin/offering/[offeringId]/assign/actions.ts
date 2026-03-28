@@ -31,15 +31,34 @@ export async function assignTeacherToOffering(
       };
     }
 
-    await prisma.teachingAssignment.upsert({
-      where: { offeringId },
-      update: {
-        professorId: validated.data.professorId,
-      },
-      create: {
-        offeringId,
-        professorId: validated.data.professorId,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.teachingAssignment.deleteMany({
+        where: {
+          offeringId,
+          section: validated.data.section,
+          professorId: {
+            not: validated.data.professorId,
+          },
+        },
+      });
+
+      await tx.teachingAssignment.upsert({
+        where: {
+          professorId_offeringId_section: {
+            professorId: validated.data.professorId,
+            offeringId,
+            section: validated.data.section,
+          },
+        },
+        update: {
+          section: validated.data.section,
+        },
+        create: {
+          offeringId,
+          professorId: validated.data.professorId,
+          section: validated.data.section,
+        },
+      });
     });
 
     return {

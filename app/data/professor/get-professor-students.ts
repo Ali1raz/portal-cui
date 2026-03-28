@@ -29,15 +29,14 @@ export async function getProfessorSectionStudents({
   }
 
   const [teachingAssignment, totalLectures] = await Promise.all([
-    prisma.teachingAssignment.findUnique({
+    prisma.teachingAssignment.findFirst({
       where: {
-        professorId_offeringId: {
-          offeringId,
-          professorId: professor.id,
-        },
+        offeringId,
+        professorId: professor.id,
       },
       select: {
         id: true,
+        section: true, // ✅ needed to scope student query to the professor's section
       },
     }),
     prisma.attendanceRecord.count({
@@ -56,6 +55,7 @@ export async function getProfessorSectionStudents({
       enrollments: {
         some: {
           offeringId: offeringId,
+          section: teachingAssignment.section,
           offering: {
             teachingAssignments: {
               some: {

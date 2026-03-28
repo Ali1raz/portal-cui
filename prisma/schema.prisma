@@ -270,6 +270,7 @@ model Semester {
   year       Int
   department Department
   batch      Batch
+  program    Program?   @default(B)
 
   registrationStart DateTime // when students can apply
   registrationEnd   DateTime
@@ -404,6 +405,7 @@ model Enrollment {
 }
 
 enum EnrollmentStatus {
+  ENROLLED // student is currently enrolled and attending classes
   PENDING
   APPROVED
   REJECTED
@@ -495,8 +497,8 @@ model TeachingAssignment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([professorId, offeringId]) // no professor can be assigned to the same section 
-  @@unique([offeringId]) // Ensures a section can only have one professor
+  // Ensures a section can only have one professor
+  @@unique([professorId, offeringId, section]) // no professor can be assigned to the same section 
   @@map("teaching_assignment")
 }
 

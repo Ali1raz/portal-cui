@@ -1,6 +1,4 @@
 import { CUILogo } from "@/components/general/cui-logo";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 export default async function VerifyEmail() {
   return (
@@ -18,9 +16,6 @@ export default async function VerifyEmail() {
               email to verify your account and complete your registration.
             </p>
           </div>
-          <Button asChild variant="link">
-            <Link href="/login">Back to login</Link>
-          </Button>
         </div>
       </div>
     </div>

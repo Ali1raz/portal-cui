@@ -41,6 +41,7 @@ export function AdminCreateOfferingForm({
 }: AdminCreateOfferingFormProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const hasEligibleSemesters = semesters.length > 0;
 
   const form = useForm<CreateOfferingSchemaInputType>({
     resolver: zodResolver(createOfferingSchema),
@@ -141,7 +142,7 @@ export function AdminCreateOfferingForm({
                   <SelectContent>
                     {semesters.map((semester) => (
                       <SelectItem key={semester.id} value={semester.id}>
-                        {`Sem ${semester.semester} - ${semester.year} (${semester.department}, ${semester.batch})`}
+                        {`Sem ${semester.semester} - ${semester.batch}-${semester.year} (${semester?.program ?? "B"}${semester.department})`}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -151,13 +152,23 @@ export function AdminCreateOfferingForm({
             )}
           />
         </div>
+
+        {!hasEligibleSemesters ? (
+          <p className="text-sm text-muted-foreground">
+            No active semesters are currently available for offering creation.
+          </p>
+        ) : null}
       </FieldGroup>
 
       <Field orientation="horizontal" className="mt-6 justify-end gap-2">
         <Button type="button" variant="outline" onClick={() => form.reset()}>
           Reset
         </Button>
-        <Button disabled={isPending} type="submit" form="offering-form">
+        <Button
+          disabled={isPending || !hasEligibleSemesters}
+          type="submit"
+          form="offering-form"
+        >
           {isPending ? "Creating..." : "Create offering"}
         </Button>
       </Field>

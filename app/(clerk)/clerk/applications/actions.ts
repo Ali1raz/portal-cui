@@ -139,27 +139,58 @@ export async function clerkUpdateApplicationStatus(
           seq,
         });
 
-        const createdStudent = await tx.student.create({
-          data: {
-            department: application.preferredDepartment,
-            program,
-            registrationNo,
-            user: {
-              connect: {
-                id: application.userId,
-              },
-            },
+        const existingStudent = await tx.student.findUnique({
+          where: {
+            userId: application.userId,
           },
           select: {
             id: true,
           },
         });
 
-        await tx.registration.create({
-          data: {
+        // const c = await prisma.student.findFirst({
+        //   where: {
+        //     registrationNo,
+        //   },
+        //   include: { user: true },
+        // });
+
+        // console.log(c?.user.email);
+
+        const effectiveStudent = existingStudent
+          ? existingStudent
+          : await tx.student.create({
+              data: {
+                department: application.preferredDepartment,
+                program,
+                registrationNo,
+                user: {
+                  connect: {
+                    id: application.userId,
+                  },
+                },
+              },
+              select: {
+                id: true,
+              },
+            });
+
+        // console.log("-=-=---=>", effectiveStudent.id);
+
+        await tx.registration.upsert({
+          where: {
             userId: application.userId,
-            studentId: createdStudent.id,
+          },
+          update: {
+            studentId: effectiveStudent.id,
             semesterId: application.semesterId,
+            status: "APPROVED",
+          },
+          create: {
+            userId: application.userId,
+            studentId: effectiveStudent.id,
+            semesterId: application.semesterId,
+            status: "APPROVED",
           },
         });
       }
@@ -192,7 +223,7 @@ export async function clerkUpdateApplicationStatus(
             : "Application rejected successfully.",
     };
   } catch (error: unknown) {
-    console.log(error);
+    // console.log(error);
     return {
       status: "error",
       message: errorMessage(error),

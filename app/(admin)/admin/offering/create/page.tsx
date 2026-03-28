@@ -2,7 +2,7 @@ import { adminGetOfferingFormData } from "@/app/data/admin/get-offering-form-dat
 import { AdminCreateOfferingForm } from "./_components/create-offering-form";
 
 export default async function CreateOfferingOffer() {
-  const { subjects, semesters } = await adminGetOfferingFormData();
+  const { semesters, subjects } = await adminGetOfferingFormData();
 
   return (
     <div className="w-full max-w-5xl">

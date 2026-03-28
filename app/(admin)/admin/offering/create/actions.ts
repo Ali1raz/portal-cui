@@ -6,8 +6,6 @@ import { ApiResponseType } from "@/lib/types";
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { createOfferingSchema, CreateOfferingSchemaInputType } from "../schema";
 
-/// Create a new subject offering and assign a professor.
-/// Result for offering creation.
 type CreateOfferingResult = ApiResponseType & {
   offeringId?: string;
 };
@@ -33,6 +31,7 @@ export async function createOffering(
     }
 
     const result = validated.data;
+    const now = new Date();
 
     const semester = await prisma.semester.findUnique({
       where: {
@@ -41,6 +40,8 @@ export async function createOffering(
       select: {
         id: true,
         department: true,
+        isActive: true,
+        addDeadline: true,
       },
     });
 
@@ -48,6 +49,20 @@ export async function createOffering(
       return {
         status: "error",
         message: "Selected semester does not exist.",
+      };
+    }
+
+    if (semester.addDeadline < now) {
+      return {
+        status: "error",
+        message: "Deadline has passed already.",
+      };
+    }
+
+    if (!semester.isActive) {
+      return {
+        status: "error",
+        message: "Selected semester is inactive.",
       };
     }
 
@@ -62,7 +77,7 @@ export async function createOffering(
     if (existing) {
       return {
         status: "error",
-        message: "This offering already exists",
+        message: "This offering already exists.",
       };
     }
 

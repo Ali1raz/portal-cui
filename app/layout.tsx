@@ -72,7 +72,7 @@ export default function RootLayout({
           <Toaster
             richColors
             position="top-center"
-            duration={2000}
+            duration={4000}
             swipeDirections={["top", "left"]}
             closeButton
           />

@@ -1,4 +1,6 @@
 import { adminGetSemesters } from "@/app/data/admin/get-semesters";
+import { buttonVariants } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -7,86 +9,73 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/utils";
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { Suspense } from "react";
+import {
+  semesterSearchParamsCache,
+  type SemesterSearchParams,
+} from "./semester-search-params";
+import { SemestersTable } from "./_components/semesters-table";
 
-export default async function SemesterPage() {
-  const { semesters } = await adminGetSemesters();
-
+export default async function SemesterPage(
+  props: PageProps<"/admin/semester">
+) {
   return (
     <div className="@container/main space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Semesters</h1>
+        <h1 className="text-2xl font-bold">Semesters</h1>
         <Link
           href="/admin/semester/create"
           className={buttonVariants({ size: "sm" })}
         >
-          Create New Semester
+          Create Semester
         </Link>
       </div>
 
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Semester</TableHead>
-              <TableHead>Year</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Batch</TableHead>
-              <TableHead>Term Dates</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Registration</TableHead>
-              <TableHead>Enrollment</TableHead>
-              <TableHead>Offerings</TableHead>
-              <TableHead>Registrations</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {semesters.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={10}
-                  className="text-center text-muted-foreground"
-                >
-                  No semesters found.
+      <Suspense fallback={<SemestersTableSkeleton />}>
+        <SemesterList searchParams={props.searchParams} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function SemesterList({
+  searchParams,
+}: {
+  searchParams: PageProps<"/admin/semester">["searchParams"];
+}) {
+  const parsedParams: SemesterSearchParams =
+    await semesterSearchParamsCache.parse(searchParams);
+  const { semesters, totalCount } = await adminGetSemesters(parsedParams);
+
+  return <SemestersTable semesters={semesters} totalCount={totalCount} />;
+}
+
+function SemestersTableSkeleton() {
+  return (
+    <div className="my-2 rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            {Array.from({ length: 10 }).map((_, index) => (
+              <TableHead key={index}>
+                <Skeleton className="h-4 w-24" />
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: 6 }).map((_, rowIndex) => (
+            <TableRow key={rowIndex}>
+              {Array.from({ length: 10 }).map((_, cellIndex) => (
+                <TableCell key={cellIndex}>
+                  <Skeleton className="h-4 w-20" />
                 </TableCell>
-              </TableRow>
-            ) : (
-              semesters.map((semesterItem) => (
-                <TableRow key={semesterItem.id}>
-                  <TableCell>{semesterItem.semester}</TableCell>
-                  <TableCell>{semesterItem.year}</TableCell>
-                  <TableCell>{semesterItem.department}</TableCell>
-                  <TableCell>{semesterItem.batch}</TableCell>
-                  <TableCell>
-                    {formatDate(semesterItem.startDate)} -{" "}
-                    {formatDate(semesterItem.endDate)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={semesterItem.isActive ? "primary" : "secondary"}
-                    >
-                      {semesterItem.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {formatDate(semesterItem.registrationStart)} -{" "}
-                    {formatDate(semesterItem.registrationEnd)}
-                  </TableCell>
-                  <TableCell>
-                    {formatDate(semesterItem.enrollmentStart)} -{" "}
-                    {formatDate(semesterItem.enrollmentEnd)}
-                  </TableCell>
-                  <TableCell>{semesterItem._count.subjectOfferings}</TableCell>
-                  <TableCell>{semesterItem._count.registrations}</TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }

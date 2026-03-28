@@ -39,14 +39,6 @@ export const createSemesterSchema = z
       });
     }
 
-    if (values.registrationStart < values.startDate) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Registration start must be on/after semester start date.",
-        path: ["registrationStart"],
-      });
-    }
-
     if (values.registrationEnd > values.endDate) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
