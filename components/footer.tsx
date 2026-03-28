@@ -18,7 +18,7 @@ const dashboardLinks = [
 //   { href: "#", label: "Privacy" },
 // ];
 
-const socialLinks = [
+export const socialLinks = [
   {
     href: "#",
     label: "X",

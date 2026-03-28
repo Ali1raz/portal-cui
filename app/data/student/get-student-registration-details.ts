@@ -1,6 +1,8 @@
 import "server-only";
+
 import { requireStudentSession } from "./require-student-session";
 import prisma from "@/lib/prisma";
+
 export async function getStudentRegistrationDetails() {
   const session = await requireStudentSession();
 
@@ -49,9 +51,13 @@ export async function getStudentRegistrationDetails() {
       },
       registration: {
         select: {
-          batch: true,
-          semester: true,
-          year: true,
+          semester: {
+            select: {
+              semester: true,
+              year: true,
+              batch: true,
+            },
+          },
           createdAt: true,
         },
       },

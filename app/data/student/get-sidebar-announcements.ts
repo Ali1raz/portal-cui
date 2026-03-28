@@ -22,16 +22,12 @@ export async function studentGetSidebarAnnouncements() {
       department: true,
       program: true,
       registrationNo: true,
-      registration: { select: { batch: true } },
     },
   });
 
   if (!student) {
     return redirect("/unauthorized");
   }
-
-  // Extract batch (FA/SP) and year from registration number (e.g., "FA22-BSE-001")
-  const studentBatch = student.registration?.batch || null;
 
   const yearMatch = student.registrationNo.match(/\d{2}/);
   const studentYear = yearMatch ? 2000 + parseInt(yearMatch[0]) : null;
@@ -46,12 +42,7 @@ export async function studentGetSidebarAnnouncements() {
       {
         OR: [{ targetProgram: null }, { targetProgram: student.program }],
       },
-      {
-        OR: [
-          { targetBatch: null },
-          ...(studentBatch ? [{ targetBatch: studentBatch }] : []),
-        ],
-      },
+
       ...(studentYear
         ? [
             {

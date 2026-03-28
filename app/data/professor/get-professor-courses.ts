@@ -63,7 +63,15 @@ export async function getProfessorSubjects() {
               creditHours: true,
             },
           },
-          semester: true,
+          semester: {
+            select: {
+              id: true,
+              semester: true,
+              year: true,
+              batch: true,
+              department: true,
+            },
+          },
         },
       },
     },

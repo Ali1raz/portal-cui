@@ -61,6 +61,8 @@ import {
 } from "@/components/general/tanstack-table";
 import { useQueryStates } from "nuqs";
 import {
+  offeringBatchValues,
+  OfferingBatch,
   OfferingDepartment,
   offeringDepartmentValues,
   offeringSearchParamsParsers,
@@ -68,13 +70,16 @@ import {
 import Link from "next/link";
 import { UserImage } from "@/components/user/user-image";
 import { APP } from "@/lib/data/utils";
+import { AdminOfferingSemesterOption } from "@/app/data/admin/get-offerings";
 
 export function OfferingsTable({
   offerings,
   totalCount,
+  semesterOptions,
 }: {
   offerings: AdminGetOfferingsType[];
   totalCount: number;
+  semesterOptions: AdminOfferingSemesterOption[];
 }) {
   "use no memo";
   const tableId = useId();
@@ -98,9 +103,10 @@ export function OfferingsTable({
     queryState.sortDir !== "asc" ||
     queryState.query.length > 0 ||
     queryState.department !== null ||
+    queryState.batch !== null ||
+    queryState.semesterId !== null ||
     queryState.semester !== null ||
     queryState.year !== null ||
-    queryState.teacher.length > 0 ||
     queryState.hasTeacher !== "all" ||
     queryState.hasEnrollments !== "all";
 
@@ -119,11 +125,11 @@ export function OfferingsTable({
     {
       id: "semester",
       header: "Semester",
-      accessorFn: (row) => row.semester,
+      accessorFn: (row) => row.semester?.semester,
       cell: ({ row }) => (
         <div className="flex flex-col gap-2">
-          <span>Semester: {row.original.semester}</span>
-          <span>Year: {row.original.year}</span>
+          <span>Semester: {row.original.semester?.semester}</span>
+          <span>Year: {row.original.semester?.year}</span>
         </div>
       ),
       sortUndefined: "last",
@@ -179,16 +185,24 @@ export function OfferingsTable({
       header: "Teacher Assigned",
       accessorFn: (row) => row._count.teachingAssignments,
       cell: ({ row }) => (
-        <div className="text-center">
+        <div>
           {row.original._count.teachingAssignments === 0 ? (
-            <div className="flex items-center justify-center gap-1 text-muted-foreground">
-              <Clock className="size-4" />
-              <span className="text-xs">Not assigned</span>
+            <div className="flex flex-col text-center gap-1">
+              <div className="flex items-center justify-center gap-1 text-muted-foreground">
+                <Clock className="size-4" />
+                <span className="text-xs">Not assigned</span>
+              </div>
+              <Link
+                className="hover:text-primary hover:underline cursor-pointer"
+                href={`/admin/offering/${row.original.id}/assign`}
+              >
+                Assign
+              </Link>
             </div>
           ) : (
             <div className="flex flex-col gap-1">
               {row.original.teachingAssignments.map((assignment, idx) => (
-                <div key={idx} className="flex items-center gap-1">
+                <div key={idx} className="flex items-center gap-2">
                   <UserImage
                     image={assignment.professor.user.image}
                     name={assignment.professor.user.name}
@@ -287,7 +301,6 @@ export function OfferingsTable({
     useSensor(KeyboardSensor, {})
   );
 
-  const semesterOptions = Array.from({ length: 8 }, (_, index) => index + 1);
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from(
     { length: 8 },
@@ -295,7 +308,7 @@ export function OfferingsTable({
   );
 
   return (
-    <div className="max-w-full" aria-busy={isPending}>
+    <div className="max-w-full space-y-4" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div>
           <Label htmlFor="offering-search" className="sr-only">
@@ -303,8 +316,8 @@ export function OfferingsTable({
           </Label>
           <Input
             id="offering-search"
-            className="max-w-[200px]"
-            placeholder="Search by subject name or code"
+            className="w-[300px]"
+            placeholder="Search by subject or teacher"
             value={queryState.query}
             onChange={(event) => {
               const nextValue = event.target.value;
@@ -312,27 +325,6 @@ export function OfferingsTable({
               startTransition(() => {
                 void setQueryState({
                   query: nextValue.trim().length > 0 ? nextValue : null,
-                  page: 1,
-                });
-              });
-            }}
-          />
-        </div>
-        <div>
-          <Label htmlFor="teacher-search" className="sr-only">
-            Search by teacher name
-          </Label>
-          <Input
-            id="teacher-search"
-            className="max-w-[200px]"
-            placeholder="Filter by teacher name"
-            value={queryState.teacher}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-
-              startTransition(() => {
-                void setQueryState({
-                  teacher: nextValue.trim().length > 0 ? nextValue : "",
                   page: 1,
                 });
               });
@@ -364,11 +356,46 @@ export function OfferingsTable({
           </SelectContent>
         </Select>
         <Select
-          value={queryState.semester?.toString() ?? "all"}
+          value={queryState.batch ?? "all"}
           onValueChange={(value) => {
             startTransition(() => {
               void setQueryState({
-                semester: value === "all" ? null : Number(value),
+                batch: value === "all" ? null : (value as OfferingBatch),
+                page: 1,
+              });
+            });
+          }}
+        >
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Batch" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Batches</SelectItem>
+            {offeringBatchValues.map((batch) => (
+              <SelectItem key={batch} value={batch}>
+                {batch}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={queryState.semesterId ?? "all"}
+          onValueChange={(value) => {
+            const selectedSemester = semesterOptions.find(
+              (semesterOption) => semesterOption.id === value
+            );
+
+            startTransition(() => {
+              void setQueryState({
+                semesterId: value === "all" ? null : value,
+                semester: selectedSemester?.semester ?? null,
+                year: selectedSemester?.year ?? null,
+                department:
+                  value === "all" ? null : selectedSemester?.department,
+                batch:
+                  value === "all"
+                    ? null
+                    : (selectedSemester?.batch as OfferingBatch | undefined),
                 page: 1,
               });
             });
@@ -379,9 +406,9 @@ export function OfferingsTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Semesters</SelectItem>
-            {semesterOptions.map((semester) => (
-              <SelectItem key={semester} value={semester.toString()}>
-                {semester}
+            {semesterOptions.map((semesterOption) => (
+              <SelectItem key={semesterOption.id} value={semesterOption.id}>
+                {`Sem ${semesterOption.semester} - ${semesterOption.year} (${semesterOption.department}, ${semesterOption.batch})`}
               </SelectItem>
             ))}
           </SelectContent>
@@ -449,21 +476,21 @@ export function OfferingsTable({
             <SelectItem value="no">No Enrollments</SelectItem>
           </SelectContent>
         </Select>
-        {hasActiveParams ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              startTransition(() => {
-                void setQueryState(null);
-              });
-            }}
-          >
-            Clear Filters
-          </Button>
-        ) : null}
       </div>
+      {hasActiveParams ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            startTransition(() => {
+              void setQueryState(null);
+            });
+          }}
+        >
+          Clear Filters
+        </Button>
+      ) : null}
       <div className="rounded-md border">
         <DndContext
           id={tableId}

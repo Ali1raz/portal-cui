@@ -300,7 +300,7 @@ classDiagram
 
 **Responsibilities**
 
-- `Complaint` owns current state. It is the record that gets updated on each transition. Status flows `BA_PENDING` → (optionally `BA_REVIEW_REQUESTED` if BA needs more info, back to `BA_PENDING` on resubmit) → `HOD_PENDING` → (optionally `HOD_REVIEW_REQUESTED` if HOD needs more info, back to `HOD_PENDING` on resubmit) → `HOD_ACCEPTED`, `HOD_REJECTED`, or `REASSIGNED`. Students may edit or delete the complaint while it remains in `BA_PENDING`, `BA_REVIEW_REQUESTED`, or `BA_REJECTED`.
+- `Complaint` owns current state. It is the record that gets updated on each transition. Status flows `BA_PENDING` → (optionally `BA_REVIEW_REQUESTED` if BA needs more info, back to `BA_PENDING` on resubmit) → `HOD_PENDING` → `HOD_ACCEPTED`, `HOD_REJECTED`, or `ASSIGNED` (when HOD routes to another department). Students may edit or delete the complaint while it remains in `BA_PENDING`, `BA_REVIEW_REQUESTED`, or `BA_REJECTED`.
 - `ComplaintReview` owns history. Nothing in `ComplaintReview` is ever updated — only inserted. The timeline UI reads from this table, not from `Complaint`. Every state transition — including each `REVIEW_REQUESTED` cycle and each student resubmission — creates one immutable row so the full back-and-forth is reconstructable.
 
 ---

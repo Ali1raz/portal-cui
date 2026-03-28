@@ -1,4 +1,8 @@
-import { ComplaintStatus, LeaveStatus } from "../generated/prisma/enums";
+import {
+  ComplaintStatus,
+  LeaveStatus,
+  StudentApplicationStatus,
+} from "../generated/prisma/enums";
 
 export const APP = {
   page_sizes: [5, 10, 20, 50],
@@ -19,3 +23,6 @@ export const EDITABLE_LEAVE_REQUEST_STATUS: LeaveStatus[] = [
   LeaveStatus.PENDING,
   LeaveStatus.REVIEW_REQUESTED,
 ];
+
+export const CLERK_APPLICATION_REVIEWABLE_STATUSES: StudentApplicationStatus[] =
+  ["PENDING", "REVIEW_REQUESTED"];

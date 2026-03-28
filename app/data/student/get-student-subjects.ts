@@ -11,6 +11,11 @@ export async function getStudentSubjects() {
     select: {
       id: true,
       enrollments: {
+        where: {
+          status: {
+            in: ["APPROVED", "PENDING"],
+          },
+        },
         include: {
           offering: {
             select: {
@@ -49,8 +54,10 @@ export async function getStudentSubjects() {
   const results = [];
   for (const enrollment of student.enrollments) {
     const offering = enrollment.offering;
-    const teacher =
-      offering.teachingAssignments[0]?.professor.user.name ?? "TBA";
+    const assignedTeacher = offering.teachingAssignments.find(
+      (assignment) => assignment.section === enrollment.section
+    );
+    const teacher = assignedTeacher?.professor.user.name ?? "TBA";
 
     // Query attendance records for this offering and student
     const attendanceRecords = await prisma.attendanceRecord.findMany({
@@ -80,7 +87,7 @@ export async function getStudentSubjects() {
       name: offering.subject.name,
       creditHours: offering.subject.creditHours,
       teacherName: teacher,
-      className: `${offering.department}-${offering.teachingAssignments[0]?.section ?? "A"}`,
+      className: `${offering.department}-${enrollment.section ?? "A"}`,
       attendancePercentage,
     });
   }

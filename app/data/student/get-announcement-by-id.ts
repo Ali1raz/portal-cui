@@ -20,15 +20,17 @@ export async function studentGetAnnouncementById(id: string) {
       department: true,
       program: true,
       registrationNo: true,
-      registration: { select: { batch: true, year: true } },
+      registration: {
+        select: {
+          semester: { select: { semester: true, year: true, batch: true } },
+        },
+      },
     },
   });
 
   if (!student) {
     return redirect("/unauthorized");
   }
-
-  const studentBatch = student.registration?.batch || null;
 
   const yearMatch = student.registrationNo.match(/\d{2}/);
   const studentYear = yearMatch ? 2000 + parseInt(yearMatch[0]) : null;
@@ -46,12 +48,6 @@ export async function studentGetAnnouncementById(id: string) {
       AND: [
         {
           OR: [{ targetProgram: null }, { targetProgram: student.program }],
-        },
-        {
-          OR: [
-            { targetBatch: null },
-            ...(studentBatch ? [{ targetBatch: studentBatch }] : []),
-          ],
         },
         ...(studentYear
           ? [

@@ -1,22 +1,14 @@
 "use client";
 
 import { AdminOfferingFormSubject } from "@/app/data/admin/get-offering-form-data";
+import { AdminOfferingFormSemester } from "@/app/data/admin/get-offering-form-data";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -27,10 +19,9 @@ import {
 } from "@/components/ui/select";
 import { tryCatch } from "@/hooks/tryCatch";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Department } from "@/lib/generated/prisma/enums";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { createOffering } from "../actions";
 import {
@@ -38,27 +29,25 @@ import {
   CreateOfferingSchemaInputType,
 } from "../../schema";
 
-const semesterOptions = [1, 2, 3, 4, 5, 6, 7, 8];
-
 /// Props for the admin create offering form.
 type AdminCreateOfferingFormProps = {
   subjects: AdminOfferingFormSubject[];
+  semesters: AdminOfferingFormSemester[];
 };
 
 export function AdminCreateOfferingForm({
   subjects,
+  semesters,
 }: AdminCreateOfferingFormProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const year = new Date().getFullYear();
+  const hasEligibleSemesters = semesters.length > 0;
 
   const form = useForm<CreateOfferingSchemaInputType>({
     resolver: zodResolver(createOfferingSchema),
     defaultValues: {
       subjectId: "",
-      department: Department.CS,
-      semester: 1,
-      year,
+      semesterId: "",
       totalLectures: 30,
     },
     mode: "onChange",
@@ -89,148 +78,100 @@ export function AdminCreateOfferingForm({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Create Offering</CardTitle>
-        <CardDescription>
-          Add a new subject offering with department and section details.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="subjectId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subject</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select subject" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {subjects.map((subject) => (
-                          <SelectItem key={subject.id} value={subject.id}>
-                            {subject.name} ({subject.code})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <form id="offering-form" onSubmit={form.handleSubmit(onSubmit)}>
+      <FieldGroup>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Controller
+            control={form.control}
+            name="subjectId"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="offering-form-subject">Subject</FieldLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger id="offering-form-subject" className="w-full">
+                    <SelectValue placeholder="Select subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjects.map((subject) => (
+                      <SelectItem key={subject.id} value={subject.id}>
+                        {subject.name} ({subject.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-              <FormField
-                control={form.control}
-                name="department"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Department</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select department" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.values(Department).map((dept) => (
-                          <SelectItem key={dept} value={dept}>
-                            {dept}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <Controller
+            control={form.control}
+            name="totalLectures"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="offering-form-totalLectures">
+                  Total Lectures
+                </FieldLabel>
+                <Input
+                  id="offering-form-totalLectures"
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={field.value}
+                  onChange={(event) =>
+                    field.onChange(Number(event.target.value))
+                  }
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-              <FormField
-                control={form.control}
-                name="semester"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Semester</FormLabel>
-                    <Select
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      value={String(field.value)}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select semester" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {semesterOptions.map((semester) => (
-                          <SelectItem key={semester} value={String(semester)}>
-                            Semester {semester}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <Controller
+            control={form.control}
+            name="semesterId"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="offering-form-semester">
+                  Semester
+                </FieldLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger id="offering-form-semester" className="w-full">
+                    <SelectValue placeholder="Select semester" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {semesters.map((semester) => (
+                      <SelectItem key={semester.id} value={semester.id}>
+                        {`Sem ${semester.semester} - ${semester.batch}-${semester.year} (${semester?.program ?? "B"}${semester.department})`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
+        </div>
 
-              <FormField
-                control={form.control}
-                name="year"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Year</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="number"
-                        value={field.value as number | string | undefined}
-                        min={2000}
-                        onChange={(event) =>
-                          field.onChange(Number(event.target.value))
-                        }
-                        placeholder="2026"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        {!hasEligibleSemesters ? (
+          <p className="text-sm text-muted-foreground">
+            No active semesters are currently available for offering creation.
+          </p>
+        ) : null}
+      </FieldGroup>
 
-              <FormField
-                control={form.control}
-                name="totalLectures"
-                render={({ field, fieldState }) => (
-                  <FormItem>
-                    <FormLabel>Total Lectures</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="number"
-                        min={1}
-                        step={1}
-                        aria-invalid={fieldState.invalid}
-                        onChange={(event) =>
-                          field.onChange(Number(event.target.value))
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Creating..." : "Create offering"}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+      <Field orientation="horizontal" className="mt-6 justify-end gap-2">
+        <Button type="button" variant="outline" onClick={() => form.reset()}>
+          Reset
+        </Button>
+        <Button
+          disabled={isPending || !hasEligibleSemesters}
+          type="submit"
+          form="offering-form"
+        >
+          {isPending ? "Creating..." : "Create offering"}
+        </Button>
+      </Field>
+    </form>
   );
 }

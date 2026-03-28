@@ -13,9 +13,10 @@ type AdminGetOfferingsParams = Pick<
   | "sortDir"
   | "query"
   | "department"
+  | "batch"
+  | "semesterId"
   | "semester"
   | "year"
-  | "teacher"
   | "hasTeacher"
   | "hasEnrollments"
 >;
@@ -27,9 +28,10 @@ export async function getAdminOfferings({
   sortDir,
   query,
   department,
+  batch,
+  semesterId,
   semester,
   year,
-  teacher,
   hasTeacher,
   hasEnrollments,
 }: AdminGetOfferingsParams) {
@@ -45,7 +47,6 @@ export async function getAdminOfferings({
   const safePageSize = Math.max(pageSize, 1);
   const direction: Prisma.SortOrder = sortDir;
   const trimmedQuery = query.trim();
-  const trimmedTeacher = teacher.trim();
   const where: Prisma.SubjectOfferingWhereInput = {
     ...(trimmedQuery
       ? {
@@ -60,25 +61,25 @@ export async function getAdminOfferings({
                 code: { contains: trimmedQuery, mode: "insensitive" },
               },
             },
+            {
+              teachingAssignments: {
+                some: {
+                  professor: {
+                    user: {
+                      name: { contains: trimmedQuery, mode: "insensitive" },
+                    },
+                  },
+                },
+              },
+            },
           ],
         }
       : {}),
     ...(department ? { department } : {}),
-    ...(typeof semester === "number" ? { semester } : {}),
-    ...(typeof year === "number" ? { year } : {}),
-    ...(trimmedTeacher
-      ? {
-          teachingAssignments: {
-            some: {
-              professor: {
-                user: {
-                  name: { contains: trimmedTeacher, mode: "insensitive" },
-                },
-              },
-            },
-          },
-        }
-      : {}),
+    ...(batch ? { semester: { batch } } : {}),
+    ...(semesterId ? { semesterId } : {}),
+    ...(typeof semester === "number" ? { semester: { semester } } : {}),
+    ...(typeof year === "number" ? { semester: { year } } : {}),
     ...(hasTeacher === "yes"
       ? { teachingAssignments: { some: {} } }
       : hasTeacher === "no"
@@ -93,9 +94,9 @@ export async function getAdminOfferings({
 
   const orderBy: Prisma.SubjectOfferingOrderByWithRelationInput =
     sortBy === "semester"
-      ? { semester: direction }
+      ? { semester: { semester: direction } }
       : sortBy === "year"
-        ? { year: direction }
+        ? { semester: { year: direction } }
         : sortBy === "department"
           ? { department: direction }
           : sortBy === "subject"
@@ -106,9 +107,9 @@ export async function getAdminOfferings({
                 ? { enrollments: { _count: direction } }
                 : sortBy === "teachings"
                   ? { teachingAssignments: { _count: direction } }
-                  : { semester: "asc" };
+                  : { semester: { semester: "asc" } };
 
-  const [offerings, totalCount] = await Promise.all([
+  const [offerings, totalCount, semesterOptions] = await Promise.all([
     prisma.subjectOffering.findMany({
       skip: (safePage - 1) * safePageSize,
       take: safePageSize,
@@ -116,8 +117,12 @@ export async function getAdminOfferings({
       where,
       select: {
         id: true,
-        year: true,
-        semester: true,
+        semester: {
+          select: {
+            semester: true,
+            year: true,
+          },
+        },
         createdAt: true,
         department: true,
         totalLectures: true,
@@ -154,11 +159,25 @@ export async function getAdminOfferings({
       },
     }),
     prisma.subjectOffering.count({ where }),
+    prisma.semester.findMany({
+      orderBy: [{ year: "desc" }, { semester: "desc" }, { createdAt: "desc" }],
+      select: {
+        id: true,
+        semester: true,
+        year: true,
+        department: true,
+        batch: true,
+      },
+    }),
   ]);
 
-  return { offerings, totalCount };
+  return { offerings, totalCount, semesterOptions };
 }
 
 export type AdminGetOfferingsType = Awaited<
   ReturnType<typeof getAdminOfferings>
 >["offerings"][number];
+
+export type AdminOfferingSemesterOption = Awaited<
+  ReturnType<typeof getAdminOfferings>
+>["semesterOptions"][number];

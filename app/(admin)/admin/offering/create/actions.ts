@@ -6,8 +6,6 @@ import { ApiResponseType } from "@/lib/types";
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { createOfferingSchema, CreateOfferingSchemaInputType } from "../schema";
 
-/// Create a new subject offering and assign a professor.
-/// Result for offering creation.
 type CreateOfferingResult = ApiResponseType & {
   offeringId?: string;
 };
@@ -33,35 +31,62 @@ export async function createOffering(
     }
 
     const result = validated.data;
-    const existing = await prisma.subjectOffering.count({
+    const now = new Date();
+
+    const semester = await prisma.semester.findUnique({
       where: {
-        // AND: [
-        //   {
-        year: result.year,
-        department: result.department,
-        semester: result.semester,
-        subjectId: result.subjectId,
-        //   },
-        // ],
+        id: result.semesterId,
+      },
+      select: {
+        id: true,
+        department: true,
+        isActive: true,
+        addDeadline: true,
       },
     });
 
-    console.log(existing);
+    if (!semester) {
+      return {
+        status: "error",
+        message: "Selected semester does not exist.",
+      };
+    }
+
+    if (semester.addDeadline < now) {
+      return {
+        status: "error",
+        message: "Deadline has passed already.",
+      };
+    }
+
+    if (!semester.isActive) {
+      return {
+        status: "error",
+        message: "Selected semester is inactive.",
+      };
+    }
+
+    const existing = await prisma.subjectOffering.count({
+      where: {
+        subjectId: result.subjectId,
+        semesterId: semester.id,
+        department: semester.department,
+      },
+    });
 
     if (existing) {
       return {
         status: "error",
-        message: "This offering already exists",
+        message: "This offering already exists.",
       };
     }
 
     const offering = await prisma.subjectOffering.create({
       data: {
         subjectId: result.subjectId,
-        semester: result.semester,
-        year: result.year,
+        semesterId: semester.id,
         totalLectures: result.totalLectures,
-        department: result.department,
+        department: semester.department,
       },
     });
 

@@ -26,10 +26,14 @@ export async function getSubjectDetails(subjectId: string) {
       offerings: {
         select: {
           id: true,
-          semester: true,
           department: true,
           totalLectures: true,
-          year: true,
+          semester: {
+            select: {
+              semester: true,
+              year: true,
+            },
+          },
           teachingAssignments: {
             // distinct: "section",
             select: {

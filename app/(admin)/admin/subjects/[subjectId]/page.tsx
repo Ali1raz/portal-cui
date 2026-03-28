@@ -60,20 +60,21 @@ export default async function SubjectPAge(
                   <AccordionItem key={offering.id} value={offering.department}>
                     <AccordionTrigger>
                       <h1 className="text-lg font-semibold">
-                        Department: {offering.department} - {offering.semester}{" "}
-                        <span>{offering.year}</span>
+                        Department: {offering.department} -{" "}
+                        {offering.semester?.semester}{" "}
+                        <span>{offering.semester?.year}</span>
                       </h1>
                     </AccordionTrigger>
                     <AccordionContent className="grid grid-cols-2 justify-baseline gap-5">
                       <div className="*:not-first:text-muted-foreground *:not-first:text-sm *:not-first:my-2">
                         <p>Semester </p>
-                        <p>{offering.semester}</p>
+                        <p>{offering.semester?.semester}</p>
                       </div>
                       <div className="*:not-first:text-muted-foreground *:not-first:text-sm *:not-first:my-2">
                         <p>Total Enrollments</p>
                         <p>{offering._count.enrollments}</p>
                       </div>
-                      <div>Year: {offering.year}</div>
+                      <div>Year: {offering.semester?.year}</div>
                       <div className="*:not-first:text-muted-foreground *:not-first:text-sm *:not-first:my-2">
                         <p>Total Lectures</p> <p>{offering.totalLectures}</p>
                       </div>

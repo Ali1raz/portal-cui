@@ -19,8 +19,12 @@ export async function adminGetOfferingAssignData(offeringId: string) {
     select: {
       id: true,
       department: true,
-      semester: true,
-      year: true,
+      semester: {
+        select: {
+          semester: true,
+          year: true,
+        },
+      },
       subject: {
         select: {
           id: true,
@@ -78,8 +82,12 @@ export async function adminGetOfferingAssignData(offeringId: string) {
             select: {
               id: true,
               department: true,
-              semester: true,
-              year: true,
+              semester: {
+                select: {
+                  semester: true,
+                  year: true,
+                },
+              },
               subject: {
                 select: {
                   id: true,

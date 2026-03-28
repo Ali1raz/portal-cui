@@ -1,0 +1,170 @@
+import Image from "next/image";
+
+export default function AboutPage() {
+  return (
+    <div className="min-h-screen">
+      <main className="space-y-8 pb-16">
+        <section className="space-y-4">
+          <h1 className="md:text-2xl text-xl font-bold text-primary">
+            About COMSATS University Islamabad
+          </h1>
+          <div className="relative aspect-video overflow-hidden select-none h-40 w-full">
+            <Image
+              preload
+              src="/graduates.webp"
+              alt="graduates"
+              className="w-full h-auto object-cover hover:scale-105 rounded-lg duration-75 transition-transform"
+              fill
+            />
+          </div>
+          <div className="space-y-3">
+            <h2 className="md:text-2xl text-xl font-semibold">
+              Why Choose CUI?
+            </h2>
+            <p className="text-sm leading-7 text-muted-foreground">
+              COMSATS University Islamabad (CUI), a leading Degree Awarding
+              Institution of higher education in Pakistan, is among the Centers
+              of Excellence of Commission on Science and Technology for
+              Sustainable Development in the South (COMSATS) www.comsats.org.
+            </p>
+
+            <p className="text-sm leading-7 text-muted-foreground">
+              Established in 1998, CUI is one of the fast growing research -
+              based institutions in Pakistan, with a wide range of academic
+              programs (ranging from basic sciences to cutting edge emerging
+              technologies) and a network of inter-disciplinary research centers
+              making it an ideal place for higher studies leading to MS and PhD
+              degrees.
+            </p>
+
+            <p className="text-sm leading-7 text-muted-foreground">
+              Since its establishment, CUI has made multi-faceted growth in
+              terms of campuses (currently it has eight fully functional
+              campuses), number of students, faculty members, academic programs,
+              research output, and public outreach, to accomplish its three-fold
+              stated mission, i.e., Research and Discovery, Teaching and
+              Learning, and Outreach and Public Service, which makes it a
+              popular choice for undergraduate as well as graduate programs.
+              Further, CUI is currently ranked at Number 03 position in General
+              Universities of Pakistan, at Number 01 position in Computer
+              Science and IT and has also been ranked Number 02 in Research
+              Productivity in Pakistan as announced by Higher Education
+              Commission (HEC Ranking 2015, issued in February 2016). Recently,
+              CUI has also been ranked among top 250 Asian Universities as well.
+            </p>
+          </div>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="md:text-2xl text-xl font-semibold">Ranking</h2>
+          <div className="space-y-3">
+            <p className="text-sm leading-7 text-muted-foreground">
+              The Times Higher Education World University Rankings 2019 includes
+              more than 1,250 universities and COMSATS is only University from
+              Pakistan ranked 600-800 in overall ranking. COMSATS is also ranked
+              401-500 in the 2019 THE Computer Science Subject Ranking and
+              ranked 301-400 in the 2019 THE Engineering and Technology Subject
+              Ranking.
+            </p>
+
+            <p className="text-sm leading-7 text-muted-foreground">
+              Academic Ranking of World Universities (ARWU) is considered among
+              the three most authentic and widely revered university rankings
+              besides QS World University Rankings and Times Higher Education
+              World University Rankings. It is published by the Shanghai Ranking
+              consultancy. Only four Pakistani universities made it to the ARWU
+              2018 Rankings, but each remained far away from the elusive top 500
+              club. The top ranked Pakistani university in the list was COMSATS
+              University, placed in the 601-700 band of the ranking.
+            </p>
+
+            <p className="text-sm leading-7 text-muted-foreground">
+              As per QS Universities ranking COMSATS was the second best
+              Pakistani university on the list, claiming a place in the 401-450
+              band in the engineering and technology broad category. The
+              university scored highly for the number of citations per paper and
+              academic reputation.
+            </p>
+
+            <p className="text-sm leading-7 text-muted-foreground">
+              During the last 15 years, CUI has witnessed a phenomenal growth to
+              an extent that it would perhaps not be out of place to say that
+              CUI has been one of the fastest growing educational institutions
+              of the decade. All through these years, various external bodies
+              have evaluated CUI and the quality of its programs, based on very
+              stringent quality and professional standards. The most important
+              independent entities and regulatory bodies evaluating CUI and its
+              programs are the Higher Education Commission (HEC), the Pakistan
+              Engineering Council (PEC), National Computing Education
+              Accreditation Council (NCEAC), and the Institute of Scientific
+              Information (ISI) Web of Knowledge.
+            </p>
+
+            <p className="text-sm leading-7 text-muted-foreground">
+              It is a matter of pride for the CUI that it has been able to
+              record remarkable achievements in terms of ranking of its
+              Engineering degree programs as well as research productivity of
+              the faculty members.
+            </p>
+
+            <p className="text-sm leading-7 text-muted-foreground">
+              The various rankings, year wise are listed below for the interest
+              of CUI stakeholders.
+            </p>
+          </div>
+        </section>
+
+        <section className="space-y-2">
+          <h3 className="text-xl font-semibold">2016</h3>
+          <p className="text-sm leading-7 text-muted-foreground">
+            In February 2016, University Rankings for the year 2015 were
+            announced by HEC. CUI has been ranked at No.3 in the General
+            Category, and at No. 6 in overall universities within Pakistan as
+            ranked by HEC.
+          </p>
+        </section>
+
+        <section className="space-y-2">
+          <h3 className="text-xl font-semibold">2015</h3>
+          <div className="space-y-3">
+            <p className="text-sm leading-7 text-muted-foreground">
+              In May 2015, University Rankings for the year 2014 were announced
+              by HEC. CUI has been ranked at No.2 in the General Category, and
+              at No. 4 in overall universities within Pakistan as ranked by HEC.
+            </p>
+            <p className="text-sm leading-7 text-muted-foreground">
+              CUI earned yet another singular honor in the year 2015 to be first
+              ever Pakistani Higher Education Institution to have successfully
+              crossed the psychological barrier by producing high quality
+              research publications totaling more than 1,000 in a single year.
+              According to the Thomson-Reuters Web of knowledge database, CUI’s
+              research publications amount to 1212. And according to the
+              bibliometric data from Elsevier&apos;s Scopus database, the number
+              of research publications is 1307.
+            </p>
+          </div>
+        </section>
+
+        <section className="space-y-2">
+          <h3 className="text-xl font-semibold">2014</h3>
+          <p className="text-sm leading-7 text-muted-foreground">
+            In May 2014, the CUI attained position in 201-250 range of top Asian
+            Universities by QS Asian University Rankings. In these Asian
+            University Rankings, 10 institutions from Pakistan including CUI are
+            among top 300 in Asia.
+          </p>
+        </section>
+
+        <section className="space-y-2">
+          <h3 className="text-xl font-semibold">2013</h3>
+          <p className="text-sm leading-7 text-muted-foreground">
+            In 2013, Higher Education Commission (HEC) announced Quality and
+            Research based Rankings of Pakistani Higher Education Institutes
+            where CUI has been ranked at number 4 in General Universities
+            (Large) category among all 132 universities of Pakistan.
+          </p>
+        </section>
+      </main>
+    </div>
+  );
+}

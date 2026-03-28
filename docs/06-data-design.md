@@ -42,7 +42,7 @@ The schema is normalized into distinct domains. Tables within each domain are jo
 
 **Complaints**
 
-- `complaint` holds current state. The `targetDepartment` column is mutable — it changes on each reassignment. Status values: `BA_PENDING` → `BA_REVIEW_REQUESTED` (BA requests more info; student resubmits to reset to `BA_PENDING`) → `BA_REJECTED` (student can revise & resubmit or delete) → `HOD_PENDING` (BA accepts) → `HOD_REVIEW_REQUESTED` (HOD requests more info; student resubmits to reset to `HOD_PENDING`) → `HOD_ACCEPTED` (resolved) or `HOD_REJECTED` (workflow ends). `REASSIGNED` is a transient state set when HOD routes to another department; it immediately transitions to `HOD_PENDING` in the receiving department.
+- `complaint` holds current state. The `targetDepartment` column is mutable — it changes on assignment. Status values: `BA_PENDING` → `BA_REVIEW_REQUESTED` (BA requests more info; student resubmits to reset to `BA_PENDING`) → `BA_REJECTED` (student can revise & resubmit or delete) → `HOD_PENDING` (BA accepts) → `HOD_ACCEPTED` (resolved) or `HOD_REJECTED` (workflow ends) or `ASSIGNED` (HOD routes to another department).
 - `complaint_review` is an append-only audit log. Every actor action creates one immutable row with `fromStatus`, `toStatus`, `actorRole`, and `action`. Never updated. This covers all transitions including `REVIEW_REQUESTED` states and resubmissions, making the full edit history reconstructable.
 - `complaint_assignment` is an append-only routing log. Each reassignment creates one row with `fromDepartment` and `toDepartment`.
 

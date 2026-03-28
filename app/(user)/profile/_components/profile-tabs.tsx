@@ -6,14 +6,8 @@ import { motion } from "motion/react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UpdateProfileForm } from "./update-profile-form";
-import { MainTab } from "./main-tab";
 
 const tabs = [
-  {
-    name: "Profile",
-    value: "profile",
-    content: <MainTab />,
-  },
   {
     name: "Update Profile",
     value: "update-profile",

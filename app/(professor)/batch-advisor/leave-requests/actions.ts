@@ -6,7 +6,6 @@ import { errorMessage } from "@/lib/error-message";
 import { LRAction, LeaveStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
-import { revalidatePath } from "next/cache";
 import {
   baUpdateLeaveRequestStatusSchema,
   type BaUpdateLeaveRequestStatusInput,
@@ -128,9 +127,6 @@ export async function baUpdateLeaveRequestStatus(
         },
       }),
     ]);
-
-    revalidatePath("/batch-advisor/leave-requests");
-    revalidatePath(`/batch-advisor/leave-requests/${parsed.leaveRequestId}`);
 
     return {
       status: "success",

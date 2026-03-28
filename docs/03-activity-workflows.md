@@ -68,13 +68,11 @@ Activity diagrams describe the step-by-step process within each system function,
      - Student can revise and resubmit → status resets to `BA_PENDING`, new review log entry created
      - Student can delete instead → complaint removed permanently
    - Accepts → status set to `HOD_PENDING`, review log entry created, student notified
-6. HOD opens the complaints queue, sees all `HOD_PENDING` and `HOD_REVIEW_REQUESTED` complaints targeting their department
-7. HOD reviews each complaint:
-   - Requests more info → status set to `HOD_REVIEW_REQUESTED`, remarks added, student notified; student updates details and resubmits → status resets to `HOD_PENDING`
+
+6. HOD reviews each complaint:
    - Rejects → status set to `HOD_REJECTED`, review log entry created, student notified, workflow ends
    - Accepts → status set to `HOD_ACCEPTED`, review log entry created, student notified, workflow ends
-   - Reassigns → HOD picks a different target department and provides a reason; `targetDepartment` updated, assignment log entry created, status set to `REASSIGNED` then immediately to `HOD_PENDING` in the receiving department
-8. Receiving HOD picks up the reassigned complaint and follows the same review step (step 7)
+   - Assigns → HOD picks a target department and provides a reason; `targetDepartment` updated, assignment log entry created, status set to `ASSIGNED` in the receiving department
 
 ---
 

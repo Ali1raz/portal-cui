@@ -41,6 +41,12 @@ const roleDashboardLinks: Record<Role, RoleDashboardLink<Route> | null> = {
     icon: IconLayoutDashboard,
     role: "BATCH_ADVISOR",
   },
+  CLERK: {
+    title: "Dashboard",
+    href: "/clerk",
+    icon: IconLayoutDashboard,
+    role: "CLERK",
+  },
   HOD: {
     title: "Dashboard",
     href: "/hod",
@@ -264,6 +270,11 @@ export function getNavLinks({
         icon: IconTagPlus,
       },
       {
+        title: "Semesters",
+        href: "/admin/semester",
+        icon: IconCalendar,
+      },
+      {
         title: "Users",
         href: "/admin/users",
         icon: IconUsers,
@@ -280,6 +291,18 @@ export function getNavLinks({
       },
     ],
     USER: [],
+    CLERK: [
+      {
+        title: "Dashboard",
+        href: "/clerk",
+        icon: IconLayoutDashboard,
+      },
+      {
+        title: "Applications",
+        href: "/clerk/applications",
+        icon: IconUsers,
+      },
+    ],
   } satisfies Record<Role, NavLink<Route>[]>;
   const roleSpecific = roleLinks[userRole] ?? [];
 

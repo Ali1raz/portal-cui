@@ -27,6 +27,11 @@ export async function getProfessorSubjectDetails(offeringId: string) {
       section: true,
       offering: {
         include: {
+          semester: {
+            select: {
+              semester: true,
+            },
+          },
           subject: {
             select: { id: true, code: true, name: true, creditHours: true },
           },
@@ -56,7 +61,7 @@ export async function getProfessorSubjectDetails(offeringId: string) {
     totalStudents: enrollments,
     subject: teachingAssignment.offering.subject,
     section: teachingAssignment.section,
-    semester: teachingAssignment.offering.semester,
+    semester: teachingAssignment.offering.semester?.semester,
     pendingLeaveRequests,
   };
 }

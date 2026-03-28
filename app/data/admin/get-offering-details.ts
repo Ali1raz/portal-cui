@@ -34,9 +34,13 @@ export async function adminGetOfferingDetails(offeringId: string) {
           id: true,
           createdAt: true,
           department: true,
-          semester: true,
           totalLectures: true,
-          year: true,
+          semester: {
+            select: {
+              semester: true,
+              year: true,
+            },
+          },
           subject: {
             select: {
               id: true,

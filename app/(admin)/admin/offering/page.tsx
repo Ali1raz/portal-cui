@@ -19,7 +19,7 @@ export default async function OfferingPage(
   return (
     <div className="@container/main">
       <div className="flex items-center justify-between mb-5">
-        <h1 className="text-xl font-bold">All Offerings</h1>
+        <h1 className="text-2xl font-bold">All Subject Offerings</h1>
       </div>
       <Suspense fallback={<OfferingTableSkeleton />}>
         <OfferingList searchParams={props.searchParams} />
@@ -35,9 +35,16 @@ async function OfferingList({
 }) {
   const parsedParams: OfferingSearchParams =
     await offeringSearchParamsCache.parse(searchParams);
-  const { offerings, totalCount } = await getAdminOfferings(parsedParams);
+  const { offerings, totalCount, semesterOptions } =
+    await getAdminOfferings(parsedParams);
 
-  return <OfferingsTable offerings={offerings} totalCount={totalCount} />;
+  return (
+    <OfferingsTable
+      offerings={offerings}
+      totalCount={totalCount}
+      semesterOptions={semesterOptions}
+    />
+  );
 }
 
 function OfferingTableSkeleton() {

@@ -29,7 +29,7 @@ export default async function OfferingIdPage(
 
   return (
     <main className="@container/main">
-      <h1 className="text-lg font-bold mb-4">Offering Details</h1>
+      <h1 className="text-2xl font-bold mb-4">Offering Details</h1>
       <section className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4  *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
         <Card className="@container/card">
           <CardHeader>
@@ -84,9 +84,11 @@ export default async function OfferingIdPage(
                 Department: {offeringDetails?.department}
               </Badge>
               <Badge variant="secondary">
-                Semester: {offeringDetails?.semester}
+                Semester: {offeringDetails?.semester?.semester}
               </Badge>
-              <Badge variant="secondary">Year: {offeringDetails?.year}</Badge>
+              <Badge variant="secondary">
+                Year: {offeringDetails?.semester?.year}
+              </Badge>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

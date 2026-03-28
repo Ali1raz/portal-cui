@@ -99,6 +99,7 @@ Read .github/copilot-instructions for project coding standards.
 - Skip confirmations like "I'll continue..." Lust do it.
 - If a task needs 1 tool call, don't use 3. Plan before acting.
 - Do not summarize what you just did unless the result is ambiguous or you need additional input.
+- Always use descriptive variable names like BALeaveRequestTableSearchParams instead of SearchParams, or BA_Leave_REQUESTS_REVIEWABLE_STATUSES instead of REVIEWABLE_STATUSES.
 
 ## 1. Eliminating Waterfalls
 
