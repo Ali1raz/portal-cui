@@ -25,7 +25,6 @@ import {
   SortableContext,
 } from "@dnd-kit/sortable";
 import {
-  CalendarIcon,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
@@ -38,7 +37,7 @@ import { useQueryStates } from "nuqs";
 
 import type { BaLeaveRequestRow } from "@/app/data/professor/get-ba-leave-requests";
 import { APP } from "@/lib/data/utils";
-import { cn, formatDate, formatEnumLabel } from "@/lib/utils";
+import { formatDate, formatEnumLabel } from "@/lib/utils";
 import {
   DragAlongCell,
   DraggableTableHeader,
@@ -46,7 +45,6 @@ import {
 import { UserImage } from "@/components/user/user-image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -81,6 +79,7 @@ import {
 } from "../leave-requests-search-params";
 import { MiddleTruncateText } from "@/components/general/truncated-text";
 import { RequestActions } from "./request-actions";
+import { TableDateRangeFilter } from "@/components/general/table-date-range-filter";
 
 function toDateKey(value: Date | undefined) {
   return value ? format(value, "yyyy-MM-dd") : "";
@@ -371,49 +370,23 @@ export function BaLeaveRequestsTable({
           </PopoverContent>
         </Popover>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-64 justify-start text-left font-normal",
-                !dateRange.from && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {dateRange.from ? (
-                dateRange.to ? (
-                  <>
-                    {format(dateRange.from, "LLL dd, y")} -{" "}
-                    {format(dateRange.to, "LLL dd, y")}
-                  </>
-                ) : (
-                  format(dateRange.from, "LLL dd, y")
-                )
-              ) : (
-                <span>Pick date range</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              autoFocus
-              mode="range"
-              defaultMonth={dateRange.from}
-              selected={dateRange}
-              onSelect={(range) => {
-                startTransition(() => {
-                  void setQueryState({
-                    dateFrom: range?.from ? toDateKey(range.from) : "",
-                    dateTo: range?.to ? toDateKey(range.to) : "",
-                    page: 1,
-                  });
-                });
-              }}
-              numberOfMonths={1}
-            />
-          </PopoverContent>
-        </Popover>
+        <TableDateRangeFilter
+          value={dateRange}
+          placeholder="Pick date range"
+          calendarProps={{
+            autoFocus: true,
+            numberOfMonths: 1,
+          }}
+          onChange={(range) => {
+            startTransition(() => {
+              void setQueryState({
+                dateFrom: range?.from ? toDateKey(range.from) : "",
+                dateTo: range?.to ? toDateKey(range.to) : "",
+                page: 1,
+              });
+            });
+          }}
+        />
       </div>
 
       {hasActiveParams ? (

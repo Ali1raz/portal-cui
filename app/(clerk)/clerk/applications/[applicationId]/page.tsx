@@ -66,7 +66,7 @@ async function ClerkApplicationDetailsContent({
         </Button>
 
         <h1 className="text-2xl font-bold tracking-tight leading-tight">
-          Application Attempt #{details.attemptNo}
+          Application Details
         </h1>
         <p className="text-sm text-muted-foreground flex items-center gap-1.5">
           <IconClockHour4 className="size-4" />
@@ -94,7 +94,6 @@ async function ClerkApplicationDetailsContent({
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge>{details.status}</Badge>
                 <Badge>{details.preferredDepartment}</Badge>
-                <Badge>Attempt #{details.attemptNo}</Badge>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -32,19 +31,14 @@ import {
   Program,
   Batch,
 } from "@/lib/generated/prisma/enums";
+import { FormDateField } from "@/components/general/form-calendar";
 import { tryCatch } from "@/hooks/tryCatch";
 import Uploader from "@/components/uploader";
 import {
   accountantAnnouncementSchema,
   AccountantAnnouncementSchemaType,
 } from "../../schema";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { AccountantGetAnnouncementForUpdateType } from "@/app/data/accountant/get-announcement-for-update";
 import { accountantUpdateAnnouncement } from "../../actions";
 import { formatEnumLabel } from "@/lib/utils";
@@ -58,9 +52,6 @@ export function UpdateAnnouncementForm({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(
-    announcement.scheduledFor || undefined
-  );
 
   const form = useForm<AccountantAnnouncementSchemaType>({
     resolver: zodResolver(accountantAnnouncementSchema),
@@ -80,11 +71,6 @@ export function UpdateAnnouncementForm({
     mode: "onChange",
   });
 
-  const scheduledFor = useWatch({
-    control: form.control,
-    name: "scheduledFor",
-  });
-
   const status = useWatch({
     control: form.control,
     name: "status",
@@ -102,28 +88,6 @@ export function UpdateAnnouncementForm({
     max.setHours(0, 0, 0, 0);
     return max;
   }, []);
-
-  const setScheduleValue = (date: Date | undefined) => {
-    if (!date) {
-      form.setValue("scheduledFor", null, { shouldValidate: true });
-      return;
-    }
-    const next = new Date(date);
-    next.setHours(0, 0, 0, 0);
-    if (next < today) {
-      form.setError("scheduledFor", {
-        message: "Scheduled date must be in the future.",
-      });
-      return;
-    }
-    if (next > maxScheduleDate) {
-      form.setError("scheduledFor", {
-        message: "Announcements can only be scheduled up to 2 days from now.",
-      });
-      return;
-    }
-    form.setValue("scheduledFor", next, { shouldValidate: true });
-  };
 
   function onSubmit(values: AccountantAnnouncementSchemaType) {
     if (values.status === "SCHEDULED" && !values.scheduledFor) {
@@ -389,57 +353,17 @@ export function UpdateAnnouncementForm({
           )}
         />
 
-        {status === "SCHEDULED" && (
-          <FormField
+        {status === "SCHEDULED" ? (
+          <FormDateField
             control={form.control}
             name="scheduledFor"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Schedule Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span className="text-muted-foreground">
-                            Pick a date
-                          </span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={scheduledDate}
-                      onSelect={(date) => {
-                        setScheduledDate(date);
-                        setScheduleValue(date);
-                      }}
-                      disabled={(date) =>
-                        date < today || date > maxScheduleDate
-                      }
-                    />
-                  </PopoverContent>
-                </Popover>
-
-                {scheduledFor ? (
-                  <p className="text-xs text-muted-foreground">
-                    Scheduled for {scheduledFor.toLocaleDateString()}
-                  </p>
-                ) : null}
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Schedule Date"
+            hint="publish date"
+            calendarProps={{
+              disabled: (date) => date < today || date > maxScheduleDate,
+            }}
           />
-        )}
+        ) : null}
 
         <FormField
           control={form.control}

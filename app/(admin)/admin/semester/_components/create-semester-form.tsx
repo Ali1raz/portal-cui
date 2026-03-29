@@ -6,7 +6,6 @@ import {
   CreateSemesterSchemaInputType,
 } from "@/app/(admin)/admin/semester/schema";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
@@ -15,11 +14,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+
 import {
   Select,
   SelectContent,
@@ -29,80 +24,12 @@ import {
 } from "@/components/ui/select";
 import { tryCatch } from "@/hooks/tryCatch";
 import { Batch, Department } from "@/lib/generated/prisma/enums";
-import { formatDate } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { useTransition } from "react";
 import { toast } from "sonner";
-
-type SemesterDateFieldName =
-  | "startDate"
-  | "endDate"
-  | "registrationStart"
-  | "registrationEnd"
-  | "enrollmentStart"
-  | "enrollmentEnd"
-  | "addDeadline"
-  | "dropDeadline"
-  | "lateDropDeadline";
-
-function SemesterDateField({
-  control,
-  name,
-  label,
-  hint,
-}: {
-  control: ReturnType<typeof useForm<CreateSemesterSchemaInputType>>["control"];
-  name: SemesterDateFieldName;
-  label: string;
-  hint?: string;
-}) {
-  const fieldId = `semester-form-${name}`;
-
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field, fieldState }) => (
-        <Field data-invalid={fieldState.invalid}>
-          <FieldLabel htmlFor={fieldId} className="items-center gap-1.5">
-            <span>{label}</span>
-            {hint ? (
-              <span className="text-xs text-muted-foreground">({hint})</span>
-            ) : null}
-          </FieldLabel>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id={fieldId}
-                type="button"
-                variant="outline"
-                className="w-full justify-between text-left font-normal"
-              >
-                {field.value ? (
-                  formatDate(field.value)
-                ) : (
-                  <span className="text-muted-foreground">Pick a date</span>
-                )}
-                <CalendarIcon className="size-4 opacity-60" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={field.value as Date | undefined}
-                onSelect={(date) => field.onChange(date)}
-              />
-            </PopoverContent>
-          </Popover>
-          <FieldError errors={[fieldState.error]} />
-        </Field>
-      )}
-    />
-  );
-}
+import { FormDateField } from "@/components/general/form-calendar";
 
 export function CreateSemesterForm() {
   const [isPending, startTransition] = useTransition();
@@ -254,55 +181,55 @@ export function CreateSemesterForm() {
             )}
           />
 
-          <SemesterDateField
+          <FormDateField
             control={form.control}
             name="startDate"
             label="Semester Start Date"
             hint="term begins"
           />
-          <SemesterDateField
+          <FormDateField
             control={form.control}
             name="endDate"
             label="Semester End Date"
             hint="term ends"
           />
-          <SemesterDateField
+          <FormDateField
             control={form.control}
             name="registrationStart"
             label="Registration Start"
             hint="students can apply"
           />
-          <SemesterDateField
+          <FormDateField
             control={form.control}
             name="registrationEnd"
             label="Registration End"
             hint="application semester closes"
           />
-          <SemesterDateField
+          <FormDateField
             control={form.control}
             name="enrollmentStart"
             label="Enrollment Start"
             hint="subject selection opens"
           />
-          <SemesterDateField
+          <FormDateField
             control={form.control}
             name="enrollmentEnd"
             label="Enrollment End"
             hint="subject selection deadline"
           />
-          <SemesterDateField
+          <FormDateField
             control={form.control}
             name="addDeadline"
             label="Add Deadline"
             hint="last day to add subject"
           />
-          <SemesterDateField
+          <FormDateField
             control={form.control}
             name="dropDeadline"
             label="Drop Deadline"
             hint="drop without transcript record"
           />
-          <SemesterDateField
+          <FormDateField
             control={form.control}
             name="lateDropDeadline"
             label="Late Drop Deadline"

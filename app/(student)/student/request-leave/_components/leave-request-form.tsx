@@ -2,7 +2,7 @@
 
 import { StudentEnrolledSubject } from "@/app/data/student/get-subjects-enrolled";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { FormDateField } from "@/components/general/form-calendar";
 import {
   Form,
   FormControl,
@@ -12,11 +12,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -28,8 +23,6 @@ import { Textarea } from "@/components/ui/textarea";
 import Uploader from "@/components/uploader";
 import { tryCatch } from "@/hooks/tryCatch";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
@@ -118,59 +111,27 @@ export function LeaveRequestForm({
           )}
         />
 
-        <FormField
+        <FormDateField
           control={form.control}
           name="date"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Date</FormLabel>
+          label="Date"
+          hint="leave date"
+          calendarProps={{
+            disabled: (date) => {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
 
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-left font-normal"
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span className="text-muted-foreground">
-                          Pick a date
-                        </span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
+              const maxDate = new Date();
+              maxDate.setDate(maxDate.getDate() + 4);
+              maxDate.setHours(23, 59, 59, 999);
 
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) => {
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
+              const isPast = date < today;
+              const isTooFar = date > maxDate;
+              const isWeekend = date.getDay() === 0 || date.getDay() === 6;
 
-                      const maxDate = new Date();
-                      maxDate.setDate(maxDate.getDate() + 4); // allow up to 4 days in the future
-                      maxDate.setHours(23, 59, 59, 999);
-
-                      const isPast = date < today;
-                      const isTooFar = date > maxDate;
-                      const isWeekend =
-                        date.getDay() === 0 || date.getDay() === 6;
-
-                      return isPast || isTooFar || isWeekend;
-                    }}
-                  />
-                </PopoverContent>
-              </Popover>
-
-              <FormMessage />
-            </FormItem>
-          )}
+              return isPast || isTooFar || isWeekend;
+            },
+          }}
         />
 
         <FormField

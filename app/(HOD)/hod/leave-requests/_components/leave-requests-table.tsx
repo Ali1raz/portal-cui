@@ -68,17 +68,10 @@ import {
 import { UserImage } from "@/components/user/user-image";
 import { RequestActions } from "./request-actions";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
 import { APP } from "@/lib/data/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LeaveRequestBulkActions } from "./leave-request-bulk-actions";
+import { TableDateRangeFilter } from "@/components/general/table-date-range-filter";
 
 export function LeaveRequestsTable({
   requests,
@@ -318,7 +311,7 @@ export function LeaveRequestsTable({
           </Label>
           <Input
             id="leave-request-search"
-            className="max-w-[250px]"
+            className="max-w-62.5"
             placeholder="Search by student, subject, or reason"
             value={queryState.query}
             onChange={(event) => {
@@ -344,7 +337,7 @@ export function LeaveRequestsTable({
             });
           }}
         >
-          <SelectTrigger className="max-w-[180px]">
+          <SelectTrigger className="max-w-45">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -357,49 +350,26 @@ export function LeaveRequestsTable({
           </SelectContent>
         </Select>
         <div className="flex flex-col gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="justify-start w-[280px]">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {queryState.startDate && queryState.endDate ? (
-                  <span>
-                    {format(new Date(queryState.startDate), "MMM dd, yyyy")} -{" "}
-                    {format(new Date(queryState.endDate), "MMM dd, yyyy")}
-                  </span>
-                ) : queryState.startDate ? (
-                  <span>
-                    From{" "}
-                    {format(new Date(queryState.startDate), "MMM dd, yyyy")}
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground">Pick date range</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="range"
-                numberOfMonths={1}
-                selected={{
-                  from: queryState.startDate
-                    ? new Date(queryState.startDate)
-                    : undefined,
-                  to: queryState.endDate
-                    ? new Date(queryState.endDate)
-                    : undefined,
-                }}
-                onSelect={(range) => {
-                  startTransition(() => {
-                    void setQueryState({
-                      startDate: range?.from ?? null,
-                      endDate: range?.to ?? null,
-                      page: 1,
-                    });
-                  });
-                }}
-              />
-            </PopoverContent>
-          </Popover>
+          <TableDateRangeFilter
+            value={{
+              from: queryState.startDate
+                ? new Date(queryState.startDate)
+                : undefined,
+              to: queryState.endDate ? new Date(queryState.endDate) : undefined,
+            }}
+            className="w-70"
+            placeholder="Pick date range"
+            calendarProps={{ numberOfMonths: 1 }}
+            onChange={(range) => {
+              startTransition(() => {
+                void setQueryState({
+                  startDate: range?.from ?? null,
+                  endDate: range?.to ?? null,
+                  page: 1,
+                });
+              });
+            }}
+          />
         </div>
       </div>
       {hasActiveParams ? (

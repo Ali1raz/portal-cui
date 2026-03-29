@@ -32,7 +32,6 @@ import {
   SortableContext,
 } from "@dnd-kit/sortable";
 import {
-  CalendarIcon,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
@@ -41,7 +40,6 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,11 +48,6 @@ import {
   PaginationContent,
   PaginationItem,
 } from "@/components/ui/pagination";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -72,11 +65,12 @@ import {
 } from "@/components/ui/table";
 import { useQueryStates } from "nuqs";
 import { Department } from "@/lib/generated/prisma/enums";
-import { cn, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import {
   DragAlongCell,
   DraggableTableHeader,
 } from "@/components/general/tanstack-table";
+import { TableDateRangeFilter } from "@/components/general/table-date-range-filter";
 import {
   clerkApplicationsSearchParamsParsers,
   clerkApplicationsStatusValues,
@@ -391,49 +385,23 @@ export function ClerkApplicationsTable({
           </Select>
         </div>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-64 justify-start text-left font-normal",
-                !submittedDateRange.from && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {submittedDateRange.from ? (
-                submittedDateRange.to ? (
-                  <>
-                    {format(submittedDateRange.from, "LLL dd, y")} -{" "}
-                    {format(submittedDateRange.to, "LLL dd, y")}
-                  </>
-                ) : (
-                  format(submittedDateRange.from, "LLL dd, y")
-                )
-              ) : (
-                <span>Submitted date range</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              autoFocus
-              mode="range"
-              defaultMonth={submittedDateRange.from}
-              selected={submittedDateRange}
-              onSelect={(range) => {
-                startTransition(() => {
-                  void setQueryState({
-                    submittedFrom: range?.from ? toDateKey(range.from) : "",
-                    submittedTo: range?.to ? toDateKey(range.to) : "",
-                    page: 1,
-                  });
-                });
-              }}
-              numberOfMonths={1}
-            />
-          </PopoverContent>
-        </Popover>
+        <TableDateRangeFilter
+          value={submittedDateRange}
+          placeholder="Submitted date range"
+          calendarProps={{
+            autoFocus: true,
+            numberOfMonths: 1,
+          }}
+          onChange={(range) => {
+            startTransition(() => {
+              void setQueryState({
+                submittedFrom: range?.from ? toDateKey(range.from) : "",
+                submittedTo: range?.to ? toDateKey(range.to) : "",
+                page: 1,
+              });
+            });
+          }}
+        />
       </div>
       {hasActiveParams ? (
         <Button

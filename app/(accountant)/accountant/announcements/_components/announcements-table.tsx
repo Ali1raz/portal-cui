@@ -1,13 +1,43 @@
 /* eslint-disable react-hooks/incompatible-library */
 "use client";
 
-import * as React from "react";
-import type {
-  ColumnDef,
-  PaginationState,
-  SortingState,
-} from "@tanstack/react-table";
-import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import type { AccountantAnnouncementRow } from "@/app/data/accountant/get-announcements";
+import { TableDateRangeFilter } from "@/components/general/table-date-range-filter";
+import {
+  DragAlongCell,
+  DraggableTableHeader,
+} from "@/components/general/tanstack-table";
+import { MiddleTruncateText } from "@/components/general/truncated-text";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { APP } from "@/lib/data/utils";
+import {
+  AnnouncementStatus,
+  AnnouncementType,
+} from "@/lib/generated/prisma/enums";
+import { formatDate, formatEnumLabel } from "@/lib/utils";
 import {
   closestCenter,
   DndContext,
@@ -24,71 +54,35 @@ import {
   horizontalListSortingStrategy,
   SortableContext,
 } from "@dnd-kit/sortable";
+import type {
+  ColumnDef,
+  PaginationState,
+  SortingState,
+} from "@tanstack/react-table";
+import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { format } from "date-fns";
 import {
   ArrowUpRightFromSquare,
-  CalendarIcon,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
   ChevronRight,
   XIcon,
 } from "lucide-react";
-import { format } from "date-fns";
-import type { DateRange } from "react-day-picker";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-} from "@/components/ui/pagination";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  AnnouncementStatus,
-  AnnouncementType,
-} from "@/lib/generated/prisma/enums";
-import { cn, formatDate, formatEnumLabel } from "@/lib/utils";
 import { useQueryStates } from "nuqs";
+import * as React from "react";
+import type { DateRange } from "react-day-picker";
 import {
+  accountantAnnouncementsSearchParamsParsers,
   announcementAttachmentValues,
   announcementPinnedValues,
-  accountantAnnouncementsSearchParamsParsers,
   type AnnouncementAttachmentFilter,
   type AnnouncementPinnedFilter,
   type AnnouncementSortBy,
 } from "../announcements-search-params";
-import type { AccountantAnnouncementRow } from "@/app/data/accountant/get-announcements";
 import { AccountantAnnouncementDetailsDrawer } from "./accountant-announcement-details-drawer";
-import { MiddleTruncateText } from "@/components/general/truncated-text";
 import { AccountantAnnouncementActions } from "./accountant-announcements-actions";
-import { Checkbox } from "@/components/ui/checkbox";
 import { AccountantAnnouncementsBulkActions } from "./accountant-announcements-bulk-actions";
-import { APP } from "@/lib/data/utils";
-import {
-  DragAlongCell,
-  DraggableTableHeader,
-} from "@/components/general/tanstack-table";
 
 export const statusVariantMap: Record<
   AnnouncementStatus,
@@ -420,7 +414,7 @@ export function AccountantAnnouncementsTable({
   return (
     <div className="w-full" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1 min-w-50">
           <Label htmlFor="announcements-search" className="sr-only">
             Search announcements
           </Label>
@@ -485,39 +479,10 @@ export function AccountantAnnouncementsTable({
           </SelectContent>
         </Select>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-64 justify-start text-left font-normal",
-                !dateRange.from && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {dateRange.from ? (
-                dateRange.to ? (
-                  <>
-                    {format(dateRange.from, "LLL dd, y")} -{" "}
-                    {format(dateRange.to, "LLL dd, y")}
-                  </>
-                ) : (
-                  format(dateRange.from, "LLL dd, y")
-                )
-              ) : (
-                "Pick a date range"
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="range"
-              defaultMonth={dateRange.from}
-              selected={dateRange}
-              onSelect={handleDateRangeChange}
-            />
-          </PopoverContent>
-        </Popover>
+        <TableDateRangeFilter
+          value={dateRange}
+          onChange={handleDateRangeChange}
+        />
 
         <Select
           value={queryState.hasAttachment}

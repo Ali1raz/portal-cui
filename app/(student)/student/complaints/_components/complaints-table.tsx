@@ -20,7 +20,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
-  CalendarIcon,
   XIcon,
   EyeIcon,
 } from "lucide-react";
@@ -29,7 +28,6 @@ import type { DateRange } from "react-day-picker";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -45,11 +43,6 @@ import {
   PaginationContent,
   PaginationItem,
 } from "@/components/ui/pagination";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -86,6 +79,7 @@ import { APP } from "@/lib/data/utils";
 import { StudentComplaintsRow } from "@/app/data/student/get-complaints";
 import { MiddleTruncateText } from "@/components/general/truncated-text";
 import Link from "next/link";
+import { TableDateRangeFilter } from "@/components/general/table-date-range-filter";
 
 function toDateKey(value: Date | undefined) {
   return value ? format(value, "yyyy-MM-dd") : null;
@@ -430,37 +424,13 @@ export function ComplaintsTable({
 
             <div className="flex flex-col gap-2">
               <Label>Created Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="justify-start">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange.from ? (
-                      dateRange.to ? (
-                        <span>
-                          {format(dateRange.from, "MMM dd, yyyy")} -{" "}
-                          {format(dateRange.to, "MMM dd, yyyy")}
-                        </span>
-                      ) : (
-                        <span>
-                          From {format(dateRange.from, "MMM dd, yyyy")}
-                        </span>
-                      )
-                    ) : (
-                      <span className="text-muted-foreground">
-                        Pick date range
-                      </span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="range"
-                    selected={dateRange}
-                    onSelect={handleDateRangeChange}
-                    numberOfMonths={1}
-                  />
-                </PopoverContent>
-              </Popover>
+              <TableDateRangeFilter
+                value={dateRange}
+                className="justify-start"
+                placeholder="Pick date range"
+                calendarProps={{ numberOfMonths: 1 }}
+                onChange={handleDateRangeChange}
+              />
             </div>
 
             <div className="flex flex-col gap-2">

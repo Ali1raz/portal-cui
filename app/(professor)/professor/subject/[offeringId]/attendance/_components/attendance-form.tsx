@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { FormDateField } from "@/components/general/form-calendar";
 import {
   Form,
   FormControl,
@@ -26,9 +27,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { availableTimesForAttendance } from "@/lib/data/attendence-form";
 
@@ -40,7 +38,6 @@ type AttendanceFormProps = {
 
 export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
   const [isPending, startTransition] = useTransition();
-  const [date, setDate] = React.useState<Date | undefined>();
 
   const form = useForm<AttendanceFormSchemaType>({
     resolver: zodResolver(attendanceFormSchema),
@@ -80,23 +77,6 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
 
     return next;
   }, []);
-
-  const setDateValue = (date: Date | undefined) => {
-    if (!date) {
-      form.setValue("date", new Date(), { shouldValidate: true });
-      return;
-    }
-    const next = new Date(date);
-    next.setHours(0, 0, 0, 0);
-    if (next > today) {
-      form.setError("date", {
-        message: "date should be in the past.",
-      });
-      return;
-    }
-
-    form.setValue("date", next, { shouldValidate: true });
-  };
 
   function onSubmit(values: AttendanceFormSchemaType) {
     startTransition(async () => {
@@ -169,52 +149,17 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
                     </FormItem>
                   )}
                 />
-                <FormField
+                <FormDateField
                   control={form.control}
                   name="date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date</FormLabel>
-
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start text-left font-normal"
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span className="text-muted-foreground">
-                                  Pick a date
-                                </span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={date}
-                            onSelect={(date) => {
-                              setDate(date);
-                              setDateValue(date);
-                            }}
-                            disabled={(date) =>
-                              date > today ||
-                              date.getDay() === 0 ||
-                              date.getDay() === 6
-                            }
-                          />
-                        </PopoverContent>
-                      </Popover>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Date"
+                  hint="lecture date"
+                  calendarProps={{
+                    disabled: (date) =>
+                      date > today ||
+                      date.getDay() === 0 ||
+                      date.getDay() === 6,
+                  }}
                 />
                 <div className="grid gap-4 sm:grid-cols-2 grid-cols-1">
                   <FormField

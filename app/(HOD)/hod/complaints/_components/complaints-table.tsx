@@ -29,7 +29,6 @@ import {
   ChevronLast,
   ChevronLeft,
   ChevronRight,
-  CalendarIcon,
   XIcon,
   EyeIcon,
 } from "lucide-react";
@@ -38,7 +37,6 @@ import type { DateRange } from "react-day-picker";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -46,11 +44,6 @@ import {
   PaginationContent,
   PaginationItem,
 } from "@/components/ui/pagination";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -69,7 +62,7 @@ import {
   ComplaintCategory,
   ComplaintStatus,
 } from "@/lib/generated/prisma/enums";
-import { cn, formatDate, formatEnumLabel } from "@/lib/utils";
+import { formatDate, formatEnumLabel } from "@/lib/utils";
 import { useQueryStates } from "nuqs";
 import {
   complaintAttachmentValues,
@@ -87,6 +80,7 @@ import {
 } from "@/components/general/tanstack-table";
 import { UserImage } from "@/components/user/user-image";
 import Link from "next/link";
+import { TableDateRangeFilter } from "@/components/general/table-date-range-filter";
 
 // HOD only sees complaints forwarded by the BA
 const statusOptions: ComplaintStatus[] = [
@@ -344,7 +338,7 @@ export function HodComplaintsTable({
   return (
     <div className="w-full" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1 min-w-50">
           <Label htmlFor="complaints-search" className="sr-only">
             Search complaints
           </Label>
@@ -398,40 +392,10 @@ export function HodComplaintsTable({
           </SelectContent>
         </Select>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-64 justify-start text-left font-normal",
-                !dateRange.from && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {dateRange.from ? (
-                dateRange.to ? (
-                  <>
-                    {format(dateRange.from, "LLL dd, y")} -{" "}
-                    {format(dateRange.to, "LLL dd, y")}
-                  </>
-                ) : (
-                  format(dateRange.from, "LLL dd, y")
-                )
-              ) : (
-                "Pick a date range"
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="range"
-              defaultMonth={dateRange.from}
-              selected={dateRange}
-              onSelect={handleDateRangeChange}
-              //   numberOfMonths={2}
-            />
-          </PopoverContent>
-        </Popover>
+        <TableDateRangeFilter
+          value={dateRange}
+          onChange={handleDateRangeChange}
+        />
 
         <Select
           value={queryState.hasAttachment}

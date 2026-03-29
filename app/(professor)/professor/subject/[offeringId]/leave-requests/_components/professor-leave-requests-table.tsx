@@ -27,7 +27,6 @@ import {
 import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import {
-  CalendarIcon,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
@@ -36,7 +35,6 @@ import {
 import { ProfessorGetLeaveRequests } from "@/app/data/professor/get-leave-requests";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -44,11 +42,6 @@ import {
   PaginationContent,
   PaginationItem,
 } from "@/components/ui/pagination";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -79,6 +72,7 @@ import { UserImage } from "@/components/user/user-image";
 import { MiddleTruncateText } from "@/components/general/truncated-text";
 import { ProfessorLeaveRequestDropdown } from "./leave-requst-actions-dropdown";
 import { APP } from "@/lib/data/utils";
+import { TableDateRangeFilter } from "@/components/general/table-date-range-filter";
 
 /// Props for professor leave requests table.
 type ProfessorLeaveRequestsTableProps = {
@@ -400,82 +394,34 @@ export function ProfessorLeaveRequestsTable({
 
           <div className="flex flex-col gap-2">
             <Label>Leave Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-start">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {leaveDateRange.from ? (
-                    leaveDateRange.to ? (
-                      <span>
-                        {format(leaveDateRange.from, "MMM dd, yyyy")} -{" "}
-                        {format(leaveDateRange.to, "MMM dd, yyyy")}
-                      </span>
-                    ) : (
-                      <span>
-                        From {format(leaveDateRange.from, "MMM dd, yyyy")}
-                      </span>
-                    )
-                  ) : (
-                    <span className="text-muted-foreground">
-                      Pick date range
-                    </span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="range"
-                  selected={leaveDateRange}
-                  onSelect={(range) =>
-                    handleRangeChange(range, {
-                      from: "dateFrom",
-                      to: "dateTo",
-                    })
-                  }
-                  numberOfMonths={1}
-                />
-              </PopoverContent>
-            </Popover>
+            <TableDateRangeFilter
+              value={leaveDateRange}
+              className="justify-start"
+              placeholder="Pick date range"
+              calendarProps={{ numberOfMonths: 1 }}
+              onChange={(range) =>
+                handleRangeChange(range, {
+                  from: "dateFrom",
+                  to: "dateTo",
+                })
+              }
+            />
           </div>
 
           <div className="flex flex-col gap-2">
             <Label>Created At</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-start">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {createdDateRange.from ? (
-                    createdDateRange.to ? (
-                      <span>
-                        {format(createdDateRange.from, "MMM dd, yyyy")} -{" "}
-                        {format(createdDateRange.to, "MMM dd, yyyy")}
-                      </span>
-                    ) : (
-                      <span>
-                        From {format(createdDateRange.from, "MMM dd, yyyy")}
-                      </span>
-                    )
-                  ) : (
-                    <span className="text-muted-foreground">
-                      Pick date range
-                    </span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="range"
-                  selected={createdDateRange}
-                  onSelect={(range) =>
-                    handleRangeChange(range, {
-                      from: "createdFrom",
-                      to: "createdTo",
-                    })
-                  }
-                  numberOfMonths={1}
-                />
-              </PopoverContent>
-            </Popover>
+            <TableDateRangeFilter
+              value={createdDateRange}
+              className="justify-start"
+              placeholder="Pick date range"
+              calendarProps={{ numberOfMonths: 1 }}
+              onChange={(range) =>
+                handleRangeChange(range, {
+                  from: "createdFrom",
+                  to: "createdTo",
+                })
+              }
+            />
           </div>
         </div>
       </div>
