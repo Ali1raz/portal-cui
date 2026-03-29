@@ -51,7 +51,9 @@ export function RegisterForm({
         toast.error(result.message);
       } else if (result.status === "success") {
         toast.success(result.message);
-        router.push("/register/success");
+        router.push(
+          `/register/success?email=${encodeURIComponent(values.email)}`
+        );
       }
     });
   }

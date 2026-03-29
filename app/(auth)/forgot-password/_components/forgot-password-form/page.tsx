@@ -21,7 +21,7 @@ import { requestPasswordReset } from "@/lib/auth-client";
 import Link from "next/link";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please provide a valid email address" }),
+  email: z.email({ message: "Please provide a valid email address" }),
 });
 
 export type FormSchemaType = z.infer<typeof formSchema>;
@@ -53,7 +53,9 @@ export function ForgotPasswordForm({
           },
           onSuccess: () => {
             toast.success("Password reset link sent successfully.");
-            router.push("/forgot-password/success");
+            router.push(
+              `/forgot-password/success?email=${encodeURIComponent(values.email)}`
+            );
           },
         },
       });

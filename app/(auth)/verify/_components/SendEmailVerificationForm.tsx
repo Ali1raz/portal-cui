@@ -18,25 +18,25 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { sendVerificationEmail } from "@/lib/auth-client";
-import Link from "next/link";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please provide a valid email address" }),
+  email: z.email({ message: "Please provide a valid email address" }),
 });
 
 export type FormSchemaType = z.infer<typeof formSchema>;
 
 /// Email verification form that sends verification link to user's email.
 export function SendEmailVerificationForm({
+  initialEmail,
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<"div"> & { initialEmail?: string }) {
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      email: initialEmail ?? "",
     },
   });
 
@@ -53,7 +53,9 @@ export function SendEmailVerificationForm({
           },
           onSuccess: () => {
             toast.success("Email sent successfully");
-            router.push("/verify/success");
+            router.push(
+              `/verify/success?email=${encodeURIComponent(values.email)}`
+            );
           },
         },
       });
@@ -100,16 +102,6 @@ export function SendEmailVerificationForm({
             )}
           </Button>
         </Field>
-
-        <div className="text-center text-sm">
-          Already verified?{" "}
-          <Link
-            href="/login"
-            className="text-primary hover:underline underline-offset-4"
-          >
-            Back to login
-          </Link>
-        </div>
       </div>
     </div>
   );

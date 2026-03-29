@@ -3,11 +3,11 @@ import { redirect } from "next/navigation";
 import { CUILogo } from "@/components/general/cui-logo";
 
 interface iAppProps {
-  searchParams: Promise<{ error: string }>;
+  searchParams: Promise<{ error?: string; email?: string }>;
 }
 
 export default async function VerifyEmail({ searchParams }: iAppProps) {
-  const { error } = await searchParams;
+  const { error, email } = await searchParams;
   if (!error) {
     redirect("/");
   }
@@ -30,7 +30,7 @@ export default async function VerifyEmail({ searchParams }: iAppProps) {
           <h2 className="text-2xl font-bold">Verify your email</h2>
           <p className="text-red-600 dark:text-red-400">{errorMessage}</p>
         </div>
-        <SendEmailVerificationForm />
+        <SendEmailVerificationForm initialEmail={email} />
       </div>
     </div>
   );

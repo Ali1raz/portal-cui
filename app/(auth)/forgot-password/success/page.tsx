@@ -1,8 +1,13 @@
 import { CUILogo } from "@/components/general/cui-logo";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { OpenEmailLink } from "../../_components/open-email-link";
 
-export default function Page() {
+export default async function Page(
+  props: PageProps<"/forgot-password/success">
+) {
+  const searchParams = await props.searchParams;
+  const userEmail =
+    typeof searchParams.email === "string" ? searchParams.email : undefined;
+
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-2xl">
@@ -17,10 +22,8 @@ export default function Page() {
               We&apos;ve sent you a password reset link. Click the link in the
               email to create a new password.
             </p>
+            <OpenEmailLink userEmail={userEmail} />
           </div>
-          <Button asChild variant="link">
-            <Link href="/login">Back to login</Link>
-          </Button>
         </div>
       </div>
     </div>

@@ -1,6 +1,13 @@
 import { CUILogo } from "@/components/general/cui-logo";
+import { OpenEmailLink } from "../../_components/open-email-link";
 
-export default async function VerifyEmail() {
+export default async function VerifyEmail(
+  props: PageProps<"/register/success">
+) {
+  const searchParams = await props.searchParams;
+  const userEmail =
+    typeof searchParams.email === "string" ? searchParams.email : undefined;
+
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-2xl">
@@ -15,6 +22,7 @@ export default async function VerifyEmail() {
               We&apos;ve sent you a verification link. Click the link in the
               email to verify your account and complete your registration.
             </p>
+            <OpenEmailLink userEmail={userEmail} />
           </div>
         </div>
       </div>
