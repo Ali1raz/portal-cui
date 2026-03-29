@@ -55,14 +55,6 @@ export const createSemesterSchema = z
       });
     }
 
-    if (values.enrollmentStart < values.registrationEnd) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Enrollment start must be on/after registration end.",
-        path: ["enrollmentStart"],
-      });
-    }
-
     if (values.enrollmentEnd <= values.enrollmentStart) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
