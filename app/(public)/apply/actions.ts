@@ -7,6 +7,17 @@ import { ApiResponseType } from "@/lib/types";
 import { errorMessage } from "@/lib/error-message";
 import { applyFormSchema, ApplyFormSchemaType } from "../schema";
 import { StudentApplicationStatus } from "@/lib/generated/prisma/enums";
+import { SendEmail } from "@/app/actions/send-email";
+
+function getApplicationTrackingLink(applicationId: string) {
+  const appBaseUrl = process.env.BETTER_AUTH_URL ?? "localhost:3000";
+
+  if (!appBaseUrl) {
+    return `/my-applications/${applicationId}`;
+  }
+
+  return `${appBaseUrl.replace(/\/$/, "")}/my-applications/${applicationId}`;
+}
 
 export async function submitApplication(
   values: ApplyFormSchemaType
@@ -114,7 +125,7 @@ export async function submitApplication(
       };
     }
 
-    await prisma.$transaction(async (tx) => {
+    const applicationId = await prisma.$transaction(async (tx) => {
       const prevAttempts = await tx.studentApplication.findFirst({
         where: {
           userId: session.user.id,
@@ -159,6 +170,17 @@ export async function submitApplication(
           action: "SUBMITTED",
         },
       });
+
+      return id;
+    });
+
+    await SendEmail({
+      to: session.user.email,
+      subject: "Application Submitted Successfully",
+      meta: {
+        description: `Hi ${session.user.name}, your application has been submitted successfully. Use the link below to track your application progress.`,
+        link: getApplicationTrackingLink(applicationId),
+      },
     });
 
     return {

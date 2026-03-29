@@ -14,6 +14,7 @@ import {
   type ClerkUpdateApplicationStatusInput,
 } from "./schemas";
 import { CLERK_APPLICATION_REVIEWABLE_STATUSES } from "@/lib/data/utils";
+import { SendEmail } from "@/app/actions/send-email";
 
 function generateRegNumber({
   batch,
@@ -32,6 +33,26 @@ function generateRegNumber({
   const formattedSeq = String(seq).padStart(3, "0");
 
   return `${batch}${yearTwoDigits}-${program}${department}-${formattedSeq}`;
+}
+
+function getSignInLink() {
+  const appBaseUrl = process.env.BETTER_AUTH_URL || "localhost:3000";
+
+  if (!appBaseUrl) {
+    return "/login";
+  }
+
+  return `${appBaseUrl.replace(/\/$/, "")}/login`;
+}
+
+function getApplicationTrackingLink(applicationId: string) {
+  const appBaseUrl = process.env.BETTER_AUTH_URL || "localhost:3000";
+
+  if (!appBaseUrl) {
+    return `/my-applications/${applicationId}`;
+  }
+
+  return `${appBaseUrl.replace(/\/$/, "")}/my-applications/${applicationId}`;
 }
 
 export async function clerkUpdateApplicationStatus(
@@ -68,6 +89,12 @@ export async function clerkUpdateApplicationStatus(
         semesterId: true,
         userId: true,
         preferredDepartment: true,
+        user: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
       },
     });
 
@@ -148,15 +175,6 @@ export async function clerkUpdateApplicationStatus(
           },
         });
 
-        // const c = await prisma.student.findFirst({
-        //   where: {
-        //     registrationNo,
-        //   },
-        //   include: { user: true },
-        // });
-
-        // console.log(c?.user.email);
-
         const effectiveStudent = existingStudent
           ? existingStudent
           : await tx.student.create({
@@ -212,6 +230,32 @@ export async function clerkUpdateApplicationStatus(
         },
       });
     });
+
+    if (parsed.status === "APPROVED") {
+      await SendEmail({
+        to: application.user.email,
+        subject: "Your Registration Application Is Approved",
+        meta: {
+          description: `Congrats ${application.user.name}, your registration application is approved.`,
+          link: getSignInLink(),
+        },
+      });
+    }
+
+    if (parsed.status === "REVIEW_REQUESTED") {
+      const remarksDescription = parsed.remarks?.trim().length
+        ? `Details: ${parsed.remarks.trim()}`
+        : "Details: Please review your submitted details and update missing information.";
+
+      await SendEmail({
+        to: application.user.email,
+        subject: "Update requested for Your Application",
+        meta: {
+          description: `Hi ${application.user.name}, more information is required for your registration application. ${remarksDescription} Open your application page to track progress and update details.`,
+          link: getApplicationTrackingLink(application.id),
+        },
+      });
+    }
 
     return {
       status: "success",
