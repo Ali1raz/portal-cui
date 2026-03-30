@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { tryCatch } from "@/hooks/tryCatch";
 import { loginSchema, LoginSchemaType } from "@/lib/schema";
@@ -19,10 +19,17 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { authClient, signIn } from "@/lib/auth-client";
-import { Loader2 } from "lucide-react";
+import { Info, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Role } from "@/lib/generated/prisma/enums";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Card,
+  CardAction,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 /// Login form with session refresh after successful auth.
 export function LoginForm({
@@ -30,6 +37,10 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const [isEmailPending, startEmailTransition] = useTransition();
+  const [hintVisible, setHintVisible] = useState(false);
+  const [hintEmail, setHintEmail] = useState("");
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") || "/";
 
   const router = useRouter();
 
@@ -44,18 +55,30 @@ export function LoginForm({
   function onSubmit(values: LoginSchemaType) {
     startEmailTransition(async () => {
       const { data: signInResult, error } = await tryCatch(
-        signIn.email({
-          email: values.email,
-          password: values.password,
-        })
+        signIn.email(
+          {
+            email: values.email,
+            password: values.password,
+            callbackURL: next,
+          },
+          {
+            onSuccess: () => {
+              setHintVisible(false);
+              toast.success("Login successful");
+            },
+          }
+        )
       );
 
       if (error || signInResult?.error) {
         toast.error(signInResult?.error?.message ?? "Invalid credentials");
+        const errorCode = signInResult?.error?.code;
+        if (errorCode === "EMAIL_NOT_VERIFIED") {
+          setHintVisible(true);
+          setHintEmail(values.email);
+        }
         return;
       }
-
-      toast.success("Login successful");
 
       const refreshed = await authClient.getSession({
         query: { disableCookieCache: true },
@@ -66,8 +89,6 @@ export function LoginForm({
         router.push("/director");
       } else if (role === Role.STUDENT) {
         router.push("/student");
-      } else {
-        router.push("/");
       }
     });
   }
@@ -147,6 +168,31 @@ export function LoginForm({
             Register
           </Link>
         </div>
+
+        {hintVisible && (
+          <Card className="mt-6 border rounded">
+            <CardHeader>
+              <CardAction>
+                <Info className="size-8 text-primary animate-pulse" />
+              </CardAction>
+              <CardTitle className="text-xl">
+                Your email is not verified.
+              </CardTitle>
+              <CardDescription>
+                Please request a new verification email from{" "}
+                <Link
+                  href={`/verify?error=email_not_verified${
+                    hintEmail ? `&email=${encodeURIComponent(hintEmail)}` : ""
+                  }`}
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  verify email
+                </Link>{" "}
+                and then sign in again.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )}
       </div>
     </div>
   );
