@@ -125,9 +125,9 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-md border">
-        <div className="p-4 space-y-4 mb-8">
-          <h2 className="text-lg font-semibold">Lecture Details</h2>
+      <div className="overflow-hidden">
+        <div className="space-y-4 mb-8">
+          <h2 className="text-lg font-bold">Lecture Details</h2>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -161,6 +161,7 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
                       date.getDay() === 6,
                   }}
                 />
+
                 <div className="grid gap-4 sm:grid-cols-2 grid-cols-1">
                   <FormField
                     control={form.control}

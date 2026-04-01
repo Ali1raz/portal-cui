@@ -97,7 +97,7 @@ export async function studentGetSubjectsToEnroll() {
 
   return offerings.map((offering) => {
     const studentEnrollment = offering.enrollments[0];
-    const studentSection = studentEnrollment?.section ?? null;
+    const studentSection = studentEnrollment?.section ?? "A";
 
     const sectionMatchedTeacherName = studentSection
       ? offering.teachingAssignments.find(
@@ -113,13 +113,13 @@ export async function studentGetSubjectsToEnroll() {
               `${assignment.professor.user.name} (${assignment.section ?? "A"})`
           )
           .join(", ") || "TBA";
-
+    console.log(studentEnrollment?.status);
     return {
       id: offering.id,
       department: offering.department,
       subject: offering.subject,
       teacherDisplay,
-      enrollStatus: studentEnrollment?.status ?? "NOT_ENROLLED",
+      enrollStatus: studentEnrollment?.status ?? "PENDING",
     };
   });
 }

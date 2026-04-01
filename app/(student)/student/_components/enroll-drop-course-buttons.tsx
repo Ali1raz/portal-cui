@@ -20,7 +20,9 @@ export function EnrollDropCourseButtons({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const canEnroll = ["APPROVED", "DROPPED", "WITHDRAWN"].includes(enrollStatus);
+  const canEnroll = ["APPROVED", "PENDING", "DROPPED", "WITHDRAWN"].includes(
+    enrollStatus
+  );
   const canDrop = ["ENROLLED", "APPROVED"].includes(enrollStatus);
 
   function runEnroll() {
