@@ -1,4 +1,5 @@
 import { getStudentRegistrationDetails } from "@/app/data/student/get-student-registration-details";
+import { formatDate } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -10,59 +11,79 @@ import {
 
 export default async function RegistrationPage() {
   const data = await getStudentRegistrationDetails();
+  const latestRegistration = data?.registration[0];
+
+  if (!data) {
+    return (
+      <div className="@container/main p-4 space-y-4">
+        <h2 className="text-2xl font-bold">Registration Details</h2>
+        <p className="text-sm text-muted-foreground">
+          No registration details found.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="@container/main p-4 space-y-4">
       <h2 className="text-2xl font-bold">Registration Details</h2>
-      <p className="text-sm text-muted-foreground">
-        Your current registration information
+      <p className="text-muted-foreground">
+        Hi{" "}
+        <span className="text-primary underline-offset-4">
+          {data.user.name}
+        </span>
+        , here is your current registration information:
       </p>
+
       <div className="space-y-8">
-        <section className="flex flex-col sm:flex-row gap-4 sm:gap-8">
-          <div className="space-y-4">
-            <div>
-              Hi{" "}
-              <span className="font-semibold text-primary text-xl">
-                {data?.user.name}
-              </span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span>Registration Nr:</span>
-              <span className="font-semibold text-xl">
-                {data?.registrationNo}
-              </span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span>Courses:</span>
-              <span className="font-semibold text-xl">
-                {data?.enrollments.length}
-              </span>
-            </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex items-center gap-4">
+            <span>Registration Nr:</span>
+            <span className="font-semibold text-xl">{data.registrationNo}</span>
           </div>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <span>Program:</span>
-              <span className="font-semibold text-xl">{data?.program}</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span>Department:</span>
-              <span className="font-semibold text-xl">{data?.department}</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span>Batch:</span>
-              <span className="font-semibold text-xl">
-                {data?.registration
-                  ?.map((reg) => reg.semester?.batch)
-                  .join(", ")}
-              </span>
-            </div>
+          <div className="flex items-center gap-4">
+            <span>Email:</span>
+            <span className="font-medium">{data.user.email}</span>
           </div>
-        </section>
+          <div className="flex items-center gap-4">
+            <span>Program:</span>
+            <span className="font-medium">{data.program}</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span>Department:</span>
+            <span className="font-medium">{data.department}</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span>Batch:</span>
+            <span className="font-medium">
+              {data.registration.map((reg) => reg.semester?.batch).join(", ") ||
+                "N/A"}
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span>Semester:</span>
+            <span className="font-medium">
+              {latestRegistration?.semester
+                ? `${latestRegistration.semester.semester} (${latestRegistration.semester.year})`
+                : "N/A"}
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span>Registered At:</span>
+            <span className="font-medium">
+              {latestRegistration?.createdAt
+                ? formatDate(latestRegistration.createdAt)
+                : "N/A"}
+            </span>
+          </div>
+        </div>
 
         {/* Enrollments Table */}
-        {data?.enrollments?.length ? (
+        {data.enrollments.length ? (
           <div className="overflow-auto">
-            <h3 className="font-semibold mb-2 mt-6">Enrolled Subjects</h3>
+            <h3 className="font-semibold mb-2 mt-6">
+              Enrolled Subjects <span>({data.enrollments.length})</span>
+            </h3>
             <Table className="min-w-full border text-sm">
               <TableHeader>
                 <TableRow className="bg-muted">
@@ -70,7 +91,7 @@ export default async function RegistrationPage() {
                   <TableHead>Subject Code</TableHead>
                   <TableHead>Subject Name</TableHead>
                   <TableHead>Credit Hours</TableHead>
-                  <TableHead>Teacher Name</TableHead>
+                  <TableHead>Teacher</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -80,16 +101,14 @@ export default async function RegistrationPage() {
                     <TableCell>{enr.offering.subject.code}</TableCell>
                     <TableCell>{enr.offering.subject.name}</TableCell>
                     <TableCell>{enr.offering.subject.creditHours}</TableCell>
-                    <TableCell>
-                      {enr.offering.teachingAssignments[0]?.professor.user.name}
-                    </TableCell>
+                    <TableCell>{enr.teacherName}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
         ) : (
-          <div>No enrollments found.</div>
+          <div>No active enrollments found.</div>
         )}
       </div>
     </div>

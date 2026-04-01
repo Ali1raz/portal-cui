@@ -44,7 +44,7 @@ export async function enrollCourse(
       };
     }
 
-    // const now = new Date();
+    const now = new Date();
 
     const offering = await prisma.subjectOffering.findUnique({
       where: { id: offeringId },
@@ -68,15 +68,15 @@ export async function enrollCourse(
       };
     }
 
-    // if (
-    //   offering.semester.enrollmentStart > now ||
-    //   offering.semester.enrollmentEnd < now
-    // ) {
-    //   return {
-    //     status: "error",
-    //     message: "Enrollment window is closed for this course.",
-    //   };
-    // }
+    if (
+      offering.semester.enrollmentStart > now ||
+      offering.semester.enrollmentEnd < now
+    ) {
+      return {
+        status: "error",
+        message: "Enrollment window is closed for this course.",
+      };
+    }
 
     const approvedRegistration = await prisma.registration.findFirst({
       where: {
@@ -106,7 +106,8 @@ export async function enrollCourse(
 
     if (
       existingEnrollment &&
-      (existingEnrollment.status === EnrollmentStatus.APPROVED ||
+      (existingEnrollment.status === EnrollmentStatus.ENROLLED ||
+        existingEnrollment.status === EnrollmentStatus.APPROVED ||
         existingEnrollment.status === EnrollmentStatus.PENDING ||
         existingEnrollment.status === EnrollmentStatus.COMPLETED)
     ) {

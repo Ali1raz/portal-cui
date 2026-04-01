@@ -125,6 +125,12 @@ async function ClerkApplicationDetailsContent({
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
+                    Email
+                  </p>
+                  <p className="font-medium">{details.user.email}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
                     City
                   </p>
                   <p className="font-medium">{details.city}</p>

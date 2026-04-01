@@ -19,6 +19,11 @@ export async function getClerkApplicationDetails(applicationId: string) {
       id: true,
       status: true,
       attemptNo: true,
+      user: {
+        select: {
+          email: true,
+        },
+      },
       fullName: true,
       dateOfBirth: true,
       gender: true,

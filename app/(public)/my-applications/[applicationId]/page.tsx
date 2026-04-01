@@ -44,6 +44,18 @@ async function MyApplicationDetailsContent({
     );
   }
 
+  if (!details) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <p className="text-center text-muted-foreground">
+            Application not found
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const reviews = details.applicationReviews ?? [];
   const reviewCount = details._count?.applicationReviews ?? reviews.length;
   const canEdit = MY_APPLICATION_EDITABLE_STATUSES.includes(details.status);

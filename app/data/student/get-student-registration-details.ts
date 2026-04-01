@@ -22,7 +22,13 @@ export async function getStudentRegistrationDetails() {
         },
       },
       enrollments: {
+        where: {
+          status: {
+            in: ["ENROLLED", "APPROVED", "PENDING"],
+          },
+        },
         select: {
+          section: true,
           offering: {
             select: {
               subject: {
@@ -34,11 +40,13 @@ export async function getStudentRegistrationDetails() {
               },
               teachingAssignments: {
                 select: {
+                  section: true,
                   professor: {
                     select: {
                       user: {
                         select: {
                           name: true,
+                          image: true,
                         },
                       },
                     },
@@ -50,6 +58,9 @@ export async function getStudentRegistrationDetails() {
         },
       },
       registration: {
+        orderBy: {
+          createdAt: "desc",
+        },
         select: {
           semester: {
             select: {
@@ -64,7 +75,26 @@ export async function getStudentRegistrationDetails() {
     },
   });
 
-  return data;
+  if (!data) {
+    return null;
+  }
+
+  const enrollmentsWithTeacher = data.enrollments.map((enrollment) => {
+    const enrollmentSection = enrollment.section ?? "A";
+    const assignedTeacher = enrollment.offering.teachingAssignments.find(
+      (assignment) => (assignment.section ?? "A") === enrollmentSection
+    );
+
+    return {
+      ...enrollment,
+      teacherName: assignedTeacher?.professor.user.name ?? "TBA",
+    };
+  });
+
+  return {
+    ...data,
+    enrollments: enrollmentsWithTeacher,
+  };
 }
 
 export type StudentRegistrationDetails = Awaited<

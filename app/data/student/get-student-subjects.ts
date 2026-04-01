@@ -13,7 +13,7 @@ export async function getStudentSubjects() {
       enrollments: {
         where: {
           status: {
-            in: ["APPROVED", "PENDING"],
+            in: ["ENROLLED", "APPROVED", "PENDING"],
           },
         },
         include: {
