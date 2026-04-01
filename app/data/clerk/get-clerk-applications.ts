@@ -92,16 +92,27 @@ export async function getClerkApplications({
     ...(submittedDateRangeFilter ?? {}),
   };
 
-  const orderBy: Prisma.StudentApplicationOrderByWithRelationInput =
+  const submittedAtOrderBy: Prisma.StudentApplicationOrderByWithRelationInput[] =
+    direction === "asc"
+      ? [{ submittedAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }]
+      : [
+          { submittedAt: { sort: "desc", nulls: "last" } },
+          { createdAt: "desc" },
+        ];
+
+  const orderBy: Prisma.StudentApplicationOrderByWithRelationInput[] =
     sortBy === "fullName"
-      ? { fullName: direction }
+      ? [{ fullName: direction }]
       : sortBy === "preferredDepartment"
-        ? { preferredDepartment: direction }
+        ? [{ preferredDepartment: direction }]
         : sortBy === "status"
-          ? { status: direction }
+          ? [{ status: direction }]
           : sortBy === "submittedAt"
-            ? { submittedAt: direction }
-            : { submittedAt: "desc" };
+            ? submittedAtOrderBy
+            : [
+                { submittedAt: { sort: "desc", nulls: "last" } },
+                { createdAt: "desc" },
+              ];
 
   const [applications, totalCount] = await Promise.all([
     prisma.studentApplication.findMany({

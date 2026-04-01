@@ -1,4 +1,5 @@
 import { CUILogo } from "@/components/general/cui-logo";
+import { SignOutButton } from "@/components/general/signout-button";
 import Link from "next/link";
 
 export default function ClerkLayou({
@@ -17,6 +18,7 @@ export default function ClerkLayou({
           <div className="flex items-center gap-4">
             <Link href={"/clerk/applications"}>Applications</Link>
             <Link href={"/profile"}>Profile</Link>
+            <SignOutButton />
           </div>
         </header>
       </nav>
