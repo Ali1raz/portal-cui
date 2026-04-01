@@ -44,16 +44,21 @@ export function RegisterForm({
 
   function onSubmit(values: RegisterSchemaType) {
     startEmailTransition(async () => {
+      console.log("===>>", callbackUrl);
       const { error } = await tryCatch(
         authClient.signUp.email({
           name: values.name,
           email: values.email,
           password: values.password,
           image: `https://avatar.vercel.sh/${values.email.split("@")[0]}`,
-          callbackURL: callbackUrl || "/register/success",
           fetchOptions: {
             onError: (ctx) => {
               toast.error(ctx.error.message);
+            },
+            onSuccess: () => {
+              toast.success(
+                "Registeration successful! Please check your email for verification link."
+              );
             },
           },
         })

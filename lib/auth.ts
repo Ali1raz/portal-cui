@@ -7,13 +7,20 @@ import prisma from "./prisma";
 
 import { admin } from "better-auth/plugins";
 import { roles } from "./permissions";
-import { getBaseURL } from "./base-path";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  baseURL: getBaseURL(),
+  baseURL: {
+    allowedHosts: [
+      process.env.BETTER_AUTH_URL!,
+      "*.vercel.app", // All Vercel previews
+      "localhost:*", // Local development all ports
+    ],
+    fallback: "localhost:3000",
+    protocol: process.env.NODE_ENV === "development" ? "http" : "https",
+  },
 
   emailAndPassword: {
     enabled: true,
@@ -54,7 +61,7 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       const link = new URL(url);
-      link.searchParams.set("callbackURL", "/");
+      link.searchParams.set("from", "/");
 
       if (process.env.NODE_ENV === "production") {
         await SendEmail({
