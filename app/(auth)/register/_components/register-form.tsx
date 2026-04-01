@@ -12,14 +12,15 @@ import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { Controller } from "react-hook-form";
 import { registerSchema, RegisterSchemaType } from "@/lib/schema";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { tryCatch } from "@/hooks/tryCatch";
 import { toast } from "sonner";
 import { useTransition } from "react";
-import { signUp } from "../../actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
+import { Route } from "next";
+import { authClient } from "@/lib/auth-client";
 
 /// Register form with account creation and redirect to success page.
 export function RegisterForm({
@@ -28,6 +29,9 @@ export function RegisterForm({
 }: React.ComponentProps<"div">) {
   const [isEmailPending, startEmailTransition] = useTransition();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Get the original route where user came from
+  const callbackUrl = searchParams.get("from");
 
   const form = useForm<RegisterSchemaType>({
     resolver: zodResolver(registerSchema),
@@ -40,21 +44,31 @@ export function RegisterForm({
 
   function onSubmit(values: RegisterSchemaType) {
     startEmailTransition(async () => {
-      const { data: result, error } = await tryCatch(signUp(values));
+      const { error } = await tryCatch(
+        authClient.signUp.email({
+          name: values.name,
+          email: values.email,
+          password: values.password,
+          image: `https://avatar.vercel.sh/${values.email.split("@")[0]}`,
+          callbackURL: callbackUrl || "/register/success",
+          fetchOptions: {
+            onError: (ctx) => {
+              toast.error(ctx.error.message);
+            },
+          },
+        })
+      );
 
       if (error) {
         toast.error("Something bad happened");
         return;
       }
 
-      if (result.status === "error") {
-        toast.error(result.message);
-      } else if (result.status === "success") {
-        toast.success(result.message);
-        router.push(
-          `/register/success?email=${encodeURIComponent(values.email)}`
-        );
-      }
+      const successUrl = `/register/success?email=${encodeURIComponent(values.email)}${
+        callbackUrl ? `&from=${encodeURIComponent(callbackUrl)}` : ""
+      }`;
+
+      router.push(successUrl as Route);
     });
   }
 

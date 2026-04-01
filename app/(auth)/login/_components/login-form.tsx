@@ -23,6 +23,7 @@ import { Info, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Role } from "@/lib/generated/prisma/enums";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getDashboardRedirectPath } from "@/lib/get-dashboard-redirect-path";
 import {
   Card,
   CardAction,
@@ -30,6 +31,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Route } from "next";
 
 /// Login form with session refresh after successful auth.
 export function LoginForm({
@@ -40,9 +42,11 @@ export function LoginForm({
   const [hintVisible, setHintVisible] = useState(false);
   const [hintEmail, setHintEmail] = useState("");
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/";
 
   const router = useRouter();
+
+  // Get the full callback URL with search params preserved
+  const callbackUrl = searchParams.get("from");
 
   const form = useForm<LoginSchemaType>({
     resolver: zodResolver(loginSchema),
@@ -55,19 +59,10 @@ export function LoginForm({
   function onSubmit(values: LoginSchemaType) {
     startEmailTransition(async () => {
       const { data: signInResult, error } = await tryCatch(
-        signIn.email(
-          {
-            email: values.email,
-            password: values.password,
-            callbackURL: next,
-          },
-          {
-            onSuccess: () => {
-              setHintVisible(false);
-              toast.success("Login successful");
-            },
-          }
-        )
+        signIn.email({
+          email: values.email,
+          password: values.password,
+        })
       );
 
       if (error || signInResult?.error) {
@@ -80,16 +75,15 @@ export function LoginForm({
         return;
       }
 
+      setHintVisible(false);
+      toast.success("Login successful");
+
       const refreshed = await authClient.getSession({
         query: { disableCookieCache: true },
       });
       const role = refreshed?.data?.user?.role as Role | undefined;
-
-      if (role === Role.DIRECTOR) {
-        router.push("/director");
-      } else if (role === Role.STUDENT) {
-        router.push("/student");
-      }
+      const redirectUrl = callbackUrl || getDashboardRedirectPath(role);
+      router.push(redirectUrl as Route);
     });
   }
 
@@ -162,7 +156,9 @@ export function LoginForm({
         <div className="text-center text-sm">
           Don&apos;t have an account?{" "}
           <Link
-            href="/register"
+            href={
+              `/register${callbackUrl ? `?from=${encodeURIComponent(callbackUrl)}` : ""}` as Route
+            }
             className="text-primary hover:underline underline-offset-4"
           >
             Register

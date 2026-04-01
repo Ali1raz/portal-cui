@@ -5,7 +5,7 @@ import { cn, formatDate } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 
-export default async function RegisterPAge(props: PageProps<"/apply">) {
+export default async function ApplyPage(props: PageProps<"/apply">) {
   const searchParams = await props.searchParams;
   const id = Array.isArray(searchParams.id)
     ? searchParams.id[0]

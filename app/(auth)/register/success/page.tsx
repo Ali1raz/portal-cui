@@ -22,7 +22,9 @@ export default async function VerifyEmail(
               We&apos;ve sent you a verification link. Click the link in the
               email to verify your account and complete your registration.
             </p>
-            <OpenEmailLink userEmail={userEmail} />
+            {userEmail?.includes("gmail.com") && (
+              <OpenEmailLink userEmail={userEmail} />
+            )}
           </div>
         </div>
       </div>
