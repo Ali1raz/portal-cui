@@ -8,7 +8,6 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +18,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
+import { PasswordInput } from "../../../../components/general/password-input";
 
 const formSchema = z
   .object({
@@ -88,9 +88,8 @@ export function ResetPasswordForm({
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor={field.name}>New Password</FieldLabel>
-                  <Input
+                  <PasswordInput
                     {...field}
-                    type="password"
                     id={field.name}
                     aria-invalid={fieldState.invalid}
                     autoComplete="new-password"
@@ -108,9 +107,8 @@ export function ResetPasswordForm({
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor={field.name}>Confirm Password</FieldLabel>
-                  <Input
+                  <PasswordInput
                     {...field}
-                    type="password"
                     id={field.name}
                     aria-invalid={fieldState.invalid}
                     autoComplete="new-password"

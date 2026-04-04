@@ -21,6 +21,7 @@ import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { Route } from "next";
 import { authClient } from "@/lib/auth-client";
+import { PasswordInput } from "../../../../components/general/password-input";
 
 /// Register form with account creation and redirect to success page.
 export function RegisterForm({
@@ -126,11 +127,10 @@ export function RegisterForm({
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                  <Input
+                  <PasswordInput
                     {...field}
                     id={field.name}
                     aria-invalid={fieldState.invalid}
-                    type="password"
                     autoComplete="new-password"
                   />
                   {fieldState.invalid && (

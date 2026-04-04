@@ -32,6 +32,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Route } from "next";
+import { PasswordInput } from "../../../../components/general/password-input";
 
 /// Login form with session refresh after successful auth.
 export function LoginForm({
@@ -126,11 +127,11 @@ export function LoginForm({
                       Forgot password?
                     </Link>
                   </div>
-                  <Input
+                  <PasswordInput
                     {...field}
                     id={field.name}
                     aria-invalid={fieldState.invalid}
-                    type="password"
+                    autoComplete="current-password"
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
