@@ -5,6 +5,7 @@ import { requireSession } from "@/app/data/session/require-session";
 import { errorMessage } from "@/lib/error-message";
 import { AnnouncementStatus } from "@/lib/generated/prisma/enums";
 import { inngest } from "@/lib/inngest/client";
+import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
 import { adminAnnouncementSchema, AdminAnnouncementSchemaType } from "./schema";
@@ -15,6 +16,14 @@ export async function adminCreateAnnouncement(
 ): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
 
     const can = await requirePermission({
       announcements: ["create"],
@@ -119,6 +128,14 @@ export async function adminUpdateAnnouncement(
   try {
     const session = await requireSession();
 
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
+
     const can = await requirePermission({
       announcements: ["update"],
     });
@@ -221,7 +238,15 @@ export async function adminDeleteAnnouncement(
   id: string
 ): Promise<ApiResponseType> {
   try {
-    await requireSession();
+    const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
 
     const can = await requirePermission({
       announcements: ["delete"],
@@ -266,7 +291,15 @@ export async function adminBulkDeleteAnnouncements(
   ids: string[]
 ): Promise<ApiResponseType> {
   try {
-    await requireSession();
+    const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
 
     const can = await requirePermission({
       announcements: ["delete"],

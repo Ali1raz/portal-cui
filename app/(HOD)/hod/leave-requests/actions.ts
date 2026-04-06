@@ -2,6 +2,7 @@
 
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireSession } from "@/app/data/session/require-session";
+import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 import { LeaveStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
@@ -12,6 +13,16 @@ export async function bulkUpdateLeaveRequestStatus(
   status: LeaveStatus
 ): Promise<ApiResponseType> {
   try {
+    const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
+
     const can = await requirePermission({
       leaveRequest: ["update"],
     });
@@ -59,6 +70,14 @@ export async function updateStatus(
 ): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
 
     const can = await requirePermission({
       leaveRequest: ["update"],

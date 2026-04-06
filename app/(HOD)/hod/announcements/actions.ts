@@ -5,6 +5,7 @@ import { requireSession } from "@/app/data/session/require-session";
 import { errorMessage } from "@/lib/error-message";
 import { AnnouncementStatus } from "@/lib/generated/prisma/enums";
 import { inngest } from "@/lib/inngest/client";
+import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
 import { announcementSchema, AnnouncementSchemaType } from "./schema";
@@ -14,6 +15,14 @@ export async function hodCreateAnnouncement(
 ): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
 
     const can = await requirePermission({
       announcements: ["create"],
@@ -114,6 +123,14 @@ export async function hodUpdateAnnouncement(
 ): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
 
     const can = await requirePermission({
       announcements: ["update"],
@@ -329,6 +346,14 @@ export async function hodBulkUpdateAnnouncementStatus(
 ): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
 
     const can = await requirePermission({
       announcements: ["update"],

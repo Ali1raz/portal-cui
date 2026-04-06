@@ -45,7 +45,6 @@ export function RegisterForm({
 
   function onSubmit(values: RegisterSchemaType) {
     startEmailTransition(async () => {
-      console.log("===>>", callbackUrl);
       const { error } = await tryCatch(
         authClient.signUp.email({
           name: values.name,

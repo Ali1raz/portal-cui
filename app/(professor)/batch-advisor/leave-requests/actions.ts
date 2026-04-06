@@ -2,6 +2,7 @@
 
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireSession } from "@/app/data/session/require-session";
+import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 import { errorMessage } from "@/lib/error-message";
 import { LRAction, LeaveStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
@@ -11,19 +12,16 @@ import {
   type BaUpdateLeaveRequestStatusInput,
 } from "./schemas";
 
-const BA_REVIEWABLE_STATUSES: LeaveStatus[] = [
-  LeaveStatus.PENDING,
-  LeaveStatus.REVIEW_REQUESTED,
-];
+const BA_REVIEWABLE_STATUSES: LeaveStatus[] = ["PENDING", "REVIEW_REQUESTED"];
 
 function mapActionByStatus(status: LeaveStatus): LRAction {
-  if (status === LeaveStatus.HOD_PENDING) {
-    return LRAction.BA_APPROVED;
+  if (status === "HOD_PENDING") {
+    return "BA_APPROVED";
   }
-  if (status === LeaveStatus.REVIEW_REQUESTED) {
-    return LRAction.BA_REVIEW_REQUESTED;
+  if (status === "REVIEW_REQUESTED") {
+    return "BA_REVIEW_REQUESTED";
   }
-  return LRAction.BA_REJECTED;
+  return "BA_REJECTED";
 }
 
 export async function baUpdateLeaveRequestStatus(
@@ -32,14 +30,17 @@ export async function baUpdateLeaveRequestStatus(
   try {
     const session = await requireSession();
 
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
+
     const can = await requirePermission({
       leaveRequest: ["update"],
     });
-
-    console.log(
-      "BA update leave request - permission check result:",
-      session.user.role
-    );
 
     if (!can) {
       return {
@@ -99,8 +100,8 @@ export async function baUpdateLeaveRequestStatus(
 
     if (
       !BA_REVIEWABLE_STATUSES.includes(parsed.status as LeaveStatus) &&
-      parsed.status !== LeaveStatus.HOD_PENDING &&
-      parsed.status !== LeaveStatus.REJECTED
+      parsed.status !== "HOD_PENDING" &&
+      parsed.status !== "REJECTED"
     ) {
       return {
         status: "error",
@@ -131,9 +132,9 @@ export async function baUpdateLeaveRequestStatus(
     return {
       status: "success",
       message:
-        parsed.status === LeaveStatus.HOD_PENDING
+        parsed.status === "HOD_PENDING"
           ? "Request forwarded to HOD successfully."
-          : parsed.status === LeaveStatus.REVIEW_REQUESTED
+          : parsed.status === "REVIEW_REQUESTED"
             ? "Student has been asked to provide more information."
             : "Leave request rejected successfully.",
     };

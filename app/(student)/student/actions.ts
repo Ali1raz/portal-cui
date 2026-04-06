@@ -2,6 +2,7 @@
 
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireStudentSession } from "@/app/data/student/require-student-session";
+import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 import { EnrollmentStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
@@ -20,6 +21,14 @@ export async function enrollCourse(
 ): Promise<ApiResponseType> {
   try {
     const session = await requireStudentSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
 
     const can = await requirePermission({
       subjectOfferings: ["enroll"],
@@ -151,6 +160,14 @@ export async function enrollCourse(
 export async function dropCourse(offeringId: string): Promise<ApiResponseType> {
   try {
     const session = await requireStudentSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
 
     const can = await requirePermission({
       subjectOfferings: ["list"],

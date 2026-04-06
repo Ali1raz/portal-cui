@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 import { headers } from "next/headers";
 import { requireSession } from "@/app/data/session/require-session";
 import { ApiResponseType } from "@/lib/types";
@@ -11,6 +12,14 @@ export async function updateProfileAction(
   currentUserId: string
 ): Promise<ApiResponseType> {
   const { user } = await requireSession();
+
+  const deniedMessage = await getArcjetDeniedMessage(user.id);
+  if (deniedMessage) {
+    return {
+      status: "error",
+      message: deniedMessage,
+    };
+  }
 
   try {
     if (user.id !== currentUserId) {

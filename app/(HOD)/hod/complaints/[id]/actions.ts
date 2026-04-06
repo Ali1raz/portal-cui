@@ -2,14 +2,15 @@
 
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireSession } from "@/app/data/session/require-session";
+import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 import { errorMessage } from "@/lib/error-message";
 import { ComplaintStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
 
 const HOD_VALID_ACTIONS: ComplaintStatus[] = [
-  ComplaintStatus.HOD_ACCEPTED,
-  ComplaintStatus.HOD_REJECTED,
+  "HOD_ACCEPTED",
+  "HOD_REJECTED",
   "ASSIGNED",
 ];
 
@@ -20,6 +21,15 @@ export async function updateComplaintStatus(
 ): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
+
     const can = await requirePermission({
       complaints: ["update"],
     });

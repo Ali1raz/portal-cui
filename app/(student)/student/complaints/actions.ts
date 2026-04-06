@@ -7,12 +7,40 @@ import { requirePermission } from "@/app/data/permission/require-permission";
 import prisma from "@/lib/prisma";
 import { requireSession } from "@/app/data/session/require-session";
 import { ALREADY_REVIEWED_COMPLAINT_STATUS } from "@/lib/data/utils";
+import arcjet, { fixedWindow } from "@/lib/arcjet";
+import { request } from "@arcjet/next";
+import { format } from "date-fns";
+
+const aj = arcjet.withRule(
+  fixedWindow({
+    mode: "LIVE",
+    window: "24h",
+    max: 5,
+  })
+);
 
 export async function CreateComplaint(
   values: ComplaintSchemaType
 ): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+
+    const req = await request();
+    const decision = await aj.protect(req, {
+      fingerprint: session.user.id,
+    });
+    if (decision.isDenied()) {
+      if (decision.reason.isRateLimit()) {
+        return {
+          status: "error",
+          message: `You are making too many requests. Please try again later on: ${format(decision.reason.resetTime as Date, "MMMM d, yyyy hh:mm a")}`,
+        };
+      }
+      return {
+        status: "error",
+        message: "You have been blocked.",
+      };
+    }
 
     const can = await requirePermission({
       complaints: ["create"],
@@ -71,6 +99,22 @@ export async function UpdateComplaint(
 ): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+    const req = await request();
+    const decision = await aj.protect(req, {
+      fingerprint: session.user.id,
+    });
+    if (decision.isDenied()) {
+      if (decision.reason.isRateLimit()) {
+        return {
+          status: "error",
+          message: "You are making too many requests. Please try again later.",
+        };
+      }
+      return {
+        status: "error",
+        message: "You have been blocked.",
+      };
+    }
 
     const can = await requirePermission({
       complaints: ["update:own"],
@@ -165,6 +209,23 @@ export async function UpdateComplaint(
 export async function DeleteComplaint(id: string): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+
+    const req = await request();
+    const decision = await aj.protect(req, {
+      fingerprint: session.user.id,
+    });
+    if (decision.isDenied()) {
+      if (decision.reason.isRateLimit()) {
+        return {
+          status: "error",
+          message: "You are making too many requests. Please try again later.",
+        };
+      }
+      return {
+        status: "error",
+        message: "You have been blocked.",
+      };
+    }
 
     const can = await requirePermission({
       complaints: ["delete:own"],

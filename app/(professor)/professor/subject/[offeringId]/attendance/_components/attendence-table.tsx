@@ -127,7 +127,7 @@ export function AttendanceTable({
             <div className="font-medium flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <span>{row.original.user.name}</span>
-                {leaveRequest ? (
+                {leaveRequest && (
                   <Dialog>
                     <DialogTrigger asChild>
                       {leaveRequest.status === "PENDING" && (
@@ -158,7 +158,7 @@ export function AttendanceTable({
                       <DialogFooter className="sm:justify-start">
                         <Link
                           className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2"
-                          href={`/professor/subject/${offeringId}/leave-requests/${row.original.pendingLeaveRequest.id}`}
+                          href={`/professor/subject/${offeringId}/leave-requests/${leaveRequest.id}`}
                         >
                           View Details
                         </Link>
@@ -170,7 +170,7 @@ export function AttendanceTable({
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
-                ) : null}
+                )}
               </div>
               <span className="text-muted-foreground text-sm">
                 {percentage.toFixed(1)}% attendance

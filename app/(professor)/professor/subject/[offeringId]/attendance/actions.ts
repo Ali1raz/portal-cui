@@ -2,6 +2,7 @@
 
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireProfessorSession } from "@/app/data/professor/require-professor-session";
+import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 import { errorMessage } from "@/lib/error-message";
 import type { AttendanceStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
@@ -40,6 +41,14 @@ export async function markAttendance({
       };
     }
     const session = await requireProfessorSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
 
     const can = await requirePermission({
       attendance: ["mark"],

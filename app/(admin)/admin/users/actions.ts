@@ -7,6 +7,7 @@ import { ApiResponseType } from "@/lib/types";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { Prisma } from "@/lib/generated/prisma/client";
+import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 
 /// Updates a user's role for admin management.
 
@@ -19,7 +20,15 @@ export async function setUserRole(
   userId: string,
   role: Role
 ): Promise<ApiResponseType> {
-  await requireSession();
+  const session = await requireSession();
+
+  const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+  if (deniedMessage) {
+    return {
+      status: "error",
+      message: deniedMessage,
+    };
+  }
 
   try {
     const can = await requirePermission({ user: ["set-role"] });
@@ -114,7 +123,15 @@ export async function setProfessorDepartment(
   userId: string,
   department: Department
 ): Promise<ApiResponseType> {
-  await requireSession();
+  const session = await requireSession();
+
+  const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+  if (deniedMessage) {
+    return {
+      status: "error",
+      message: deniedMessage,
+    };
+  }
 
   try {
     const can = await requirePermission({ user: ["set-role"] });
@@ -165,7 +182,16 @@ export async function setProfessorDepartment(
 export async function makeProfessorBatchAdvisor(
   userId: string
 ): Promise<ApiResponseType> {
-  await requireSession();
+  const session = await requireSession();
+
+  const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+  if (deniedMessage) {
+    return {
+      status: "error",
+      message: deniedMessage,
+    };
+  }
+
   try {
     // 1. Fetch professor
     const professor = await prisma.professor.findUnique({

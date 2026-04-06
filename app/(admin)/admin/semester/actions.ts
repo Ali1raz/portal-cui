@@ -1,6 +1,8 @@
 "use server";
 
 import { requirePermission } from "@/app/data/permission/require-permission";
+import { requireSession } from "@/app/data/session/require-session";
+import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 import { errorMessage } from "@/lib/error-message";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
@@ -10,6 +12,16 @@ export async function createSemester(
   values: CreateSemesterSchemaInputType
 ): Promise<ApiResponseType> {
   try {
+    const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
+
     const can = await requirePermission({
       semesters: ["create"],
     });
@@ -87,6 +99,16 @@ export async function updateSemester(
   values: CreateSemesterSchemaInputType
 ): Promise<ApiResponseType> {
   try {
+    const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
+
     const can = await requirePermission({
       semesters: ["update"],
     });

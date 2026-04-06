@@ -11,12 +11,21 @@ import {
   accountantAnnouncementSchema,
   AccountantAnnouncementSchemaType,
 } from "./schema";
+import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 
 export async function accountantCreateAnnouncement(
   values: AccountantAnnouncementSchemaType
 ): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
 
     const can = await requirePermission({
       announcements: ["create"],
@@ -121,6 +130,14 @@ export async function accountantUpdateAnnouncement(
   try {
     const session = await requireSession();
 
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
+
     const can = await requirePermission({
       announcements: ["update"],
     });
@@ -219,6 +236,14 @@ export async function accountantDeleteAnnouncement(
   try {
     const session = await requireSession();
 
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
+
     const can = await requirePermission({
       announcements: ["delete"],
     });
@@ -275,6 +300,14 @@ export async function accountantBulkDeleteAnnouncements(
 ): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
 
     const can = await requirePermission({
       announcements: ["delete"],
@@ -344,6 +377,14 @@ export async function accountantBulkUpdateAnnouncementStatus(
 ): Promise<ApiResponseType> {
   try {
     const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
 
     const can = await requirePermission({
       announcements: ["update"],

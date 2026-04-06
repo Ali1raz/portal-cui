@@ -4,11 +4,23 @@ import { requirePermission } from "@/app/data/permission/require-permission";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
 import { LeaveRequestFormType, leaveRequestSchema } from "./schema";
+import { requireSession } from "@/app/data/session/require-session";
+import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 
 export async function sendLeaveRequest(
   data: LeaveRequestFormType,
   studentId: string
 ): Promise<ApiResponseType> {
+  const session = await requireSession();
+
+  const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+  if (deniedMessage) {
+    return {
+      status: "error",
+      message: deniedMessage,
+    };
+  }
+
   try {
     const can = await requirePermission({
       leaveRequest: ["create"],
@@ -33,13 +45,28 @@ export async function sendLeaveRequest(
       where: { subjectId: validated.data.subjectId },
       select: { id: true },
     });
-
     if (!offering) {
       return {
         status: "error",
         message: "Subject offering not found",
       };
     }
+
+    const existingRequest = await prisma.leaveRequest.findFirst({
+      where: {
+        studentId: studentId,
+        offeringId: offering.id,
+        date: new Date(validated.data.date),
+      },
+    });
+
+    if (existingRequest) {
+      return {
+        status: "error",
+        message: "You have already requested leave for this date.",
+      };
+    }
+
     await prisma.leaveRequest.create({
       data: {
         studentId: studentId,

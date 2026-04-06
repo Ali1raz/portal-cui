@@ -8,6 +8,7 @@ import { errorMessage } from "@/lib/error-message";
 import { applyFormSchema, ApplyFormSchemaType } from "../schema";
 import { StudentApplicationStatus } from "@/lib/generated/prisma/enums";
 import { SendEmail } from "@/app/actions/send-email";
+import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 
 function getApplicationTrackingLink(applicationId: string) {
   const appBaseUrl = process.env.BETTER_AUTH_URL ?? "localhost:3000";
@@ -23,16 +24,24 @@ export async function submitApplication(
   values: ApplyFormSchemaType
 ): Promise<ApiResponseType> {
   const session = await requireSession();
-  const can = await requirePermission({ applications: ["create"] });
 
-  if (!can) {
+  const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+  if (deniedMessage) {
     return {
       status: "error",
-      message: "You are not allowed to create an application.",
+      message: deniedMessage,
     };
   }
 
   try {
+    const can = await requirePermission({ applications: ["create"] });
+
+    if (!can) {
+      return {
+        status: "error",
+        message: "You are not allowed to create an application.",
+      };
+    }
     const validated = applyFormSchema.safeParse(values);
     if (!validated.success) {
       return {
