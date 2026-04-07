@@ -192,6 +192,7 @@ classDiagram
 - `AttendanceRecord` is the professor's write surface — they create it per lecture and mark each student.
 - `StudentAttendance` is what the percentage calculation and at-risk logic reads from.
 - `LeaveRequest` drives the approval workflow. Status flows `PENDING` → (optionally `REVIEW_REQUESTED` if BA needs more info, back to `PENDING` on resubmit) → `HOD_PENDING` → `APPROVED` or `REJECTED`. When approved, admin can go back and flip the corresponding `StudentAttendance` status from `ABSENT` to `LEAVE`.
+- Leave-request mutation actions (student create/update/delete and BA/HOD review updates) are protected by Arcjet fixed-window throttling: fingerprint-based `max=5` in `10m`.
 
 ---
 
@@ -305,7 +306,7 @@ classDiagram
 
 ---
 
-## 6. Fee installments
+## 6. Fee installments _(planned)_
 
 ```mermaid
 classDiagram
@@ -315,6 +316,8 @@ classDiagram
         +DateTime dueDate
         +String description
         +Boolean isBase
+        +DateTime createdAt
+        +DateTime updatedAt
     }
 
     class InstallmentRequest {
@@ -337,16 +340,16 @@ classDiagram
         +String id
     }
 
-    Student "1" --> "many" FeeInstallment : has
-    Student "1" --> "many" InstallmentRequest : submits
-    Accountant "1" --> "many" FeeInstallment : defines
-    InstallmentRequest "1" --> "1" FeeInstallment : splits
+    Student "1" --> "many" FeeInstallment : receives
+    Student "1" --> "many" InstallmentRequest : submits multiple
+    Accountant "1" --> "many" FeeInstallment : creates base
+    InstallmentRequest "1" --> "1" FeeInstallment : relates to
 ```
 
 **Key classes**
 
-- `FeeInstallment` represents a single payment block. `isBase` flags whether it was part of the initial plan set by the Accountant or a result of a split request.
-- `InstallmentRequest` tracks the student's request to split an existing `FeeInstallment`. It follows the dual-approval chain (HOD → Accountant).
+- `FeeInstallment` represents a single payment chunk. `isBase` flags whether it was part of the initial plan set by the Accountant or created by a split request. Each student can have up to 3 installments at any time.
+- `InstallmentRequest` tracks the student's request to split an existing `FeeInstallment` into a smaller payment now and a remainder later. Students can submit multiple sequential requests. Each request follows the dual-approval chain: HOD reviews first (can request updates, which sends the request back to student and then back to `PENDING` on resubmission), then Accountant approves or rejects after HOD acceptance.
 
 **Relationships**
 
@@ -357,4 +360,4 @@ classDiagram
 **Responsibilities**
 
 - `FeeInstallment` is the source of truth for vouchers and balance checks.
-- `InstallmentRequest` manages the lifecycle of a custom split. Once approved, the original `FeeInstallment` records are updated or replaced to reflect the new split amount and remaining balance.
+- `InstallmentRequest` manages the lifecycle of a custom split: `PENDING` -> `HOD_REVIEW_REQUESTED` (optional loop) -> `PENDING` -> `HOD_APPROVED` -> `APPROVED` or `REJECTED`. Once approved, the original `FeeInstallment` records are updated or replaced to reflect the new split amount and remaining balance.

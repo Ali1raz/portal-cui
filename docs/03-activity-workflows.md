@@ -22,6 +22,8 @@ Activity diagrams describe the step-by-step process within each system function,
    - Accepts → status set to `APPROVED`, student notified
 9. Admin sees the approved leave request flagged in the attendance record and can override the attendance status even if already marked by the teacher
 
+**Security guardrail (Arcjet):** leave-request mutation actions are protected with fingerprint-based fixed-window rate limiting (`max=5`, `window=10m`). Example: a student can submit at most 5 leave requests within 10 minutes.
+
 ---
 
 ## P2 — Announcement workflow
@@ -44,15 +46,20 @@ Activity diagrams describe the step-by-step process within each system function,
 
 ## P3 — Fee installment workflow _(planned)_
 
-1. Accountant opens the installment management page and defines up to three installments for the current semester (amount, due date, description)
-2. System stores each installment and makes them visible to all enrolled students
+1. Accountant opens the installment management page and defines base installments for the current semester (e.g., 70+30, each with amount, due date, description)
+2. System stores each base installment and makes them visible to all enrolled students
 3. Student opens their installments page and sees each installment with its due date and amount
-4. Student can download a pre-generated PDF voucher for any installment instantly
-5. Student submits a custom split request if the default installment plan doesn't work — provides preferred amounts and dates with a reason
-6. Request lands in the review queue for HOD and Accountant
-7. Reviewer opens the request:
+4. Student can click a Print button to generate and download a PDF voucher for any installment on demand
+5. Student submits a custom split request if the default installment plan doesn't work — selects an unpaid installment, specifies preferred amount to pay now and dates with a reason
+6. Request is visible in both HOD and Accountant queues (HOD reviews first; Accountant gives final approval after HOD acceptance)
+7. **HOD** reviews the request:
+   - Requests update (e.g., asks student to change amount from 40 to 45) → status becomes `HOD_REVIEW_REQUESTED`, student notified with remarks; student edits and resubmits → status resets to `PENDING` for HOD re-review
    - Rejects → request closed, student notified with remarks
-   - Accepts → installment plan updated to reflect the new split, student notified, new vouchers generated
+   - Accepts → forwarded to Accountant for final approval
+8. **Accountant** reviews the HOD-approved request:
+   - Rejects → request closed, student notified with remarks
+   - Accepts → installment plan updated to reflect the new split, student notified, new vouchers generated for all (paid portions marked ✓)
+9. Student can submit additional split requests if balance remains and total installment count does not exceed 3
 
 ---
 

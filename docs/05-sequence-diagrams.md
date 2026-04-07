@@ -29,7 +29,7 @@ sequenceDiagram
     Note over Inngest: Auto-expires if no human acts before the request date
 
     BA->>Portal: GET leave requests queue
-    Portal->>DB: SELECT LeaveRequest WHERE department = BA.dept AND status = PENDING
+    Portal->>DB: SELECT LeaveRequest WHERE department = BA.dept AND status IN (PENDING, REVIEW_REQUESTED)
     DB-->>Portal: Pending requests list
     Portal-->>BA: Render queue
 
@@ -74,6 +74,7 @@ sequenceDiagram
 **Key interactions:**
 
 - Student submits → Portal validates and duplicate-checks against DB before inserting
+- Arcjet runs before mutation logic (fingerprint-based fixed-window `max=5`, `window=10m`); denied requests stop before DB writes
 - Inngest fires at submission and sleeps until the request date — auto-rejects if no human has acted
 - BA can request more info before making a decision — sets status to `REVIEW_REQUESTED`; student resubmits and request resets to `PENDING`
 - BA and HOD each query their own department slice; status gates which queue the request appears in
@@ -138,45 +139,94 @@ sequenceDiagram
 sequenceDiagram
     actor Accountant
     actor Student
-    actor Reviewer as Reviewer (HOD / Accountant)
+    actor HOD
     participant Portal as Next.js (Server Actions)
     participant DB as PostgreSQL (Prisma)
     participant PDF as PDF Generator
 
-    Accountant->>Portal: POST create installments (up to 3 per semester, amount + due date each)
+    Accountant->>Portal: POST create base installments (e.g., 70 + 25, each with amount + due date)
     Portal->>Portal: Validate schema (zod)
-    Portal->>DB: INSERT Installments
-    Portal-->>Accountant: Installments created and visible to students
+    Portal->>DB: INSERT FeeInstallment (isBase = true)
+    Portal-->>Accountant: Base installments created – [70] + [25] = 95 total
 
     Student->>Portal: GET my installments
-    Portal->>DB: SELECT Installments WHERE semester = student.currentSemester
+    Portal->>DB: SELECT FeeInstallment WHERE studentId = :studentId AND semester = current
     DB-->>Portal: Installment list
-    Portal-->>Student: Render installments with due dates and amounts
+    Portal-->>Student: Render installments (or ✓ if paid)
 
-    Student->>Portal: GET download voucher { installmentId }
-    Portal->>DB: SELECT Installment + Student details
+    Student->>Portal: Click Print voucher { installmentId }
+    Portal->>DB: SELECT FeeInstallment + Student details
     DB-->>Portal: Data for voucher
     Portal->>PDF: Generate PDF voucher
     PDF-->>Portal: PDF stream
-    Portal-->>Student: Download PDF
+    Portal-->>Student: Download generated PDF
 
-    Student->>Portal: POST custom split request (preferred amounts, dates, reason)
+    Student->>Portal: POST split request (installmentId, requestedAmount, reason)
+    Portal->>Portal: Validate: total installments will not exceed 3
     Portal->>DB: INSERT InstallmentRequest (status = PENDING)
-    Portal-->>Student: Request submitted
+    Portal-->>Student: Request submitted – "Requesting 45 of 70"
 
-    Reviewer->>Portal: GET installment requests queue
-    Portal->>DB: SELECT InstallmentRequest WHERE status = PENDING
+    Accountant->>Portal: GET installment requests queue (view-only)
+    Portal->>DB: SELECT InstallmentRequest WHERE status IN (PENDING, HOD_APPROVED)
     DB-->>Portal: Request list
-    Portal-->>Reviewer: Render queue
+    Portal-->>Accountant: Render queue (PENDING shown read-only until HOD decision)
 
-    alt Reviewer rejects
-        Reviewer->>Portal: POST reject { requestId, remarks }
-        Portal->>DB: UPDATE InstallmentRequest SET status = REJECTED
-        Portal-->>Student: Notify – request rejected with remarks
-    else Reviewer accepts
-        Reviewer->>Portal: POST accept { requestId }
-        Portal->>DB: UPDATE InstallmentRequest SET status = APPROVED
-        Portal->>DB: UPDATE Installments with new split amounts and dates
+    HOD->>Portal: GET installment requests queue
+    Portal->>DB: SELECT InstallmentRequest WHERE status = PENDING AND targetDepartment = HOD.dept
+    DB-->>Portal: Request list
+    Portal-->>HOD: Render queue
+
+    alt HOD rejects
+        HOD->>Portal: POST reject { requestId, hodRemarks }
+        Portal->>DB: UPDATE InstallmentRequest SET status = REJECTED, hodRemarks
+        Portal-->>Student: Notify – request rejected
+    else HOD requests update
+        HOD->>Portal: POST request-update { requestId, suggestedAmount: 45, hodRemarks }
+        Portal->>DB: UPDATE InstallmentRequest SET status = HOD_REVIEW_REQUESTED, hodRemarks
+        Portal-->>Student: Notify – "Update requested: adjust amount from 40 to 45"
+        Student->>Portal: POST update request { requestId, requestedAmount: 45, reason }
+        Portal->>DB: UPDATE InstallmentRequest SET requestedAmount = 45, status = PENDING
+        Portal-->>HOD: Updated request returned to HOD queue
+    else HOD accepts
+        HOD->>Portal: POST accept { requestId }
+        Portal->>DB: UPDATE InstallmentRequest SET status = HOD_APPROVED, hodReviewedAt
+        Portal-->>HOD: Request forwarded to Accountant
+
+        Accountant->>Portal: GET HOD-approved requests queue
+        Portal->>DB: SELECT InstallmentRequest WHERE status = HOD_APPROVED
+        DB-->>Portal: Request list
+        Portal-->>Accountant: Render queue
+
+        alt Accountant rejects
+            Accountant->>Portal: POST reject { requestId, accRemarks }
+            Portal->>DB: UPDATE InstallmentRequest SET status = REJECTED, accRemarks
+            Portal-->>Student: Notify – request rejected
+        else Accountant accepts
+            Accountant->>Portal: POST approve { requestId }
+            Portal->>DB: UPDATE InstallmentRequest SET status = APPROVED, accReviewedAt
+            Portal->>DB: INSERT NEW FeeInstallment (isBase = false) for approved amount (45) – marked ✓
+            Portal->>DB: UPDATE original FeeInstallment to reflect remaining balance
+            Portal->>DB: INSERT FeeInstallment for new unpaid chunk (25 leftover + 25 original = 50 remaining)
+            Portal-->>Student: Notify – split approved · Installments now: [45✓] + [25] + [25]
+            Portal->>PDF: Generate new set of vouchers
+            PDF-->>Portal: PDF streams
+            Portal-->>Student: New vouchers ready for download
+        end
+
+        Student->>Portal: POST another split request (if balance > 0)
+        Student-->>Portal: "Requesting 30 of 50 remaining"
+        Portal->>DB: INSERT InstallmentRequest (status = PENDING) for second request
+        Portal-->>Student: Second request submitted
+
+        Note over HOD,Portal: HOD and Accountant repeat approval for second request
+        Portal->>DB: INSERT FeeInstallment for approved amount (30) – marked ✓
+        Portal->>DB: UPDATE to reflect remaining 20
+        Portal-->>Student: Notify – Installments now: [45✓] + [30✓] + [20] (limit reached)
+
+        Student->>Portal: Pays final 20 offline/via system
+        Portal->>DB: UPDATE FeeInstallment SET status = PAID
+        Portal-->>Student: Installment complete
+    end
         Portal-->>Student: Notify – new installment plan applied
     end
 ```
@@ -217,7 +267,7 @@ sequenceDiagram
     alt BA requests more info
         BA->>Portal: POST request-info { complaintId, remarks }
         Portal->>DB: UPDATE Complaint SET status = BA_REVIEW_REQUESTED, baRemarks, baReviewedAt
-        Portal->>DB: INSERT ComplaintReview (actorRole = BATCH_ADVISOR, action = BA_REVIEW_REQUESTED, fromStatus = BA_PENDING, toStatus = BA_REVIEW_REQUESTED)
+        Portal->>DB: INSERT ComplaintReview (actorRole = BATCH_ADVISOR, action = BA_REVIEW_REQUESTED, fromStatus = current complaint status, toStatus = BA_REVIEW_REQUESTED)
         Portal-->>Student: Notify – more info requested with remarks
         Student->>Portal: PATCH edit complaint { complaintId, updatedFields }
         Portal->>DB: UPDATE Complaint SET status = BA_PENDING, updated fields
@@ -226,7 +276,7 @@ sequenceDiagram
     else BA rejects
         BA->>Portal: POST reject { complaintId, remarks }
         Portal->>DB: UPDATE Complaint SET status = BA_REJECTED, baRemarks, baReviewedAt
-        Portal->>DB: INSERT ComplaintReview (actorRole = BATCH_ADVISOR, action = BA_REJECTED, fromStatus = BA_PENDING, toStatus = BA_REJECTED)
+        Portal->>DB: INSERT ComplaintReview (actorRole = BATCH_ADVISOR, action = BA_REJECTED, fromStatus = current complaint status, toStatus = BA_REJECTED)
         Portal-->>Student: Notify – complaint rejected
         alt Student revises and resubmits
             Student->>Portal: PATCH edit complaint { complaintId, updatedFields }
@@ -241,7 +291,7 @@ sequenceDiagram
     else BA accepts
         BA->>Portal: POST accept { complaintId, remarks }
         Portal->>DB: UPDATE Complaint SET status = HOD_PENDING, baRemarks, baReviewedAt
-        Portal->>DB: INSERT ComplaintReview (actorRole = BATCH_ADVISOR, action = BA_ACCEPTED, fromStatus = BA_PENDING, toStatus = HOD_PENDING)
+        Portal->>DB: INSERT ComplaintReview (actorRole = BATCH_ADVISOR, action = BA_ACCEPTED, fromStatus = current complaint status, toStatus = HOD_PENDING)
         Portal-->>Student: Notify – forwarded to HOD
     end
 

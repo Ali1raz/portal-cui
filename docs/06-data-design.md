@@ -42,7 +42,7 @@ The schema is normalized into distinct domains. Tables within each domain are jo
 
 **Complaints**
 
-- `complaint` holds current state. The `targetDepartment` column is mutable — it changes on assignment. Status values: `BA_PENDING` → `BA_REVIEW_REQUESTED` (BA requests more info; student resubmits to reset to `BA_PENDING`) → `BA_REJECTED` (student can revise & resubmit or delete) → `HOD_PENDING` (BA accepts) → `HOD_ACCEPTED` (resolved) or `HOD_REJECTED` (workflow ends) or `ASSIGNED` (HOD routes to another department).
+- `complaint` holds current state. The `targetDepartment` column is mutable — it changes on assignment. Status values: `BA_PENDING` (initial) with BA outcomes to `BA_REVIEW_REQUESTED` (student resubmits to `BA_PENDING`), `BA_REJECTED` (student can revise & resubmit to `BA_PENDING` or delete), or `HOD_PENDING` (BA accepts). From `HOD_PENDING`, HOD can move to `HOD_ACCEPTED` (resolved), `HOD_REJECTED` (workflow ends), or `ASSIGNED` (routed to a department).
 - `complaint_review` is an append-only audit log. Every actor action creates one immutable row with `fromStatus`, `toStatus`, `actorRole`, and `action`. Never updated. This covers all transitions including `REVIEW_REQUESTED` states and resubmissions, making the full edit history reconstructable.
 - `complaint_assignment` is an append-only routing log. Each reassignment creates one row with `fromDepartment` and `toDepartment`.
 
@@ -105,6 +105,8 @@ Indexes are chosen around the queries each module actually runs, not as a blanke
 **Cascade deletes** — `onDelete: Cascade` is set on all profile FKs that reference `user`. Deleting a user removes their sessions, accounts, and role profiles cleanly. Complaint cascades also clean up reviews and assignments. This prevents orphaned rows that could leak data.
 
 **Input validation** — every server action runs `zod.safeParse` on incoming data before touching the DB. Schema validation happens server-side; client-side validation is a UX convenience only.
+
+**Arcjet mutation throttling** — leave-request mutation actions are protected by Arcjet fixed-window rate limiting using request fingerprinting. Current rule: `max=5` within `10m`. This gate runs before leave create/update/delete/review mutations, so burst traffic is denied before business logic or DB writes.
 
 **Enum constraints** — status enums (`LeaveStatus`, `ComplaintStatus`, `AnnouncementStatus`, etc.) are defined at the DB level via Prisma enums. The DB rejects any value outside the defined set, so a tampered request cannot insert an arbitrary status string.
 

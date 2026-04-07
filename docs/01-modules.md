@@ -4,6 +4,8 @@
 
 Students submit leave requests tied to a specific subject and date. The system rejects duplicates upfront. From there, requests go up a chain of review:
 
+**Security guardrail (Arcjet):** leave-request mutations are rate-limited by fingerprint to **5 requests per 10 minutes** (`fixedWindow`: `max=5`, `window=10m`). This applies to student create/update/delete and reviewer status-update actions.
+
 - **Student** submits form → status: `PENDING`
 - **Teacher** sees the leave status inline in the attendance table (read-only)
 - **Batch advisor** reviews all requests from their department:
@@ -40,10 +42,10 @@ stateDiagram-v2
 
 ## 2. Announcement module
 
-HODs post to their department. Accountants post to everyone. Students read.
+HODs post to their department. Accountants can post portal-wide or to filtered audiences. Students read.
 
 - HOD announcements are scoped to their department only
-- Accountant announcements reach all students across departments
+- Accountant announcements can reach all students across departments (when targeting is left empty) or a filtered subset (department/program/batch/year)
 - Announcements can be created immediately or scheduled ahead of time
 
 **State transition:**
@@ -70,20 +72,45 @@ stateDiagram-v2
 
 ---
 
-## 3. Fee installments module
+## 3. Fee installments module _(planned)_
 
-Accountants define a base installment structure (e.g., 70+30). Students can request to further split any due installment, provided the total count doesn't exceed 3. These requests follow a two-step approval chain.
+Accountants define a base installment structure (e.g., 70+30 = 95 total). Students can request sequential splits of unpaid installments, with each split creating new installment chunks. Total installment count per student cannot exceed 3. Each split request follows a two-step approval chain (HOD → Accountant).
 
-- **Accountant** pre-defines base installments (70+30, etc.)
-- **Student** can request a split (e.g., pay 50 of 70) → status: `PENDING`
+**Example flow:**
+
+```
+Accountant creates:     [70]  +  [25]   = 95 total
+
+Student requests 45 of 70:
+  → pays 45 now
+  → remaining: 25 (leftover of 70) + 25 (original) = 50
+  → HOD + Accountant approve
+  Installments now:    [45✓] + [25] + [25] = 3 chunks
+
+Student requests 30 of 50 remaining:
+  → pays 30 now
+  → remaining: 20
+  → HOD + Accountant approve
+  Installments now:    [45✓] + [30✓] + [20] ← max reached (3 chunks)
+
+Student pays 20 → done
+```
+
+**Flow:**
+
+- **Accountant** pre-defines base installments (e.g., 70+30)
+- **Student** can request a split of any unpaid installment → status: `PENDING`
+- **HOD** and **Accountant** can both view installment requests in their queues
 - **HOD** reviews the split request:
+  - Requests update → status: `HOD_REVIEW_REQUESTED`, student notified with remarks (e.g., 40 → 45); student updates and resubmits → status resets to `PENDING`
   - Accepts → forwarded to Accountant (`HOD_APPROVED`)
   - Rejects → status: `REJECTED`, student notified
 - **Accountant** makes the final call on HOD-approved requests:
-  - Accepts → status: `APPROVED`, new vouchers generated
+  - Accepts → status: `APPROVED`, installments updated, new vouchers generated
   - Rejects → status: `REJECTED`, student notified
+- Paid/approved portions are marked with ✓; student can submit additional split requests until balance is zero
 
-**State transition:**
+**State transition (per request):**
 
 ```mermaid
 stateDiagram-v2
@@ -91,14 +118,17 @@ stateDiagram-v2
 
     [*] --> PENDING : Student requests split
 
+    PENDING --> HOD_REVIEW_REQUESTED : HOD requests update
     PENDING --> HOD_APPROVED : HOD accepts
     PENDING --> REJECTED : HOD rejects
+
+    HOD_REVIEW_REQUESTED --> PENDING : Student updates and resubmits
 
     HOD_APPROVED --> APPROVED : Accountant accepts
     HOD_APPROVED --> REJECTED : Accountant rejects
 
-    APPROVED --> [*] : Balance zero
-    REJECTED --> [*] : Student deletes/ends
+    APPROVED --> [*] : Student can request more splits (if balance > 0)
+    REJECTED --> [*] : Request denied
 ```
 
 ---

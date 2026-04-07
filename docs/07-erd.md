@@ -374,6 +374,8 @@ erDiagram
 | `student_attendance` | `id` | `recordId → attendance_record`, `studentId → student`  | `(recordId, studentId)`         | Record 1:N Attendance row |
 | `leave_request`      | `id` | `studentId → student`, `offeringId → subject_offering` | `(studentId, offeringId, date)` | Student 1:N Request       |
 
+Arcjet guardrail: leave-request mutation endpoints (student create/update/delete, BA/HOD review updates) are fingerprint-rate-limited with fixed-window `max=5` per `10m`.
+
 **Announcements**
 
 | Table          | PK   | Key FKs           | Notes                                                                                                                              |
@@ -382,12 +384,20 @@ erDiagram
 
 | `complaint` | `id` | `studentId → student`, `batchAdvisorId → batch_advisor` (nullable) | `targetDepartment` is mutable — changes on each HOD reassignment. |
 
-**Fee installments**
+**Fee installments _(planned)_**
 
-| Table                 | PK   | Key FKs                                            | Notes                                                              |
-| --------------------- | ---- | -------------------------------------------------- | ------------------------------------------------------------------ |
-| `fee_installment`     | `id` | `studentId → student`, `accountantId → accountant` | `isBase` flags if it's a structural installment or a split result. |
-| `installment_request` | `id` | `installmentId → fee_installment`                  | Follows HOD → Accountant approval chain.                           |
+| Table                 | PK   | Key FKs                                            | Notes                                                                                                                                                                                                                                                     |
+| --------------------- | ---- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fee_installment`     | `id` | `studentId → student`, `accountantId → accountant` | `isBase` flags if it's a structural installment (Accountant-defined) or a split result. Student can have max 3 at any time. Approved chunks marked ✓.                                                                                                     |
+| `installment_request` | `id` | `installmentId → fee_installment`                  | Tracks student's split request (e.g., "I want to pay 45 of 70 now"). Flow: `PENDING` -> optional `HOD_REVIEW_REQUESTED` (student updates/resubmits to `PENDING`) -> `HOD_APPROVED` -> Accountant final `APPROVED/REJECTED`. Students can submit multiple. |
+
+**Example lifecycle (per Fee Installment):**
+
+- Base: [70] created by Accountant
+- HOD may request update before approval (e.g., ask to change 40 -> 45); student edits and resubmits
+- After 1st request approval: [45✓] (approved) + [25] (remainder) + [25] (from original 2nd chunk) = 3 chunks
+- After 2nd request approval: [45✓] + [30✓] (approved) + [20] (remainder) = 3 chunks (max)
+- After payment: [45✓] + [30✓] + [20✓] = done
 
 ---
 
@@ -404,12 +414,12 @@ These tables are append-only. Rows are inserted on each state transition and nev
 
 ### Administrative entities
 
-| Table           | PK   | Key FKs                                    | Scope                                                                                                                         |
-| --------------- | ---- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| `hod`           | `id` | `userId → user`                            | One per department. Manages leave request final approval, complaint review, and announcement publishing for their department. |
-| `batch_advisor` | `id` | `userId → user`, `professorId → professor` | One per department. First-stage reviewer for complaints and leave requests. Must be an existing professor.                    |
-| `accountant`    | `id` | `userId → user`                            | Portal-wide. Creates fee installments and posts announcements to all departments.                                             |
-| `director`      | `id` | `userId → user`                            | Portal-wide. Oversight role. No department restriction.                                                                       |
+| Table           | PK   | Key FKs                                    | Scope                                                                                                                                  |
+| --------------- | ---- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `hod`           | `id` | `userId → user`                            | One per department. Manages leave request final approval, complaint review, and announcement publishing for their department.          |
+| `batch_advisor` | `id` | `userId → user`, `professorId → professor` | One per department. First-stage reviewer for complaints and leave requests. Must be an existing professor.                             |
+| `accountant`    | `id` | `userId → user`                            | Portal-wide. Creates fee installments and can post announcements portal-wide or to filtered audiences (department/program/batch/year). |
+| `director`      | `id` | `userId → user`                            | Portal-wide. Oversight role. No department restriction.                                                                                |
 
 ---
 

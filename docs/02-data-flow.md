@@ -35,6 +35,7 @@ The portal is a single system. Everything flows through it.
 - **Outputs:** Leave status updates → student · leave visibility → teacher attendance table · attendance correction permission → admin
 - **Stores read:** Students, Subject offerings, Enrollments
 - **Stores written:** Leave requests, Student attendance
+- **Security control:** Arcjet fixed-window protection on leave mutations (`max=5`, `window=10m`, fingerprint-based). Example: a student can create at most 5 leave requests in 10 minutes.
 
 ### P2 — Manage announcements
 
@@ -45,8 +46,8 @@ The portal is a single system. Everything flows through it.
 
 ### P3 — Manage fee installments
 
-- **Inputs:** Installment definitions (Accountant) · custom split requests (Student)
-- **Outputs:** PDF vouchers → student · request status updates → student · review queue → HOD, Accountant
+- **Inputs:** Installment definitions (Accountant) · custom split requests (Student) · HOD review decisions and update requests (e.g., ask 40 -> 45) · Accountant final decisions
+- **Outputs:** PDF vouchers -> student · request status updates and update-request remarks -> student · review queue -> HOD, Accountant
 - **Stores read:** Students, Installments (planned)
 - **Stores written:** Installments, Installment requests (planned)
 
