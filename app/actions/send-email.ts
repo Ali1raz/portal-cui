@@ -1,5 +1,6 @@
 "use server";
 import { transporter } from "@/lib/nodemailer";
+import { env } from "@/lib/env";
 
 const styles = {
   container:
@@ -21,14 +22,14 @@ export async function SendEmail({
     link?: string;
   };
 }) {
-  if (process.env.NODE_ENV !== "production") {
+  if (env.NODE_ENV !== "production") {
     // Log full email payload for debugging in development
     console.log("[DEV EMAIL]", { to, subject, meta });
     return { success: true };
   }
 
   const mailOptions = {
-    from: process.env.NODEMAILER_USER,
+    from: env.NODEMAILER_USER,
     to,
     subject,
     html: `

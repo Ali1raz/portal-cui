@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
+import { env } from "@/lib/env";
 
 type OpenEmailLinkProps = {
   userEmail?: string;
 };
 
 export function OpenEmailLink({ userEmail }: OpenEmailLinkProps) {
-  const senderEmail = process.env.NODEMAILER_USER;
+  const senderEmail = env.NODEMAILER_USER;
 
   const hasEmailContext = Boolean(userEmail && senderEmail);
 

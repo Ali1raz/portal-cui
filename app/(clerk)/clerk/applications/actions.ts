@@ -15,6 +15,7 @@ import {
 } from "./schemas";
 import { CLERK_APPLICATION_REVIEWABLE_STATUSES } from "@/lib/data/utils";
 import { SendEmail } from "@/app/actions/send-email";
+import { env } from "@/lib/env";
 
 function generateRegNumber({
   batch,
@@ -36,7 +37,7 @@ function generateRegNumber({
 }
 
 function getSignInLink() {
-  const appBaseUrl = process.env.BETTER_AUTH_URL || "localhost:3000";
+  const appBaseUrl = env.BETTER_AUTH_URL || "localhost:3000";
 
   if (!appBaseUrl) {
     return "/login";
@@ -46,7 +47,7 @@ function getSignInLink() {
 }
 
 function getApplicationTrackingLink(applicationId: string) {
-  const appBaseUrl = process.env.BETTER_AUTH_URL || "localhost:3000";
+  const appBaseUrl = env.BETTER_AUTH_URL || "localhost:3000";
 
   if (!appBaseUrl) {
     return `/my-applications/${applicationId}`;

@@ -7,6 +7,7 @@ import prisma from "./prisma";
 
 import { admin } from "better-auth/plugins";
 import { roles } from "./permissions";
+import { env } from "@/lib/env";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -14,12 +15,12 @@ export const auth = betterAuth({
   }),
   baseURL: {
     allowedHosts: [
-      process.env.BETTER_AUTH_URL!,
+      env.BETTER_AUTH_URL,
       "*.vercel.app", // All Vercel previews
       "localhost:*", // Local development all ports
     ],
     fallback: "localhost:3000",
-    protocol: process.env.NODE_ENV === "development" ? "http" : "https",
+    protocol: env.NODE_ENV === "development" ? "http" : "https",
   },
 
   emailAndPassword: {
@@ -28,7 +29,7 @@ export const auth = betterAuth({
     autoSignIn: true,
     passwordResetExpiresIn: 60 * 15,
     sendResetPassword: async ({ user, url }) => {
-      if (process.env.NODE_ENV !== "production") {
+      if (env.NODE_ENV !== "production") {
         // Log full email payload for debugging in development
         console.log("[DEV PASSWORD RESET]", { to: user.email, url });
         return;
@@ -63,7 +64,7 @@ export const auth = betterAuth({
       const link = new URL(url);
       link.searchParams.set("from", "/");
 
-      if (process.env.NODE_ENV === "production") {
+      if (env.NODE_ENV === "production") {
         await SendEmail({
           to: user.email,
           subject: "Verify your email address",
@@ -82,8 +83,7 @@ export const auth = betterAuth({
     },
 
     afterEmailVerification: async (user) => {
-      const DIRECTOR_EMAILS: string[] =
-        process.env.DIRECTOR_EMAILS?.split(";") ?? [];
+      const DIRECTOR_EMAILS: string[] = env.DIRECTOR_EMAILS.split(";");
       if (DIRECTOR_EMAILS.includes(user.email)) {
         await prisma.user.update({
           where: { id: user.id },
@@ -100,7 +100,7 @@ export const auth = betterAuth({
 
         return;
       }
-      const ADMIN_EMAILS: string[] = process.env.ADMIN_EMAILS?.split(";") ?? [];
+      const ADMIN_EMAILS: string[] = env.ADMIN_EMAILS.split(";");
       if (ADMIN_EMAILS.includes(user.email)) {
         await prisma.user.update({
           where: { id: user.id },

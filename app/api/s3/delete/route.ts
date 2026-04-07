@@ -1,5 +1,6 @@
 import { requireSession } from "@/app/data/session/require-session";
 import { s3 } from "@/lib/s3Client";
+import { env } from "@/lib/env";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
 
@@ -17,7 +18,7 @@ export async function DELETE(request: Request) {
     }
 
     const deleteCommand = new DeleteObjectCommand({
-      Bucket: process.env.NEXT_PUBLIC_S3_BUCKET_NAME,
+      Bucket: env.NEXT_PUBLIC_S3_BUCKET_NAME,
       Key: key,
     });
 

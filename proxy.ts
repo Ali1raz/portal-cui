@@ -1,8 +1,30 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextRequest, NextResponse } from "next/server";
 import arcjet, { createMiddleware, detectBot } from "@arcjet/next";
+import { env } from "./lib/env";
+
+const protectedRoutes = [
+  "/admin",
+  "/professor",
+  "/student",
+  "/clerk",
+  "/batch-advisor",
+  "/hod",
+  "/apply",
+];
 
 async function authMiddleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Skip auth check for non-protected routes
+  const isProtected = protectedRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
+
+  if (!isProtected) {
+    return NextResponse.next();
+  }
+
   const sessionCookie = getSessionCookie(request);
 
   if (!sessionCookie) {
@@ -17,20 +39,13 @@ async function authMiddleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+// ✅ Exclude ALL /api/* routes (especially better-auth's /api/auth/*)
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "/professor/:path*",
-    "/student/:path*",
-    "/clerk/:path*",
-    "/batch-advisor/:path*",
-    "/hod/:path*",
-    "/apply/:path*",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/).*)"],
 };
 
 const aj = arcjet({
-  key: process.env.ARCJET_KEY!, // Get your site key from https://app.arcjet.com
+  key: env.ARCJET_KEY, // Get your site key from https://app.arcjet.com
   rules: [
     detectBot({
       mode: "LIVE", // will block requests. Use "DRY_RUN" to log only

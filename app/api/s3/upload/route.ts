@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3 } from "@/lib/s3Client";
 import { requireSession } from "@/app/data/session/require-session";
+import { env } from "@/lib/env";
 
 const fileUploadSchema = z.object({
   fileName: z.string().min(1, { message: "File name is required" }),
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     const { fileName, contentType, size } = validated.data;
     const uniqueKey = `${uuidv4()}-${fileName}`;
     const putCommand = new PutObjectCommand({
-      Bucket: process.env.NEXT_PUBLIC_S3_BUCKET_NAME,
+      Bucket: env.NEXT_PUBLIC_S3_BUCKET_NAME,
       ContentType: contentType,
       ContentLength: size,
       Key: uniqueKey,

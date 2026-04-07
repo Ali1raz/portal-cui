@@ -9,9 +9,10 @@ import { applyFormSchema, ApplyFormSchemaType } from "../schema";
 import { StudentApplicationStatus } from "@/lib/generated/prisma/enums";
 import { SendEmail } from "@/app/actions/send-email";
 import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { env } from "@/lib/env";
 
 function getApplicationTrackingLink(applicationId: string) {
-  const appBaseUrl = process.env.BETTER_AUTH_URL ?? "localhost:3000";
+  const appBaseUrl = env.BETTER_AUTH_URL ?? "localhost:3000";
 
   if (!appBaseUrl) {
     return `/my-applications/${applicationId}`;

@@ -7,14 +7,15 @@ import { toast } from "sonner";
 export function useSignOut() {
   const router = useRouter();
 
-  const handleSignOut = async function signOut() {
+  const handleSignOut = async () => {
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
           router.refresh();
           toast.success("Successfully signed out!");
         },
-        onError: () => {
+        onError: ({ error }) => {
+          console.log("==>>>", error);
           toast.error("Failed to sign out");
         },
       },
