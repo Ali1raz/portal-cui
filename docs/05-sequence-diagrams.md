@@ -24,10 +24,6 @@ sequenceDiagram
     Portal->>Inngest: Emit leaveRequest/status.changed { leaveRequestId, requestDate }
     Portal-->>Student: Success – request submitted
 
-    Note over Inngest: Job sleeps until requestDate
-    Inngest->>DB: UPDATE LeaveRequest SET status = REJECTED WHERE status = PENDING AND date = requestDate
-    Note over Inngest: Auto-expires if no human acts before the request date
-
     BA->>Portal: GET leave requests queue
     Portal->>DB: SELECT LeaveRequest WHERE department = BA.dept AND status IN (PENDING, REVIEW_REQUESTED)
     DB-->>Portal: Pending requests list
