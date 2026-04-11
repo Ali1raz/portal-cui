@@ -47,6 +47,17 @@ vi.mock("@/lib/nodemailer", () => ({
   transporter: { sendMail: sendMailMock },
 }));
 
+vi.mock("@/lib/env", () => ({
+  env: {
+    get NODE_ENV() {
+      return process.env.NODE_ENV ?? "test";
+    },
+    get NODEMAILER_USER() {
+      return process.env.NODEMAILER_USER ?? "noreply@example.com";
+    },
+  },
+}));
+
 // --------------------------------------------------------------------------
 // 1. Server action tests (forgotPassword)
 // --------------------------------------------------------------------------

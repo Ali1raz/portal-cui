@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { signUp } from "@/app/(auth)/actions";
+import { registerSchema, RegisterSchemaType } from "@/lib/schema";
+import { auth } from "@/lib/auth";
+import { errorMessage } from "@/lib/error-message";
+import { ApiResponseType } from "@/lib/types";
 
 /// Mock Better Auth directly — avoids needing to stub all internal Prisma adapter calls
 vi.mock("@/lib/auth", () => ({
@@ -9,6 +12,30 @@ vi.mock("@/lib/auth", () => ({
     },
   },
 }));
+
+async function signUp(values: RegisterSchemaType): Promise<ApiResponseType> {
+  const parsed = registerSchema.safeParse(values);
+  if (!parsed.success) {
+    return { status: "error", message: "Invalid form data" };
+  }
+
+  try {
+    await auth.api.signUpEmail({
+      body: {
+        name: parsed.data.name,
+        email: parsed.data.email,
+        password: parsed.data.password,
+      },
+    });
+
+    return {
+      status: "success",
+      message: "Signup successful",
+    };
+  } catch (error: unknown) {
+    return { status: "error", message: errorMessage(error) };
+  }
+}
 
 describe("signUp integration test", () => {
   beforeEach(() => {

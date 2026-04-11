@@ -2,17 +2,22 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import userEvent from "@testing-library/user-event";
 import { RegisterForm } from "@/app/(auth)/register/_components/register-form";
-import { useRouter } from "next/navigation";
-import { signUp } from "@/app/(auth)/actions";
+import { useRouter, useSearchParams } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 
 // Mock the dependencies
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
+  useSearchParams: vi.fn(),
 }));
 
-vi.mock("@/app/(auth)/actions", () => ({
-  signUp: vi.fn(),
+vi.mock("@/lib/auth-client", () => ({
+  authClient: {
+    signUp: {
+      email: vi.fn(),
+    },
+  },
 }));
 
 vi.mock("sonner", () => ({
@@ -28,6 +33,7 @@ describe("RegisterForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useRouter as Mock).mockReturnValue({ push: mockPush });
+    (useSearchParams as Mock).mockReturnValue(new URLSearchParams());
   });
 
   it("renders the registration form correctly", () => {
@@ -35,7 +41,9 @@ describe("RegisterForm", () => {
 
     expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/^password$/i, { selector: "input" })
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /register/i })
     ).toBeInTheDocument();
@@ -60,40 +68,57 @@ describe("RegisterForm", () => {
     });
 
     // Ensure signUp was never called since validation failed
-    expect(signUp).not.toHaveBeenCalled();
+    expect(authClient.signUp.email).not.toHaveBeenCalled();
   });
 
   it("submits successfully and redirects when valid data is provided", async () => {
     const user = userEvent.setup();
 
     // Mock successful sign up response
-    (signUp as Mock).mockResolvedValue({
-      status: "success",
-      message: "Account created successfully",
-    });
+    (authClient.signUp.email as Mock).mockImplementation(
+      async (payload: {
+        fetchOptions?: {
+          onSuccess?: () => void;
+          onError?: (ctx: { error: { message: string } }) => void;
+        };
+      }) => {
+        payload.fetchOptions?.onSuccess?.();
+        return { data: { user: { id: "user-1" } }, error: null };
+      }
+    );
 
     render(<RegisterForm />);
 
     // Fill out the form
     await user.type(screen.getByLabelText(/name/i), "John Doe");
     await user.type(screen.getByLabelText(/email/i), "john@example.com");
-    await user.type(screen.getByLabelText(/password/i), "Password123!");
+    await user.type(
+      screen.getByLabelText(/^password$/i, { selector: "input" }),
+      "Password123!"
+    );
 
     // Submit
     const submitButton = screen.getByRole("button", { name: /register/i });
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(signUp).toHaveBeenCalledWith({
+      expect(authClient.signUp.email).toHaveBeenCalledWith({
         name: "John Doe",
         email: "john@example.com",
         password: "Password123!",
+        image: "https://avatar.vercel.sh/john",
+        fetchOptions: expect.objectContaining({
+          onError: expect.any(Function),
+          onSuccess: expect.any(Function),
+        }),
       });
 
       expect(toast.success).toHaveBeenCalledWith(
-        "Account created successfully"
+        "Registeration successful! Please check your email for verification link."
       );
-      expect(mockPush).toHaveBeenCalledWith("/register/success");
+      expect(mockPush).toHaveBeenCalledWith(
+        "/register/success?email=john%40example.com"
+      );
     });
   });
 
@@ -101,16 +126,28 @@ describe("RegisterForm", () => {
     const user = userEvent.setup();
 
     // Mock failed sign up response
-    (signUp as Mock).mockResolvedValue({
-      status: "error",
-      message: "Email already in use",
-    });
+    (authClient.signUp.email as Mock).mockImplementation(
+      async (payload: {
+        fetchOptions?: {
+          onSuccess?: () => void;
+          onError?: (ctx: { error: { message: string } }) => void;
+        };
+      }) => {
+        payload.fetchOptions?.onError?.({
+          error: { message: "Email already in use" },
+        });
+        throw new Error("Email already in use");
+      }
+    );
 
     render(<RegisterForm />);
 
     await user.type(screen.getByLabelText(/name/i), "John Doe");
     await user.type(screen.getByLabelText(/email/i), "john@example.com");
-    await user.type(screen.getByLabelText(/password/i), "Password123!");
+    await user.type(
+      screen.getByLabelText(/^password$/i, { selector: "input" }),
+      "Password123!"
+    );
 
     await user.click(screen.getByRole("button", { name: /register/i }));
 
