@@ -3,15 +3,7 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
-    DATABASE_URL: z.preprocess((value) => {
-      if (typeof value !== "string") {
-        return value;
-      }
-
-      const trimmed = value.trim();
-      const withoutWrappingQuotes = trimmed.replace(/^['\"]|['\"]$/g, "");
-      return withoutWrappingQuotes;
-    }, z.url()),
+    DATABASE_URL: z.string().startsWith("postgres"),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
