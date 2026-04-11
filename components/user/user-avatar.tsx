@@ -39,7 +39,7 @@ export default function UserAvatarDropdown({
           <ChevronDownIcon size={16} aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="max-w-64">
+      <DropdownMenuContent align="end" className="max-w-64 min-w-60">
         <DropdownMenuLabel>
           <div className="flex items-start gap-2 text-left text-sm">
             <UserImage name={name} image={image} />

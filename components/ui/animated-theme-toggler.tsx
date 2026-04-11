@@ -6,8 +6,8 @@ import { flushSync } from "react-dom";
 
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { Kbd } from "./kbd";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 
 interface AnimatedThemeTogglerProps extends React.ComponentPropsWithoutRef<"button"> {
   duration?: number;
@@ -100,17 +100,28 @@ export const AnimatedThemeToggler = ({
         <Button
           ref={buttonRef}
           onClick={toggleTheme}
-          className={cn(className)}
+          className={cn("relative", className)}
           variant="outline"
           size="sm"
           {...props}
         >
-          {isDark ? <Sun /> : <Moon />}
+          <Sun
+            className={cn(
+              "h-[1.2rem] w-[1.2rem] transition-all",
+              isDark ? "scale-100 rotate-0" : "scale-0 -rotate-90"
+            )}
+          />
+          <Moon
+            className={cn(
+              "absolute inset-0 m-auto h-[1.2rem] w-[1.2rem] transition-all",
+              isDark ? "scale-0 rotate-90" : "scale-100 rotate-0"
+            )}
+          />
           <span className="sr-only">Toggle theme</span>
         </Button>
       </TooltipTrigger>
-      <TooltipContent className="flex items-center gap-2 pr-1">
-        Toggle Mode <Kbd>D</Kbd>
+      <TooltipContent className="flex items-center gap-2">
+        Switch to {isDark ? "Light" : "Dark"} <Kbd>D</Kbd>
       </TooltipContent>
     </Tooltip>
   );
