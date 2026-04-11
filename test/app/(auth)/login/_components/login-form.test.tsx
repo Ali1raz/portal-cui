@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, type Mock, beforeEach } from "vitest";
 import userEvent from "@testing-library/user-event";
 import { LoginForm } from "@/app/(auth)/login/_components/login-form";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { Role } from "@/lib/generated/prisma/enums";
@@ -10,6 +10,7 @@ import { Role } from "@/lib/generated/prisma/enums";
 // Mock the dependencies
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
+  useSearchParams: vi.fn(),
 }));
 
 vi.mock("@/lib/auth-client", () => ({
@@ -34,13 +35,16 @@ describe("LoginForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useRouter as Mock).mockReturnValue({ push: mockPush });
+    (useSearchParams as Mock).mockReturnValue(new URLSearchParams());
   });
 
   it("renders the login form correctly", () => {
     render(<LoginForm />);
 
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/^password$/i, { selector: "input" })
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
   });
 
@@ -81,7 +85,10 @@ describe("LoginForm", () => {
 
     // Fill out the form
     await user.type(screen.getByLabelText(/email/i), "director@example.com");
-    await user.type(screen.getByLabelText(/password/i), "Password123!");
+    await user.type(
+      screen.getByLabelText(/^password$/i, { selector: "input" }),
+      "Password123!"
+    );
 
     // Submit
     const submitButton = screen.getByRole("button", { name: /login/i });
@@ -112,7 +119,10 @@ describe("LoginForm", () => {
     render(<LoginForm />);
 
     await user.type(screen.getByLabelText(/email/i), "student@example.com");
-    await user.type(screen.getByLabelText(/password/i), "Password123!");
+    await user.type(
+      screen.getByLabelText(/^password$/i, { selector: "input" }),
+      "Password123!"
+    );
     await user.click(screen.getByRole("button", { name: /login/i }));
 
     await waitFor(() => {
@@ -120,22 +130,25 @@ describe("LoginForm", () => {
     });
   });
 
-  it("submits successfully and redirects to root for other roles", async () => {
+  it("submits successfully and redirects to professor dashboard for PROFESSOR role", async () => {
     const user = userEvent.setup();
 
     (signIn.email as Mock).mockResolvedValue({ data: {}, error: null });
     (authClient.getSession as Mock).mockResolvedValue({
-      data: { user: { role: Role.PROFESSOR } }, // Example of another role
+      data: { user: { role: Role.PROFESSOR } },
     });
 
     render(<LoginForm />);
 
     await user.type(screen.getByLabelText(/email/i), "professor@example.com");
-    await user.type(screen.getByLabelText(/password/i), "Password123!");
+    await user.type(
+      screen.getByLabelText(/^password$/i, { selector: "input" }),
+      "Password123!"
+    );
     await user.click(screen.getByRole("button", { name: /login/i }));
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/");
+      expect(mockPush).toHaveBeenCalledWith("/professor");
     });
   });
 
@@ -151,7 +164,10 @@ describe("LoginForm", () => {
     render(<LoginForm />);
 
     await user.type(screen.getByLabelText(/email/i), "wrong@example.com");
-    await user.type(screen.getByLabelText(/password/i), "WrongPass123!");
+    await user.type(
+      screen.getByLabelText(/^password$/i, { selector: "input" }),
+      "WrongPass123!"
+    );
 
     await user.click(screen.getByRole("button", { name: /login/i }));
 

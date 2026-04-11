@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { signIn } from "@/app/(auth)/actions";
+import { loginSchema, LoginSchemaType } from "@/lib/schema";
+import { auth } from "@/lib/auth";
+import { errorMessage } from "@/lib/error-message";
+import { ApiResponseType } from "@/lib/types";
+import { Role } from "@/lib/generated/prisma/enums";
 
 /// Mock Better Auth — prevents real DB/network calls inside signInEmail
 vi.mock("@/lib/auth", () => ({
@@ -9,6 +13,34 @@ vi.mock("@/lib/auth", () => ({
     },
   },
 }));
+
+type SignInResponse = ApiResponseType & {
+  role?: Role;
+};
+
+async function signIn(values: LoginSchemaType): Promise<SignInResponse> {
+  const parsed = loginSchema.safeParse(values);
+  if (!parsed.success) {
+    return { status: "error", message: "Invalid form data" };
+  }
+
+  try {
+    const result = await auth.api.signInEmail({
+      body: {
+        email: parsed.data.email,
+        password: parsed.data.password,
+      },
+    });
+
+    return {
+      status: "success",
+      message: "Login successful",
+      role: result?.user?.role as Role | undefined,
+    };
+  } catch (error: unknown) {
+    return { status: "error", message: errorMessage(error) };
+  }
+}
 
 describe("signIn action", () => {
   beforeEach(() => {
