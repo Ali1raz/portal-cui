@@ -111,6 +111,28 @@ describe("MyComponent", () => {
 });
 ```
 
+## Prisma Client Mocking (Vitest)
+
+Prisma Client is globally mocked in [vitest.setup.ts](../vitest.setup.ts) via
+[test/**mocks**/prisma.ts](./__mocks__/prisma.ts). This follows the Prisma testing
+series pattern using `vitest-mock-extended` deep mocks.
+
+For unit tests that call DB code:
+
+1. Import `prismaMock` from `@/test/__mocks__/prisma`
+2. Mock dependent modules (for example `requireSession`, `requirePermission`)
+3. Set Prisma responses with `mockResolvedValue`, `mockResolvedValueOnce`,
+   `mockImplementation`, etc.
+
+Example:
+
+```ts
+import { prismaMock } from "@/test/__mocks__/prisma";
+
+prismaMock.user.findUnique.mockResolvedValue({ id: "user-1" } as never);
+prismaMock.$transaction.mockResolvedValue([10, 4, 3, 2] as never);
+```
+
 ## Available Custom Matchers
 
 Because we include `jest-dom` via `vitest.setup.ts`, you have access to powerful DOM matchers:

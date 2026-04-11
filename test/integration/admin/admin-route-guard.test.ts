@@ -37,13 +37,13 @@ describe("requireSession", () => {
     vi.clearAllMocks();
   });
 
-  it("should redirect to /login when there is no active session", async () => {
+  it("should redirect to /login with from query when there is no active session", async () => {
     const { auth } = await import("@/lib/auth");
     vi.mocked(auth.api.getSession).mockResolvedValue(null as never);
 
     await requireSession();
 
-    expect(redirectMock).toHaveBeenCalledWith("/login");
+    expect(redirectMock).toHaveBeenCalledWith("/login?from=%2F");
   });
 
   it("should return the session when the user is authenticated", async () => {
@@ -163,6 +163,6 @@ describe("login → admin route access flow", () => {
     // Unauthenticated: requireSession fires /login redirect
     await requireSession();
 
-    expect(redirectMock).toHaveBeenCalledWith("/login");
+    expect(redirectMock).toHaveBeenCalledWith("/login?from=%2F");
   });
 });
