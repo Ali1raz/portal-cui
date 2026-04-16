@@ -168,7 +168,7 @@ export function LeaveRequestsTable({
                 ? "success"
                 : row.original.status === "REJECTED"
                   ? "destructive"
-                  : "outline"
+                  : "info"
           }
         >
           {row.original.status}

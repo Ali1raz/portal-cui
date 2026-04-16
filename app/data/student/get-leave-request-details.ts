@@ -42,21 +42,6 @@ export async function getStudentLeaveRequestDetails({ id }: { id: string }) {
           },
         },
       },
-      reviews: {
-        orderBy: {
-          createdAt: "asc",
-        },
-        select: {
-          id: true,
-          action: true,
-          remarks: true,
-          fromStatus: true,
-          toStatus: true,
-          actorRole: true,
-          actorId: true,
-          createdAt: true,
-        },
-      },
     },
   });
 

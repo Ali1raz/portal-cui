@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EDITABLE_LEAVE_REQUEST_STATUS } from "@/lib/data/utils";
-import { LeaveRequestTimelineItem } from "@/components/leave-requests/leave-request-timeline-item";
 
 export default async function LeaveRequestDetailsPage(
   props: PageProps<"/student/past-leave-requests/[id]">
@@ -29,8 +28,6 @@ export default async function LeaveRequestDetailsPage(
   const details = await getStudentLeaveRequestDetails({ id });
 
   const isEditable = EDITABLE_LEAVE_REQUEST_STATUS.includes(details.status);
-  const reviews = details.reviews ?? [];
-  const reviewCount = details._count?.reviews ?? reviews.length;
 
   return (
     <div className="max-w-5xl w-full p-4 md:px-8 space-y-4">
@@ -128,38 +125,6 @@ export default async function LeaveRequestDetailsPage(
               </p>
             )}
           </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold flex items-center justify-between">
-              Activity Timeline
-              {reviewCount > 0 && (
-                <Badge size="md">
-                  {reviewCount} {reviewCount === 1 ? "event" : "events"}
-                </Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-          {reviews.length === 0 ? (
-            <CardContent className="py-8 text-center">
-              <p className="text-sm text-muted-foreground">No activity yet.</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Your Batch Advisor will review this shortly.
-              </p>
-            </CardContent>
-          ) : (
-            <CardContent>
-              {reviews.map((review, index) => (
-                <LeaveRequestTimelineItem
-                  key={review.id}
-                  review={review}
-                  isLast={index === reviews.length - 1}
-                  actorLabelOverride={{ STUDENT: "You" }}
-                />
-              ))}
-            </CardContent>
-          )}
         </Card>
       </div>
     </div>

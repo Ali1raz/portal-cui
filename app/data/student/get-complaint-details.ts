@@ -39,49 +39,6 @@ export async function studentGetComplaintDetails({ id }: { id: string }) {
       targetDepartment: true,
       createdAt: true,
       imageKey: true,
-      _count: { select: { reviews: true } },
-      reviews: {
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          actorRole: true,
-          remarks: true,
-          fromStatus: true,
-          toStatus: true,
-          actorId: true,
-          action: true,
-          department: true,
-          createdAt: true,
-          // Actor details
-          // BA details if actor is BA
-          batchAdvisor: {
-            select: {
-              id: true,
-              department: true,
-              userId: true,
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  image: true,
-                  role: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      assignments: {
-        orderBy: { assignedAt: "desc" },
-        select: {
-          id: true,
-          fromDepartment: true,
-          toDepartment: true,
-          reason: true,
-          assignedAt: true,
-        },
-      },
     },
   });
 

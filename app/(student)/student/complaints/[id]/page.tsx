@@ -19,10 +19,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
 import { STATUS_CONFIG } from "@/components/complaints/complaint-constants";
 import { ComplaintStatusBanner } from "@/components/complaints/complaint-status-banner";
-import { ComplaintTimelineItem } from "@/components/complaints/complaint-timeline-item";
 import { ALREADY_REVIEWED_COMPLAINT_STATUS } from "@/lib/data/utils";
 
 export default async function ComplaintDetailsPage(
@@ -118,43 +116,6 @@ export default async function ComplaintDetailsPage(
                 </p>
               )}
             </CardFooter>
-          </Card>
-
-          {/* Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold">Activity Timeline</h1>
-                {details._count.reviews > 0 && (
-                  <Badge size="md">
-                    {details._count.reviews}{" "}
-                    {details._count.reviews === 1 ? "event" : "events"}
-                  </Badge>
-                )}
-              </CardTitle>
-            </CardHeader>
-
-            {details.reviews.length > 0 ? (
-              <CardContent>
-                {details.reviews.map((review, idx) => (
-                  <ComplaintTimelineItem
-                    key={review.id}
-                    review={review}
-                    isLast={idx === details.reviews.length - 1}
-                    actorLabelOverride={{ STUDENT: "You" }}
-                  />
-                ))}
-              </CardContent>
-            ) : (
-              <CardContent className="py-8 text-center">
-                <p className="text-sm text-muted-foreground">
-                  No activity yet.
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Your Batch Advisor will review this shortly.
-                </p>
-              </CardContent>
-            )}
           </Card>
         </section>
       </div>
