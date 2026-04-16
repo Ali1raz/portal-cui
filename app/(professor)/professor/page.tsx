@@ -28,13 +28,13 @@ export default async function ProfessorPage() {
         </div>
 
         {!assignments || assignments.length === 0 ? (
-          <div className="p-4">
+          <div className="py-4">
             <p className="text-muted-foreground">
               You are not assigned to any subjects yet.
             </p>
           </div>
         ) : (
-          <div className="p-4">
+          <div className="py-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">Your subjects</h2>
               <Link

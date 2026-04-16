@@ -1,9 +1,16 @@
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { buttonVariants } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { ProfessorSubjects } from "@/app/data/professor/get-professor-courses";
+import { Badge } from "@/components/ui/badge";
 
 export function CourseCard({
   assignment,
@@ -13,6 +20,11 @@ export function CourseCard({
   return (
     <Card className="group">
       <CardHeader>
+        <CardAction>
+          <Badge variant="secondary">
+            {`${assignment.offering.semester?.batch}${assignment.offering.semester?.year.toString().slice(-2)}-${assignment.offering.semester?.department}-${assignment.offering.semester?.semester}`}
+          </Badge>
+        </CardAction>
         <CardTitle>
           <Link
             href={`/professor/subject/${assignment.offering.id}`}
@@ -42,13 +54,7 @@ export function CourseCard({
               <span>{assignment.section}</span>
             </div>
             <div className="flex items-center gap-2 *:not-first:text-accent-foreground *:not-first:font-bold">
-              <h2>Semester</h2>
-              <span>{assignment.offering.semester?.semester}</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 *:not-first:text-accent-foreground *:not-first:font-bold">
-              <h2>Students</h2>
+              <h2>Enrollments</h2>
               <span>{assignment.offering._count.enrollments}</span>
             </div>
           </div>

@@ -30,7 +30,6 @@ export function UserDetailsSection({ user, details }: iAppProps) {
       <div className="flex flex-wrap items-center gap-4 border-y p-2 my-6">
         {[
           { label: "Joined", value: formatDate(user.createdAt) },
-          { label: "Trust level", value: user.role },
           ...(details || []),
         ].map((item, i) => (
           <div key={i}>

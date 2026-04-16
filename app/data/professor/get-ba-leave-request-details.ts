@@ -29,9 +29,6 @@ export async function baGetLeaveRequestDetails({ id }: { id: string }) {
   const details = await prisma.leaveRequest.findFirst({
     where: {
       id,
-      student: {
-        department: ba.department,
-      },
     },
     select: {
       id: true,

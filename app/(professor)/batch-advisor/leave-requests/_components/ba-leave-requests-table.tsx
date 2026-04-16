@@ -318,7 +318,7 @@ export function BaLeaveRequestsTable({
   return (
     <div className="w-full space-y-4" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex-1 min-w-55">
+        <div className="min-w-55 flex-1">
           <Label htmlFor="ba-leave-requests-search" className="sr-only">
             Search leave requests
           </Label>
@@ -340,7 +340,10 @@ export function BaLeaveRequestsTable({
 
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="min-w-40 justify-between">
+            <Button
+              variant="outline"
+              className="min-w-40 flex-3/12 max-w-full lg:max-w-3/12 justify-between"
+            >
               {selectedStatuses.length > 0
                 ? `${selectedStatuses.length} selected`
                 : "All Status"}
@@ -372,6 +375,7 @@ export function BaLeaveRequestsTable({
 
         <TableDateRangeFilter
           value={dateRange}
+          className="flex-3/12 max-w-full lg:max-w-3/12"
           placeholder="Pick date range"
           calendarProps={{
             autoFocus: true,
