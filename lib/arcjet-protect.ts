@@ -1,6 +1,6 @@
 import arcjet, { fixedWindow } from "@/lib/arcjet";
 import { request } from "@arcjet/next";
-import { format } from "vitest/internal/browser";
+import { format } from "date-fns";
 
 const aj = arcjet.withRule(
   fixedWindow({
