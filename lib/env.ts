@@ -8,7 +8,6 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     BETTER_AUTH_SECRET: z.string().min(1),
-    BETTER_AUTH_URL: z.url(),
     DIRECTOR_EMAILS: z.string().min(1),
     ADMIN_EMAILS: z.string().min(1),
     NODEMAILER_USER: z.email(),
@@ -24,9 +23,11 @@ export const env = createEnv({
   //   clientPrefix: "NEXT_PUBLIC_",
   client: {
     NEXT_PUBLIC_S3_BUCKET_NAME: z.string().min(1),
+    NEXT_PUBLIC_BETTER_AUTH_URL: z.url(),
   },
   experimental__runtimeEnv: {
     NEXT_PUBLIC_S3_BUCKET_NAME: process.env.NEXT_PUBLIC_S3_BUCKET_NAME,
+    NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
   },
   //   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

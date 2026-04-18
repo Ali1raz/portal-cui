@@ -2,7 +2,7 @@ import { env } from "@/lib/env";
 
 export const SITE_INFO = {
   name: "CUI portal",
-  url: env.BETTER_AUTH_URL || "https://portal-cui.vercel.app",
+  url: env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
   description: "A dashboard built for the COMSATS University Islamabad.",
   keywords: [
     "CUI portal",

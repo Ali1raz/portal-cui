@@ -8,7 +8,7 @@ export const authClient = createAuthClient({
     inferAdditionalFields<typeof auth>(),
     adminClient({ ac: access, roles }),
   ],
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
 });
 
 export const {
