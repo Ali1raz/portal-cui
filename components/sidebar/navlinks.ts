@@ -192,16 +192,11 @@ export function getNavLinks({
         icon: IconUserCheck,
       },
 
-      // {
-      //   title: "Fees",
-      //   href: "/student/fee",
-      //   icon: IconCreditCard,
-      // },
-      // {
-      //   title: "Result card",
-      //   href: "/student/result",
-      //   icon: GraduationCap,
-      // },
+      {
+        title: "Fees",
+        href: "/student/fee",
+        icon: IconCreditCard,
+      },
       {
         title: "Request leave",
         href: "/student/request-leave",
