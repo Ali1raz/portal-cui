@@ -11,8 +11,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
+import { SemesterFeeStatus } from "@/lib/generated/prisma/enums";
+import { AccFeeUpdateStatusDrawer } from "./acc-fee-update-status-drawer";
 
-export function AccFeeTableActionsDropdown({ feeId }: { feeId: string }) {
+export function AccFeeTableActionsDropdown({
+  feeId,
+  currentStatus,
+}: {
+  feeId: string;
+  currentStatus: SemesterFeeStatus;
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -31,6 +39,11 @@ export function AccFeeTableActionsDropdown({ feeId }: { feeId: string }) {
             Edit Installments
           </Link>
         </DropdownMenuItem>
+        <AccFeeUpdateStatusDrawer feeId={feeId} currentStatus={currentStatus}>
+          <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+            Update Status
+          </DropdownMenuItem>
+        </AccFeeUpdateStatusDrawer>
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -110,8 +110,8 @@ export function AccFeesTable({
       header: "Total Fee",
       accessorFn: (row) => row.totalAmount,
       cell: ({ row }) => (
-        <div className="text-right font-medium">
-          Rs. {Number(row.original.totalAmount).toFixed(2)}
+        <div className="text-center font-medium">
+          Rs. {Number(row.original.totalAmount)}
         </div>
       ),
     },
@@ -141,7 +141,9 @@ export function AccFeesTable({
       cell: ({ row }) => (
         <div>
           <Badge
-            variant={row.original.status === "DRAFT" ? "outline" : "secondary"}
+            variant={
+              row.original.status === "DRAFT" ? "destructive" : "secondary"
+            }
           >
             {row.original.status}
           </Badge>
@@ -176,7 +178,10 @@ export function AccFeesTable({
       enableSorting: false,
       cell: ({ row }) => (
         <div className="flex justify-center">
-          <AccFeeTableActionsDropdown feeId={row.original.id} />
+          <AccFeeTableActionsDropdown
+            feeId={row.original.id}
+            currentStatus={row.original.status}
+          />
         </div>
       ),
     },

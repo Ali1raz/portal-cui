@@ -1,15 +1,106 @@
 "use server";
 
-import { ApiResponseType } from "@/lib/types";
+import { requirePermission } from "@/app/data/permission/require-permission";
+import { requireSession } from "@/app/data/session/require-session";
+import { errorMessage } from "@/lib/error-message";
+import { SemesterFeeStatus } from "@/lib/generated/prisma/enums";
+import prisma from "@/lib/prisma";
+import type { ApiResponseType } from "@/lib/types";
 import {
   accountantCreateFeeSchema,
   AccountantCreateFeeSchemaType,
-} from "./schema";
-import { requireSession } from "@/app/data/session/require-session";
+} from "./create-fee/schema";
 import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
-import { requirePermission } from "@/app/data/permission/require-permission";
-import prisma from "@/lib/prisma";
-import { errorMessage } from "@/lib/error-message";
+
+export async function accountantUpdateFeeStatus(
+  feeId: string,
+  status: SemesterFeeStatus
+): Promise<ApiResponseType> {
+  try {
+    const session = await requireSession();
+
+    const [deniedMessage, can] = await Promise.all([
+      getArcjetDeniedMessage(session.user.id),
+      requirePermission({
+        fee: ["update"],
+      }),
+    ]);
+
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
+
+    if (!can) {
+      return {
+        status: "error",
+        message: "You are not allowed to update fee status.",
+      };
+    }
+
+    const accountant = await prisma.accountant.findUnique({
+      where: {
+        userId: session.user.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!accountant) {
+      return {
+        status: "error",
+        message: "Accountant profile not found.",
+      };
+    }
+
+    const existingFee = await prisma.semesterFee.findFirst({
+      where: {
+        id: feeId,
+        accountantId: accountant.id,
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    if (!existingFee) {
+      return {
+        status: "error",
+        message: "Semester fee not found.",
+      };
+    }
+
+    if (existingFee.status === status) {
+      return {
+        status: "success",
+        message: "Fee status is already up to date.",
+      };
+    }
+
+    await prisma.semesterFee.update({
+      where: {
+        id: existingFee.id,
+      },
+      data: {
+        status,
+      },
+    });
+
+    return {
+      status: "success",
+      message: "Fee status updated successfully.",
+    };
+  } catch (error: unknown) {
+    return {
+      status: "error",
+      message: errorMessage(error, "Could not update fee status"),
+    };
+  }
+}
 
 export async function accountantCreateSemesterFee(
   values: AccountantCreateFeeSchemaType

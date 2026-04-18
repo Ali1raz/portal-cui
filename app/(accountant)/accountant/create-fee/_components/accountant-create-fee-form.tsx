@@ -27,12 +27,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { accountantCreateSemesterFee } from "../actions";
 import { Loader2 } from "lucide-react";
 import { SemesterFeeStatus } from "@/lib/generated/prisma/enums";
 import { formatEnumLabel } from "@/lib/utils";
 import { AccountantGetAllSemestersType } from "@/app/data/accountant/acc-get-all-semesters";
 import { FeeInstallmentsFormFields } from "@/app/(accountant)/accountant/_components/fee-installments-form-fields";
+import { accountantCreateSemesterFee } from "../../actions";
 
 export const AccountantCreateFeeForm = ({
   semesters,
