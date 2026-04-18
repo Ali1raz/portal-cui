@@ -216,11 +216,12 @@ model Director {
 }
 
 model Accountant {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String        @id @default(uuid())
+  userId       String        @unique
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  semesterFees SemesterFee[]
 
   @@map("accountant")
 }
@@ -289,8 +290,9 @@ model Semester {
   studentApplications StudentApplication[]
   subjectOfferings    SubjectOffering[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  semesterFees SemesterFee[]
 
   @@unique([semester, year, department, batch]) // ensures no duplicate semesters for same dept+batch
   @@map("semester")
@@ -788,4 +790,48 @@ model Announcement {
   @@index([targetDepartment]) // for HOD-scoped queries
   @@index([status, isPinned, publishedAt]) // for pinned-first ordering
   @@map("announcement")
+}
+
+// ----------------
+// FEE INSTALLMENTS
+
+model SemesterFee {
+  id String @id @default(uuid())
+
+  accountantId String
+  accountant   Accountant @relation(fields: [accountantId], references: [id])
+
+  semesterId  String            @unique
+  semester    Semester          @relation(fields: [semesterId], references: [id])
+  totalAmount Decimal           @db.Decimal(10, 2)
+  description String?
+  status      SemesterFeeStatus @default(DRAFT)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  feeInstallments FeeInstallment[]
+
+  @@index([semesterId, status])
+  @@map("semester_fee")
+}
+
+enum SemesterFeeStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model FeeInstallment {
+  id            String      @id @default(uuid())
+  semesterFeeId String
+  semesterFee   SemesterFee @relation(fields: [semesterFeeId], references: [id], onDelete: Cascade)
+  installmentNo Int // 1 or 2 (auto generated in action)
+  amount        Decimal     @db.Decimal(10, 2)
+  dueDate       DateTime
+  description   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([semesterFeeId, installmentNo])
+  @@map("fee_installment")
 }

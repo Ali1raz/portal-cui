@@ -55,6 +55,7 @@ export const statements = {
     "update:own",
     "create",
   ] as const,
+  fee: ["create", "update", "delete", "view", "list"] as const,
   announcements: ["create", "list", "get", "update", "delete"] as const,
 } as const;
 
@@ -80,6 +81,7 @@ export const roles = {
     complaints: ["list:own", "get", "create", "update:own", "delete:own"],
     applications: ["list:own", "get:own", "update:own"],
     announcements: ["list", "get"],
+    fee: ["view"],
   }),
 
   ADMIN: access.newRole({
@@ -94,6 +96,7 @@ export const roles = {
     complaints: [],
     applications: [],
     announcements: ["create", "list", "get", "update", "delete"],
+    fee: [],
   }),
 
   PROFESSOR: access.newRole({
@@ -108,6 +111,7 @@ export const roles = {
     complaints: ["get", "update", "list", "assign", "approve"],
     applications: [],
     announcements: [],
+    fee: [],
   }),
   ACCOUNTANT: access.newRole({
     userProfiles: ["view"],
@@ -121,6 +125,7 @@ export const roles = {
     complaints: [],
     applications: [],
     announcements: ["create", "list", "get", "update", "delete"],
+    fee: ["create", "delete", "list", "update", "view"],
   }),
   DIRECTOR: access.newRole({
     userProfiles: ["create", "update", "view"],
@@ -134,6 +139,7 @@ export const roles = {
     complaints: [],
     applications: [],
     announcements: [],
+    fee: [],
   }),
   HOD: access.newRole({
     userProfiles: ["view", "update"],
@@ -147,6 +153,7 @@ export const roles = {
     complaints: ["list", "assign", "get", "update", "list", "approve"],
     applications: [],
     announcements: ["create", "list", "get", "update", "delete"],
+    fee: ["update", "view"],
   }),
   USER: access.newRole({
     userProfiles: ["view"],
@@ -160,6 +167,7 @@ export const roles = {
     complaints: [],
     applications: ["update:own", "list:own", "get:own", "create"],
     announcements: [],
+    fee: [],
   }),
   BATCH_ADVISOR: access.newRole({
     userProfiles: ["view", "update"],
@@ -173,6 +181,7 @@ export const roles = {
     complaints: ["get", "update", "list", "assign", "approve"],
     applications: [],
     announcements: [],
+    fee: ["update", "view"],
   }),
   CLERK: access.newRole({
     userProfiles: ["view"],
@@ -186,6 +195,7 @@ export const roles = {
     complaints: [],
     applications: ["list", "get", "update", "dashboard"],
     announcements: [],
+    fee: [],
   }),
 } satisfies Record<Role, ReturnType<typeof access.newRole>>;
 

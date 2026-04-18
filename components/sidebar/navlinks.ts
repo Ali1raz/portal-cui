@@ -15,6 +15,8 @@ import {
   IconUserCheck,
   IconUsers,
   IconMessage2,
+  IconCreditCard,
+  IconCreditCardFilled,
 } from "@tabler/icons-react";
 import { Route } from "next";
 
@@ -231,6 +233,16 @@ export function getNavLinks({
         title: "Dashboard",
         href: "/accountant",
         icon: IconLayoutDashboard,
+      },
+      {
+        title: "Create Fee",
+        href: "/accountant/create-fee",
+        icon: IconCreditCard,
+      },
+      {
+        title: "Manage Fee",
+        href: "/accountant/manage-fee",
+        icon: IconCreditCardFilled,
       },
       {
         title: "Announcements",
