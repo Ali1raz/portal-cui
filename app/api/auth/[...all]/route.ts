@@ -94,18 +94,7 @@ export const { GET } = authHandlers;
 export const POST = async (req: NextRequest) => {
   const decision = await protect(req);
 
-  // console.log("Arcjet Decision:", decision);
-
-  if (decision.isErrored()) {
-    // Fail closed — block the request if Arcjet can't verify
-    console.error("Arcjet error:", decision.reason.message);
-    return Response.json(
-      { message: "Unable to verify request. Please try again." },
-      { status: 503 }
-    );
-  }
-
-  console.log("Arcjet Decision:", decision.conclusion);
+  console.log("Arcjet Decision:", decision.isErrored);
 
   if (decision.isDenied()) {
     if (decision.reason.isRateLimit()) {
