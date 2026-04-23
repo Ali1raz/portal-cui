@@ -32,7 +32,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Route } from "next";
-import { PasswordInput } from "../../../../components/general/password-input";
+import { PasswordInput } from "@/components/general/password-input";
 
 /// Login form with session refresh after successful auth.
 export function LoginForm({
@@ -59,11 +59,15 @@ export function LoginForm({
 
   function onSubmit(values: LoginSchemaType) {
     startEmailTransition(async () => {
+      const isEmail = values.email.includes("@");
+
       const { data: signInResult, error } = await tryCatch(
-        signIn.email({
-          email: values.email,
-          password: values.password,
-        })
+        isEmail
+          ? signIn.email({ email: values.email, password: values.password })
+          : signIn.username({
+              username: values.email,
+              password: values.password,
+            })
       );
 
       if (error || signInResult?.error) {
@@ -98,13 +102,14 @@ export function LoginForm({
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>
+                    Registration No/Email
+                  </FieldLabel>
                   <Input
                     {...field}
-                    type="email"
                     id={field.name}
                     aria-invalid={fieldState.invalid}
-                    placeholder="m@example.com"
+                    placeholder="fa22-bse-118 or m@example.com"
                     autoComplete="email"
                   />
                   {fieldState.invalid && (

@@ -2,6 +2,8 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format } from "date-fns";
 import { Role } from "./generated/prisma/enums";
+import { randomBytes } from "crypto";
+import { SITE_INFO } from "./data/SITE";
 
 /**
  * Merges Tailwind class names, resolving any conflicts.
@@ -48,3 +50,18 @@ export function getRelativeTime(date: Date) {
 export const ASSIGNABLE_ROLES = Object.values(Role).filter(
   (r) => r !== Role.BATCH_ADVISOR
 );
+
+/**
+ * Generates a random password.
+ *
+ * @param length - The length of the password to generate.
+ * @returns A string generated password.
+ */
+
+export function generatePassword({ length = 8 }): string {
+  return randomBytes(length).toString("base64").slice(0, length);
+}
+
+export function generateStudentEmail({ regNo }: { regNo: string }): string {
+  return `${regNo.toLowerCase()}@${SITE_INFO.domain}`;
+}
