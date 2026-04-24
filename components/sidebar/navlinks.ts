@@ -143,6 +143,11 @@ export function getNavLinks({
         icon: IconLayoutDashboard,
       },
       {
+        title: "Manage Fee",
+        href: "/hod/fee",
+        icon: IconCreditCard,
+      },
+      {
         title: "Leave Requests",
         href: "/hod/leave-requests",
         icon: IconCalendar,
