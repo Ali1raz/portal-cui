@@ -23,6 +23,7 @@ import {
 } from "../schema";
 import { accountantUpsertFeeInstallments } from "../actions";
 import { FeeInstallmentsFormFields } from "@/app/(accountant)/accountant/_components/fee-installments-form-fields";
+import { useRouter } from "next/navigation";
 
 /// Edit fee installments form with prefilled defaults from current installment records.
 export function EditInstallmentsForm({
@@ -31,6 +32,7 @@ export function EditInstallmentsForm({
   fee: AccountantGetFeeForEditInstallmentsType;
 }) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const firstInstallment = fee.feeInstallments.find(
     (installment) => installment.installmentNo === 1
@@ -81,6 +83,7 @@ export function EditInstallmentsForm({
       }
 
       toast.success(result.message);
+      router.push("/accountant/manage-fee");
     });
   }
 

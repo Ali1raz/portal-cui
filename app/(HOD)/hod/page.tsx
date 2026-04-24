@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import { requireSession } from "@/app/data/session/require-session";
 import { UserDetailsSection } from "@/components/user/user-details-section";
-import { getHodDetails } from "./get-hod-details";
 import { hodGetAtRiskStudents } from "@/app/data/hod/get-at-risk-students";
 import { AtRiskStudentsTable } from "./_components/at-risk-students-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { atRiskStudentsSearchParamsCache } from "./at-risk-students-search-params";
+import { getHodDetails } from "@/app/data/hod/get-hod-details";
 
 /// HOD dashboard page with at-risk students overview.
 export default async function HODPage(props: {

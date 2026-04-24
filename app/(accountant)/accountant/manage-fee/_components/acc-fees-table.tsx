@@ -139,15 +139,13 @@ export function AccFeesTable({
       header: "Status",
       accessorFn: (row) => row.status,
       cell: ({ row }) => (
-        <div>
-          <Badge
-            variant={
-              row.original.status === "DRAFT" ? "destructive" : "secondary"
-            }
-          >
-            {row.original.status}
-          </Badge>
-        </div>
+        <Badge
+          variant={
+            row.original.status === "DRAFT" ? "destructive" : "secondary"
+          }
+        >
+          {row.original.status}
+        </Badge>
       ),
     },
     {
@@ -158,7 +156,7 @@ export function AccFeesTable({
         <div className="text-center">
           {row.original._count.feeInstallments > 0
             ? row.original._count.feeInstallments
-            : "-"}
+            : "No Installment"}
         </div>
       ),
     },
