@@ -43,10 +43,6 @@ function getTomorrowDate() {
   return tomorrow;
 }
 
-function formatAmount(amount: number): string {
-  return formatFeeAmount(amount);
-}
-
 function getDefaultFormValues(
   installmentOptions: StudentInstallmentSplitOption[]
 ) {
@@ -148,8 +144,9 @@ export function CreateInstallmentSplitForm({
                         value={option.feeInstallmentId}
                       >
                         <span>
-                          {option.semesterLabel} · {formatAmount(option.amount)}{" "}
-                          - Due {formatDate(option.dueDate)}
+                          {option.semesterLabel} ·{" "}
+                          {formatFeeAmount(option.amount)} - Due{" "}
+                          {formatDate(option.dueDate)}
                         </span>
                       </SelectItem>
                     ))}
