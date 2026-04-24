@@ -132,11 +132,13 @@ model Student {
   program    Program
   department Department
 
-  registration       Registration[]
-  enrollments        Enrollment[]
-  studentAttendances StudentAttendance[]
-  leaveRequests      LeaveRequest[]
-  complaints         Complaint[]
+  registration             Registration[]
+  enrollments              Enrollment[]
+  studentAttendances       StudentAttendance[]
+  leaveRequests            LeaveRequest[]
+  complaints               Complaint[]
+  studentFeeInstallments   StudentFeeInstallment[]
+  installmentSplitRequests InstallmentSplitRequest[]
 
   @@map("student")
 }
@@ -809,7 +811,8 @@ model SemesterFee {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
-  feeInstallments FeeInstallment[]
+  feeInstallments        FeeInstallment[]
+  studentFeeInstallments StudentFeeInstallment[]
 
   @@index([semesterId, status])
   @@map("semester_fee")
@@ -829,9 +832,123 @@ model FeeInstallment {
   dueDate       DateTime
   description   String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  studentFeeInstallments StudentFeeInstallment[]
+
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  installmentSplitRequests InstallmentSplitRequest[]
 
   @@unique([semesterFeeId, installmentNo])
   @@map("fee_installment")
+}
+
+model StudentFeeInstallment {
+  id        String  @id @default(uuid())
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  installmentId String?
+  installment   FeeInstallment? @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+  semesterFeeId String
+  semesterFee   SemesterFee     @relation(fields: [semesterFeeId], references: [id], onDelete: Cascade)
+
+  amount  Decimal                     @db.Decimal(10, 2) // may differ from base if split approved
+  status  StudentFeeInstallmentStatus @default(UNPAID)
+  isBase  Boolean                     @default(true) // false = created by split approval
+  orderNo Int // 1, 2, or 3 — needed for display ordering
+
+  paidAt  DateTime?
+  dueDate DateTime
+
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  installmentSplitRequests InstallmentSplitRequest[]
+
+  @@unique([studentId, semesterFeeId, orderNo])
+  @@index([studentId, semesterFeeId]) // student's fee page
+  @@index([studentId, status])
+  @@map("student_fee_installment")
+}
+
+enum StudentFeeInstallmentStatus {
+  UNPAID
+  PAID
+  // OVERDUE use dueDate < now() && status == UNPAID → treat as overdue in query layer
+}
+
+model InstallmentSplitRequest {
+  id String @id @default(uuid())
+
+  feeInstallmentId String?
+  feeInstallment   FeeInstallment? @relation(fields: [feeInstallmentId], references: [id], onDelete: Cascade)
+
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  requestedAmount  Decimal  @db.Decimal(10, 2)
+  reason           String
+  preferredDueDate DateTime // student's proposed due date for the split chunk
+
+  status SplitRequestStatus @default(PENDING)
+
+  reviews InstallmentSplitRequestReview[]
+
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  studentFeeInstallment   StudentFeeInstallment? @relation(fields: [studentFeeInstallmentId], references: [id])
+  studentFeeInstallmentId String?
+
+  @@index([feeInstallmentId, status])
+  @@map("installment_split_request")
+}
+
+model InstallmentSplitRequestReview {
+  id String @id @default(uuid())
+
+  splitRequestId String
+  splitRequest   InstallmentSplitRequest @relation(fields: [splitRequestId], references: [id], onDelete: Cascade)
+
+  // Who acted
+  actorRole InstallmentSplitReviewActorRole // STUDENT | HOD | ACCOUNTANT
+  actorId   String // User.id of the actor
+
+  // What happened
+  action  InstallmentSplitReviewAction
+  remarks String? // optional note left by actor
+
+  // State transition (for timeline rendering)
+  fromStatus SplitRequestStatus
+  toStatus   SplitRequestStatus
+
+  createdAt DateTime @default(now())
+
+  @@index([splitRequestId]) // fetch timeline for a split request
+  @@map("installment_split_request_review")
+}
+
+enum InstallmentSplitReviewActorRole {
+  STUDENT
+  HOD
+  ACCOUNTANT
+}
+
+enum InstallmentSplitReviewAction {
+  SUBMITTED
+  RESUBMITTED
+  HOD_REVIEW_REQUESTED
+  HOD_APPROVED
+  HOD_REJECTED
+  APPROVED
+  REJECTED
+  CANCELLED // actor = student
+}
+
+enum SplitRequestStatus {
+  PENDING
+  CANCELLED
+  HOD_REVIEW_REQUESTED
+  HOD_APPROVED
+  HOD_REJECTED
+  APPROVED
+  REJECTED
 }

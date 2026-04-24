@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Printer, Loader2 } from "lucide-react";
 import { FeeVoucherTemplate, VoucherData } from "./fee-voucher";
 import { saveAsPdf } from "./save-as-pdf";
+import { toast } from "sonner";
 
 interface PrintVoucherButtonProps {
   data: VoucherData;
@@ -23,11 +24,10 @@ export function PrintVoucherButton({
   size = "sm",
 }: PrintVoucherButtonProps) {
   const voucherRef = useRef<HTMLDivElement>(null);
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   async function handlePrint() {
     if (!voucherRef.current) return;
-    setLoading(true);
     try {
       await saveAsPdf(voucherRef.current, {
         filename: `${filename}-installment-${data.installmentNo}`,
@@ -36,10 +36,9 @@ export function PrintVoucherButton({
         scale: 2,
         padding: 8,
       });
-    } catch (err) {
-      console.error("PDF generation failed:", err);
-    } finally {
-      setLoading(false);
+      toast.success("Voucher downloaded successfully.");
+    } catch {
+      toast.error("Failed to download voucher.");
     }
   }
 
@@ -68,16 +67,20 @@ export function PrintVoucherButton({
       <Button
         variant={variant}
         size={size}
-        onClick={handlePrint}
-        disabled={loading}
+        onClick={() => {
+          startTransition(() => {
+            void handlePrint();
+          });
+        }}
+        disabled={isPending}
         className="gap-1.5"
       >
-        {loading ? (
+        {isPending ? (
           <Loader2 className="size-3.5 animate-spin" />
         ) : (
           <Printer className="size-3.5" />
         )}
-        {loading ? "Generating…" : label}
+        {isPending ? "Generating…" : label}
       </Button>
     </>
   );

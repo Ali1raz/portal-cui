@@ -1,47 +1,211 @@
 "use client";
 
-import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { SITE_INFO } from "@/lib/data/SITE";
+import { formatFeeAmount, formatFeeDate } from "@/lib/utils/fee-format";
+
+export interface FeeStudentInfo {
+  name: string;
+  image?: string | null;
+  registrationNo: string;
+}
 
 export interface VoucherData {
   voucherId: string;
-  studentName?: string;
   installmentNo: number;
   amount: number;
   dueDate: string;
   printedAt?: string;
-  /** Optional: school / institution name */
   institutionName?: string;
+  student?: FeeStudentInfo;
 }
 
 export interface FullFeeVoucherData {
   voucherId: string;
   totalAmount: number;
   printedAt?: string;
-  studentName?: string;
   institutionName?: string;
   installments: VoucherData[];
+  student?: FeeStudentInfo;
+  semesterLabel?: string;
 }
 
 interface FeeVoucherTemplateProps {
-  /** Unique id used by saveAsPdf to locate this element */
   id: string;
   data: VoucherData;
 }
 
+interface FullFeeVoucherTemplateProps {
+  id: string;
+  data: FullFeeVoucherData;
+}
+
+type ChallanCopyType = "Bank Copy" | "Campus Copy" | "Student Copy";
+
 function formatAmount(amount: number): string {
-  return Number(amount).toLocaleString("en-US", {
-    style: "currency",
-    currency: "PKR",
-  });
+  return formatFeeAmount(amount);
 }
 
 function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  return formatFeeDate(date, "long");
+}
+
+function VoucherLayout({
+  id,
+  heading,
+  copies,
+  institutionName,
+}: {
+  id: string;
+  heading: string;
+  copies: React.ReactNode;
+  institutionName: string;
+}) {
+  return (
+    <div
+      id={id}
+      className="bg-[#f0ece4] text-gray-900"
+      style={{ width: "1300px", minHeight: "560px", padding: "20px" }}
+    >
+      <style>{`
+        .font-mono { font-family: 'IBM Plex Mono', monospace; }
+        .voucher-sans { font-family: 'IBM Plex Sans', sans-serif; }
+      `}</style>
+
+      <p className="font-mono text-xs text-gray-600 mb-3 tracking-widest uppercase">
+        {heading}
+      </p>
+
+      <div className="grid grid-cols-3 gap-4 items-start">{copies}</div>
+
+      <p className="font-mono text-xs text-gray-500 mt-3 text-center tracking-wide">
+        {institutionName}
+      </p>
+    </div>
+  );
+}
+
+function ChallanCopyCard({
+  copyType,
+  institutionName,
+  voucherId,
+  issueDate,
+  student,
+  metaRow,
+  feeRows,
+  totalLabel,
+  totalAmount,
+}: {
+  copyType: ChallanCopyType;
+  institutionName: string;
+  voucherId: string;
+  issueDate?: string;
+  student?: FeeStudentInfo;
+  metaRow: React.ReactNode;
+  feeRows: React.ReactNode;
+  totalLabel: string;
+  totalAmount: number;
+}) {
+  return (
+    <div className="bg-white border-2 border-black shadow-[4px_4px_0_#1a1a1a] overflow-hidden voucher-sans">
+      <div className="px-4 py-3 flex items-center justify-between">
+        <div>
+          <p className="font-mono font-bold text-sm tracking-tight leading-none">
+            {institutionName}
+          </p>
+          <p className="text-muted-foreground font-mono text-xs mt-1">
+            Fee Payment Challan
+          </p>
+        </div>
+        <span className="bg-white text-black font-mono text-[10px] font-bold px-2 py-1">
+          {copyType}
+        </span>
+      </div>
+
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableCell className="px-2 py-1.5 bg-gray-50 w-2/5 font-mono text-[10px] text-gray-600 uppercase font-semibold">
+              Challan #
+            </TableCell>
+            <TableCell className="px-2 py-1.5 font-mono text-[11px] font-bold">
+              {voucherId.slice(0, 8).toUpperCase()}
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-2 py-1.5 bg-gray-50 font-mono text-[10px] text-gray-600 uppercase font-semibold">
+              Issue Date
+            </TableCell>
+            <TableCell className="px-2 py-1.5 font-mono text-[11px]">
+              {formatDate(issueDate ?? "")}
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-2 py-1.5 bg-gray-50 font-mono text-[10px] text-gray-600 uppercase font-semibold">
+              Reg. No
+            </TableCell>
+            <TableCell className="px-2 py-1.5 font-mono text-[11px] font-semibold">
+              {student?.registrationNo || "N/A"}
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-2 py-1.5 bg-gray-50 font-mono text-[10px] text-gray-600 uppercase font-semibold">
+              Name
+            </TableCell>
+            <TableCell className="px-2 py-1.5">
+              <span className="font-mono text-[11px] font-semibold">
+                {student?.name || "N/A"}
+              </span>
+            </TableCell>
+          </TableRow>
+          {metaRow}
+        </TableBody>
+      </Table>
+
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-gray-100">
+            <TableHead className="px-2 py-1.5 text-left font-mono text-[10px] uppercase font-semibold">
+              Description
+            </TableHead>
+            <TableHead className="px-2 py-1.5 text-right font-mono text-[10px] uppercase font-semibold">
+              Amount (Rs.)
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {feeRows}
+          <TableRow>
+            <TableCell className="p-2 font-mono text-[10px] uppercase font-bold">
+              {totalLabel}
+            </TableCell>
+            <TableCell className="p-2 text-right font-mono text-xs font-bold">
+              {formatAmount(totalAmount)}
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+
+      <div className="px-3 py-2 border-t-2 border-black bg-gray-50">
+        <p className="text-[10px] text-gray-600 leading-relaxed font-mono">
+          1. Registration will be completed after payment clearance.
+          <br />
+          2. Keep this challan for verification.
+        </p>
+      </div>
+
+      <div className="border-t-2 border-black px-3 min-h-20">
+        <span className="text-lg font-semibold text-gray-700">Bank Stamp</span>
+      </div>
+    </div>
+  );
 }
 
 export function FeeVoucherTemplate({ id, data }: FeeVoucherTemplateProps) {
@@ -50,138 +214,62 @@ export function FeeVoucherTemplate({ id, data }: FeeVoucherTemplateProps) {
     installmentNo,
     amount,
     dueDate,
-    printedAt = new Date().toISOString(),
-    institutionName = SITE_INFO.name,
-    studentName,
+    printedAt,
+    institutionName = SITE_INFO.institution_name,
+    student,
   } = data;
 
   return (
-    <div
+    <VoucherLayout
       id={id}
-      className="bg-white text-gray-900 font-sans"
-      style={{ width: "794px", minHeight: "400px", padding: "40px" }}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between border-b-2 border-blue-700 pb-5 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-blue-700 tracking-tight">
-            {institutionName}
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">Fee Payment Voucher</p>
-        </div>
-        <div className="text-right">
-          <span className="inline-block bg-blue-700 text-white text-xs font-semibold px-3 py-1 rounded-full tracking-widest uppercase">
-            Voucher
-          </span>
-          <p className="text-sm text-gray-500 mt-1.5">
-            #{voucherId.slice(0, 8).toUpperCase()}
-          </p>
-        </div>
-      </div>
-
-      {/* Meta row */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {[
-          { label: "Installment", value: `#${installmentNo}` },
-          {
-            label: "Due Date",
-            value: formatDate(dueDate),
-          },
-          {
-            label: "Print Date",
-            value: formatDate(printedAt),
-          },
-        ].map(({ label, value }) => (
-          <div
-            key={label}
-            className="bg-gray-50 border border-gray-200 rounded-lg p-4"
-          >
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-              {label}
-            </p>
-            <p className="text-sm font-semibold text-gray-800">{value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Student row */}
-      {studentName && (
-        <div className="mb-6">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            Student
-          </p>
-          <p className="text-lg font-semibold">{studentName}</p>
-        </div>
-      )}
-
-      {/* Amount */}
-      <div className="bg-blue-700 rounded-xl p-6 mb-8 flex items-center justify-between">
-        <div>
-          <p className="text-blue-200 text-sm uppercase tracking-wider">
-            Amount Due
-          </p>
-          <p className="text-4xl font-bold text-white mt-1">
-            {formatAmount(amount)}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-blue-200 text-xs">Installment</p>
-          <p className="text-white text-2xl font-bold">
-            {installmentNo}
-            <span className="text-blue-300 text-base ml-1">/ inst.</span>
-          </p>
-        </div>
-      </div>
-
-      {/* Payment info table */}
-      <Table className="w-full text-sm border-collapse mb-8">
-        <TableHeader>
-          <TableRow className="bg-gray-100">
-            <TableHead className="text-left px-4 py-2.5 text-gray-600 font-semibold border border-gray-200">
-              Description
-            </TableHead>
-            <TableHead className="text-right px-4 py-2.5 text-gray-600 font-semibold border border-gray-200">
-              Amount
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <tbody>
-          <tr>
-            <td className="px-4 py-3 border border-gray-200">
-              Fee Installment #{installmentNo}
-            </td>
-            <td className="px-4 py-3 text-right border border-gray-200 font-medium">
-              {formatAmount(amount)}
-            </td>
-          </tr>
-          <tr className="bg-gray-50 font-bold">
-            <td className="px-4 py-3 border border-gray-200">Total</td>
-            <td className="px-4 py-3 text-right border border-gray-200 text-blue-700">
-              {formatAmount(amount)}
-            </td>
-          </tr>
-        </tbody>
-      </Table>
-
-      {/* Footer */}
-      <div className="border-t border-gray-200 pt-5 flex items-end justify-between">
-        <p className="text-xs text-gray-400 max-w-sm">
-          Please retain this voucher as proof of payment. For queries, contact
-          the accounts department.
-        </p>
-        <div className="text-right">
-          <div className="border-t border-gray-400 mt-8 pt-1 w-40">
-            <p className="text-xs text-gray-500">Authorised Signature</p>
-          </div>
-        </div>
-      </div>
-    </div>
+      heading="Fee Payment Challan · Installment Voucher"
+      institutionName={institutionName}
+      copies={(
+        ["Bank Copy", "Campus Copy", "Student Copy"] as ChallanCopyType[]
+      ).map((copy) => (
+        <ChallanCopyCard
+          key={copy}
+          copyType={copy}
+          institutionName={institutionName}
+          voucherId={voucherId}
+          issueDate={printedAt}
+          student={student}
+          metaRow={
+            <>
+              <TableRow>
+                <TableCell className="px-2 py-1.5 bg-gray-50 font-mono text-[10px] text-gray-600 uppercase font-semibold">
+                  Installment
+                </TableCell>
+                <TableCell className="px-2 py-1.5 font-mono text-[11px] font-semibold">
+                  {installmentNo}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="px-2 py-1.5 bg-gray-50 font-mono text-[10px] text-gray-600 uppercase font-semibold">
+                  Due Date
+                </TableCell>
+                <TableCell className="px-2 py-1.5 font-mono text-[11px] font-semibold">
+                  {formatDate(dueDate)}
+                </TableCell>
+              </TableRow>
+            </>
+          }
+          feeRows={
+            <TableRow>
+              <TableCell className="p-2 text-[11px]">
+                Fee Installment #{installmentNo}
+              </TableCell>
+              <TableCell className="p-2 text-right font-mono text-[11px] font-semibold">
+                {formatAmount(amount)}
+              </TableCell>
+            </TableRow>
+          }
+          totalLabel={`Total Fee upto ${formatDate(dueDate)}`}
+          totalAmount={amount}
+        />
+      ))}
+    />
   );
-}
-
-interface FullFeeVoucherTemplateProps {
-  id: string;
-  data: FullFeeVoucherData;
 }
 
 export function FullFeeVoucherTemplate({
@@ -192,112 +280,62 @@ export function FullFeeVoucherTemplate({
     voucherId,
     totalAmount,
     installments,
-    printedAt = new Date().toISOString(),
-    institutionName = "Student Portal",
-    studentName,
+    printedAt,
+    institutionName = SITE_INFO.institution_name,
+    student,
+    semesterLabel,
   } = data;
 
   return (
-    <div
+    <VoucherLayout
       id={id}
-      className="bg-white text-gray-900 font-sans"
-      style={{ width: "794px", minHeight: "400px", padding: "40px" }}
-    >
-      <div className="flex items-start justify-between border-b-2 border-blue-700 pb-5 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-blue-700 tracking-tight">
-            {institutionName}
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">Full Fee Voucher</p>
-        </div>
-        <div className="text-right">
-          <span className="inline-block bg-blue-700 text-white text-xs font-semibold px-3 py-1 rounded-full tracking-widest uppercase">
-            Voucher
-          </span>
-          <p className="text-sm text-gray-500 mt-1.5">
-            #{voucherId.slice(0, 8).toUpperCase()}
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            Print Date
-          </p>
-          <p className="text-sm font-semibold text-gray-800">
-            {formatDate(printedAt)}
-          </p>
-        </div>
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            Installments
-          </p>
-          <p className="text-sm font-semibold text-gray-800">
-            {installments.length}
-          </p>
-        </div>
-      </div>
-
-      {studentName && (
-        <div className="mb-6">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            Student
-          </p>
-          <p className="text-lg font-semibold">{studentName}</p>
-        </div>
-      )}
-
-      <table className="w-full text-sm border-collapse mb-8">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="text-left px-4 py-2.5 text-gray-600 font-semibold border border-gray-200">
-              Installment
-            </th>
-            <th className="text-left px-4 py-2.5 text-gray-600 font-semibold border border-gray-200">
-              Due Date
-            </th>
-            <th className="text-right px-4 py-2.5 text-gray-600 font-semibold border border-gray-200">
-              Amount
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {installments.map((installment) => (
-            <tr key={installment.voucherId}>
-              <td className="px-4 py-3 border border-gray-200">
-                Installment #{installment.installmentNo}
-              </td>
-              <td className="px-4 py-3 border border-gray-200">
-                {formatDate(installment.dueDate)}
-              </td>
-              <td className="px-4 py-3 text-right border border-gray-200 font-medium">
+      heading="Fee Payment Challan · Full Fee Voucher"
+      institutionName={institutionName}
+      copies={(
+        ["Bank Copy", "Campus Copy", "Student Copy"] as ChallanCopyType[]
+      ).map((copy) => (
+        <ChallanCopyCard
+          key={copy}
+          copyType={copy}
+          institutionName={institutionName}
+          voucherId={voucherId}
+          issueDate={printedAt}
+          student={student}
+          metaRow={
+            <>
+              <TableRow>
+                <TableCell className="px-2 py-1.5 bg-gray-50 font-mono text-[10px] text-gray-600 uppercase font-semibold">
+                  Program / Session
+                </TableCell>
+                <TableCell className="px-2 py-1.5 font-mono text-[11px] font-semibold">
+                  {semesterLabel || "N/A"}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="px-2 py-1.5 bg-gray-50 font-mono text-[10px] text-gray-600 uppercase font-semibold">
+                  Installments
+                </TableCell>
+                <TableCell className="px-2 py-1.5 font-mono text-[11px] font-semibold">
+                  {installments.length}
+                </TableCell>
+              </TableRow>
+            </>
+          }
+          feeRows={installments.map((installment) => (
+            <TableRow key={installment.voucherId}>
+              <TableCell className="p-2 text-[11px]">
+                Installment #{installment.installmentNo} (
+                {formatDate(installment.dueDate)})
+              </TableCell>
+              <TableCell className="p-2 text-right font-mono text-[11px] font-semibold">
                 {formatAmount(installment.amount)}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-          <tr className="bg-gray-50 font-bold">
-            <td className="px-4 py-3 border border-gray-200" colSpan={2}>
-              Total Fee
-            </td>
-            <td className="px-4 py-3 text-right border border-gray-200 text-blue-700">
-              {formatAmount(totalAmount)}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div className="border-t border-gray-200 pt-5 flex items-end justify-between">
-        <p className="text-xs text-gray-400 max-w-sm">
-          Please retain this voucher as proof of payment. For queries, contact
-          the accounts department.
-        </p>
-        <div className="text-right">
-          <div className="border-t border-gray-400 mt-8 pt-1 w-40">
-            <p className="text-xs text-gray-500">Authorised Signature</p>
-          </div>
-        </div>
-      </div>
-    </div>
+          totalLabel={`Total Fee upto ${formatDate(printedAt ?? installments[0]?.dueDate ?? "")}`}
+          totalAmount={totalAmount}
+        />
+      ))}
+    />
   );
 }

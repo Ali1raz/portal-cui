@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Printer, Loader2 } from "lucide-react";
 import { FullFeeVoucherData, FullFeeVoucherTemplate } from "./fee-voucher";
@@ -17,23 +17,21 @@ export function PrintFullFeeVoucherButton({
   totalFeeId,
 }: PrintFullFeeVoucherButtonProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   async function handlePrintFullVoucher() {
     if (!containerRef.current) return;
-    setLoading(true);
     try {
       await saveAsPdf(containerRef.current, {
         filename: `full-fee-voucher-${totalFeeId.slice(0, 6)}`,
-        format: "a4",
+        format: "letter",
         orientation: "portrait",
         scale: 2,
         padding: 8,
       });
-    } catch (err) {
-      toast.error(`PDF generation failed:, ${err}`);
-    } finally {
-      setLoading(false);
+      toast.success("Full fee voucher downloaded successfully.");
+    } catch {
+      toast.error("Failed to download full fee voucher.");
     }
   }
 
@@ -61,16 +59,21 @@ export function PrintFullFeeVoucherButton({
       </div>
 
       <Button
-        onClick={handlePrintFullVoucher}
-        disabled={loading}
+        size="sm"
+        onClick={() => {
+          startTransition(() => {
+            void handlePrintFullVoucher();
+          });
+        }}
+        disabled={isPending}
         className="gap-2"
       >
-        {loading ? (
+        {isPending ? (
           <Loader2 className="size-4 animate-spin" />
         ) : (
           <Printer className="size-4" />
         )}
-        {loading ? "Generating PDF..." : "Print Full Fee Voucher"}
+        {isPending ? "Generating PDF..." : "Print Full Fee Voucher"}
       </Button>
     </>
   );

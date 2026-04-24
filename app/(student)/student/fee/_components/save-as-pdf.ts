@@ -102,9 +102,9 @@ export async function saveAsPdf(
   const y = padding;
 
   // If content is taller than one page, split across pages
-  const totalPages = Math.ceil(imgH / usableH);
+  const pageCount = Math.ceil(imgH / usableH);
 
-  for (let page = 0; page < totalPages; page++) {
+  for (let page = 0; page < pageCount; page++) {
     if (page > 0) pdf.addPage();
 
     const srcY = (page * usableH) / ratio;
@@ -114,7 +114,12 @@ export async function saveAsPdf(
     const pageCanvas = document.createElement("canvas");
     pageCanvas.width = canvasW;
     pageCanvas.height = srcH;
-    const ctx = pageCanvas.getContext("2d")!;
+    const ctx = pageCanvas.getContext("2d");
+
+    if (!ctx) {
+      throw new Error("saveAsPdf: Failed to initialize canvas context.");
+    }
+
     ctx.drawImage(canvas, 0, -srcY);
 
     const pageImgData = pageCanvas.toDataURL("image/png");

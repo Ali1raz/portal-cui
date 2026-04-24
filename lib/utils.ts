@@ -48,3 +48,13 @@ export function getRelativeTime(date: Date) {
 export const ASSIGNABLE_ROLES = Object.values(Role).filter(
   (r) => r !== Role.BATCH_ADVISOR
 );
+
+export function formatCurrencyToPKR(amount: number): string {
+  const formatter = new Intl.NumberFormat("en-PK", {
+    style: "currency",
+    currency: "PKR",
+    minimumFractionDigits: 2,
+  });
+
+  return formatter.format(amount);
+}
