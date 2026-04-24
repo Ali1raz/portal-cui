@@ -36,6 +36,11 @@
       "sourceType": "github",
       "computedHash": "6faff5ca150b3b5899681ece80db589e858ef4db7c725b894f623da03c3d2a70"
     },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "computedHash": "2bc6cf38ec7b4a5778a43fabb3e87642c9897ad45e9eb42438b57fd2def6cca8"
+    },
     "vitest": {
       "source": "antfu/skills",
       "sourceType": "github",
