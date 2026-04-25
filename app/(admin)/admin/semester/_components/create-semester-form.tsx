@@ -72,9 +72,9 @@ export function CreateSemesterForm() {
         return;
       }
 
-      toast.success(result.message);
       form.reset();
-      router.refresh();
+      toast.success(result.message);
+      router.push("/admin/semester");
     });
   }
 
