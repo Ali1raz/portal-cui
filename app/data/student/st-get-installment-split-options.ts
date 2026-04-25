@@ -89,9 +89,6 @@ export async function studentGetFeeInstallmentOptions() {
   });
 }
 
-export const studentGetInstallmentSplitOptions =
-  studentGetFeeInstallmentOptions;
-
 export type StudentInstallmentSplitOption = Awaited<
-  ReturnType<typeof studentGetInstallmentSplitOptions>
+  ReturnType<typeof studentGetFeeInstallmentOptions>
 >[number];
