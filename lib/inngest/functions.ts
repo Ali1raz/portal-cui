@@ -2,8 +2,7 @@ import prisma from "../prisma";
 import { inngest } from "./client";
 
 export const helloWorld = inngest.createFunction(
-  { id: "hello-world" },
-  { event: "test/hello.world" },
+  { id: "hello-world", triggers: { event: "test/hello.world" } },
   async ({ event, step }) => {
     await step.sleep("wait-a-moment", "1s");
     return { message: `Hello ${event.data.email}!` };
@@ -11,8 +10,10 @@ export const helloWorld = inngest.createFunction(
 );
 
 export const handleAnnouncementSchedule = inngest.createFunction(
-  { id: "announcement-schedule" },
-  { event: "announcement/scheduled" },
+  {
+    id: "announcement-schedule",
+    triggers: { event: "announcement/scheduled" },
+  },
   async ({ event, step }) => {
     const { announcementId, scheduleDate } = event.data;
     const targetDate = new Date(scheduleDate);
@@ -42,32 +43,5 @@ export const handleAnnouncementSchedule = inngest.createFunction(
     });
 
     return { announcementId, message: `Announcement published!` };
-  }
-);
-
-export const handleLeaveRequestStatusChange = inngest.createFunction(
-  { id: "leave-request-status-change" },
-  { event: "leaveRequest/status.changed" },
-  async ({ event, step }) => {
-    const { leaveRequestId, requestDate } = event.data;
-    // wait until requestDate to update leaverequest status to rejected if it is still pending
-    // dev test for 1minute
-    // const until = new Date(Date.now() + 60 * 1000); // 1 minute from now
-
-    await step.sleepUntil(
-      "wait-until-request-date",
-      `${new Date(requestDate).toISOString()}`
-    );
-
-    await step.run("update-leave-request-status", async () => {
-      await prisma.leaveRequest.update({
-        where: {
-          id: leaveRequestId,
-          status: "PENDING",
-          date: new Date(requestDate),
-        },
-        data: { status: "REJECTED" },
-      });
-    });
   }
 );

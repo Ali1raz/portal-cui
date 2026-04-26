@@ -1,7 +1,6 @@
 import { inngest } from "@/lib/inngest/client";
 import {
   handleAnnouncementSchedule,
-  handleLeaveRequestStatusChange,
   helloWorld,
 } from "@/lib/inngest/functions";
 import { serve } from "inngest/next";
@@ -13,6 +12,5 @@ export const { GET, POST, PUT } = serve({
     /* your functions will be passed here later! */
     helloWorld,
     handleAnnouncementSchedule,
-    handleLeaveRequestStatusChange,
   ],
 });
