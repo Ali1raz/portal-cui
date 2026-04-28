@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "../permission/require-permission";
 import { requireSession } from "../session/require-session";
+import { getStudentFeeSplitContextByStudentId } from "../student/st-get-installment-split-options";
 
 /// Fetch one fee split request detail for HOD review with department-level access guard.
 export async function hodGetFeeSplitRequestDetails({
@@ -51,6 +52,7 @@ export async function hodGetFeeSplitRequestDetails({
       updatedAt: true,
       student: {
         select: {
+          id: true,
           registrationNo: true,
           department: true,
           user: {
@@ -139,6 +141,13 @@ export async function hodGetFeeSplitRequestDetails({
     return redirect("/unauthorized");
   }
 
+  const feeContext =
+    request.feeInstallment || request.studentFeeInstallment
+      ? null
+      : request.student
+        ? await getStudentFeeSplitContextByStudentId(request.student.id)
+        : null;
+
   return {
     ...request,
     requestedAmount: Number(request.requestedAmount),
@@ -152,6 +161,7 @@ export async function hodGetFeeSplitRequestDetails({
           },
         }
       : null,
+    feeContext,
     studentFeeInstallment: request.studentFeeInstallment
       ? {
           ...request.studentFeeInstallment,

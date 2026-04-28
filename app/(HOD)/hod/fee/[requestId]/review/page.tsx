@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatEnumLabel } from "@/lib/utils";
 import { formatFeeAmount } from "@/lib/utils/fee-format";
+import { FeeInfoRow } from "@/components/fee/info-row";
 import { ReviewFeeSplitRequestForm } from "./_components/review-fee-split-request-form";
 
 export default async function ReviewFeeSplitRequestPage(
@@ -10,22 +11,23 @@ export default async function ReviewFeeSplitRequestPage(
 ) {
   const { requestId } = await props.params;
   const details = await hodGetFeeSplitRequestDetails({ requestId });
-  const studentName = details.student?.user.name ?? "Unknown Student";
-  const registrationNo = details.student?.registrationNo ?? "-";
 
   const semester =
     details.feeInstallment?.semesterFee.semester ??
-    details.studentFeeInstallment?.semesterFee.semester;
+    details.studentFeeInstallment?.semesterFee.semester ??
+    details.feeContext?.semester;
   const sourceInstallmentNo =
     details.feeInstallment?.installmentNo ??
     details.studentFeeInstallment?.orderNo;
   const sourceAmount =
     details.feeInstallment?.amount ??
     details.studentFeeInstallment?.amount ??
+    details.feeContext?.remainingAmount ??
     0;
   const fullFeeAmount =
     details.feeInstallment?.semesterFee.totalAmount ??
     details.studentFeeInstallment?.semesterFee.totalAmount ??
+    details.feeContext?.totalAmount ??
     0;
 
   return (
@@ -38,9 +40,12 @@ export default async function ReviewFeeSplitRequestPage(
         <CardHeader className="border-b">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-1">
-              <CardTitle className="text-lg">{studentName}</CardTitle>
+              <CardTitle className="text-lg">
+                {details.student?.user.name || "Unknown"}
+              </CardTitle>
               <p className="text-sm text-muted-foreground">
-                {registrationNo} · Submitted {formatDate(details.createdAt)}
+                {details.student?.registrationNo}
+                <p>{formatDate(details.createdAt)}</p>
               </p>
             </div>
             <Badge>{formatEnumLabel(details.status)}</Badge>
@@ -49,36 +54,49 @@ export default async function ReviewFeeSplitRequestPage(
 
         <CardContent className="space-y-6 pt-6">
           <div className="grid gap-4 sm:grid-cols-2">
-            <InfoRow label="Total fee" value={formatFeeAmount(fullFeeAmount)} />
-            <InfoRow
-              label="Requested instalment"
+            <FeeInfoRow
+              label="Total fee"
+              value={formatFeeAmount(fullFeeAmount)}
+            />
+            <FeeInfoRow
+              label="Requested amount"
               value={formatFeeAmount(details.requestedAmount)}
             />
-            <InfoRow
-              label="Source installment no"
-              value={String(sourceInstallmentNo ?? "-")}
+            <FeeInfoRow
+              label={
+                details.feeInstallment || details.studentFeeInstallment
+                  ? "Source installment no"
+                  : "Available amount"
+              }
+              value={
+                details.feeInstallment || details.studentFeeInstallment
+                  ? String(sourceInstallmentNo ?? "-")
+                  : formatFeeAmount(sourceAmount)
+              }
             />
-            <InfoRow
-              label="Source amount"
-              value={formatFeeAmount(sourceAmount)}
+            <FeeInfoRow
+              label={
+                details.feeInstallment || details.studentFeeInstallment
+                  ? "Source amount"
+                  : "Full fee amount"
+              }
+              value={formatFeeAmount(fullFeeAmount)}
             />
-            <InfoRow
+            <FeeInfoRow
               label="Preferred due date"
               value={formatDate(details.preferredDueDate)}
             />
-            <InfoRow
+            <FeeInfoRow
               label="Semester"
               value={
                 semester
-                  ? `Sem ${semester.semester}: ${semester.batch}${semester.year
-                      .toString()
-                      .slice(-2)}-${semester.program}${semester.department}`
+                  ? `Sem ${semester.semester} ${semester.batch}${String(semester.year).slice(-2)}-${semester.program ?? ""}${semester.department}`
                   : "-"
               }
             />
           </div>
 
-          <InfoRow
+          <FeeInfoRow
             label="Reason"
             value={details.reason}
             valueClassName="leading-6 text-muted-foreground"
@@ -89,25 +107,6 @@ export default async function ReviewFeeSplitRequestPage(
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
-}
-
-function InfoRow({
-  label,
-  value,
-  valueClassName,
-}: {
-  label: string;
-  value: string;
-  valueClassName?: string;
-}) {
-  return (
-    <div className="space-y-1">
-      <p className="text-sm uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p className={valueClassName ?? "text-sm"}>{value}</p>
     </div>
   );
 }

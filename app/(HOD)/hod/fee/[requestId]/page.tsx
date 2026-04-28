@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { UserImage } from "@/components/user/user-image";
 import { formatDate, formatEnumLabel } from "@/lib/utils";
 import { formatFeeAmount } from "@/lib/utils/fee-format";
+import { FeeInfoRow } from "@/components/fee/info-row";
 
 export default async function HodFeeSplitRequestDetailsPage(
   props: PageProps<"/hod/fee/[requestId]">
@@ -35,17 +36,20 @@ async function HodFeeSplitRequestDetailsContent({
 
   const semester =
     details.feeInstallment?.semesterFee.semester ??
-    details.studentFeeInstallment?.semesterFee.semester;
+    details.studentFeeInstallment?.semesterFee.semester ??
+    details.feeContext?.semester;
   const sourceInstallmentNo =
     details.feeInstallment?.installmentNo ??
     details.studentFeeInstallment?.orderNo;
   const sourceAmount =
     details.feeInstallment?.amount ??
     details.studentFeeInstallment?.amount ??
+    details.feeContext?.remainingAmount ??
     0;
   const fullFeeAmount =
     details.feeInstallment?.semesterFee.totalAmount ??
     details.studentFeeInstallment?.semesterFee.totalAmount ??
+    details.feeContext?.totalAmount ??
     0;
 
   return (
@@ -119,40 +123,46 @@ async function HodFeeSplitRequestDetailsContent({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="grid grid-cols- gap-3 grid-cols-2">
-                <InfoRow
+              <div className="grid grid-cols-2 gap-3">
+                <FeeInfoRow
                   label="Requested amount"
                   value={formatFeeAmount(details.requestedAmount)}
                 />
-                <InfoRow
+                <FeeInfoRow
                   label="Preferred due date"
                   value={formatDate(details.preferredDueDate)}
                 />
-                <InfoRow
-                  label="Source installment no"
-                  value={String(sourceInstallmentNo ?? "-")}
+                <FeeInfoRow
+                  label={
+                    details.feeInstallment || details.studentFeeInstallment
+                      ? "Source installment no"
+                      : "Available amount"
+                  }
+                  value={
+                    details.feeInstallment || details.studentFeeInstallment
+                      ? String(sourceInstallmentNo ?? "-")
+                      : formatFeeAmount(sourceAmount)
+                  }
                 />
-                <InfoRow
-                  label="Source amount"
-                  value={formatFeeAmount(sourceAmount)}
-                />
-                <InfoRow
-                  label="Full fee amount"
+                <FeeInfoRow
+                  label={
+                    details.feeInstallment || details.studentFeeInstallment
+                      ? "Source amount"
+                      : "Full fee amount"
+                  }
                   value={formatFeeAmount(fullFeeAmount)}
                 />
-                <InfoRow
+                <FeeInfoRow
                   label="Semester"
                   value={
                     semester
-                      ? `Sem ${semester.semester} ${semester.batch}${semester.year
-                          .toString()
-                          .slice(-2)}-${semester.program}${semester.department}`
+                      ? `Sem ${semester.semester} ${semester.batch}${String(semester.year).slice(-2)}-${semester.program ?? ""}${semester.department}`
                       : "-"
                   }
                 />
               </div>
 
-              <InfoRow
+              <FeeInfoRow
                 label="Reason"
                 value={details.reason}
                 valueClassName="leading-6 text-muted-foreground"
@@ -199,25 +209,6 @@ async function HodFeeSplitRequestDetailsContent({
           </Card>
         </section>
       </div>
-    </div>
-  );
-}
-
-function InfoRow({
-  label,
-  value,
-  valueClassName,
-}: {
-  label: string;
-  value: string;
-  valueClassName?: string;
-}) {
-  return (
-    <div className="space-y-1">
-      <p className="text-sm uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p className={valueClassName ?? "text-sm"}>{value}</p>
     </div>
   );
 }

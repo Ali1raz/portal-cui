@@ -163,27 +163,17 @@ export function HodFeeSplitRequestsTable({
         },
       },
       {
-        id: "installmentNo",
-        header: "Installment No",
+        id: "totalFee",
+        header: "Total Fee",
         accessorFn: (row) =>
-          row.feeInstallment?.installmentNo ??
-          row.studentFeeInstallment?.orderNo ??
+          row.feeInstallment?.semesterFee.totalAmount ??
+          row.studentFeeInstallment?.semesterFee.totalAmount ??
           0,
-        cell: ({ row }) =>
-          row.original.feeInstallment?.installmentNo ??
-          row.original.studentFeeInstallment?.orderNo ??
-          "-",
-      },
-      {
-        id: "baseAmount",
-        header: "Base Amount",
-        accessorFn: (row) =>
-          row.feeInstallment?.amount ?? row.studentFeeInstallment?.amount ?? 0,
         enableSorting: false,
         cell: ({ row }) =>
           formatFeeAmount(
-            row.original.feeInstallment?.amount ??
-              row.original.studentFeeInstallment?.amount ??
+            row.original.feeInstallment?.semesterFee.totalAmount ??
+              row.original.studentFeeInstallment?.semesterFee.totalAmount ??
               0
           ),
       },

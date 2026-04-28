@@ -2,6 +2,7 @@
 
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireSession } from "@/app/data/session/require-session";
+import { getStudentFeeSplitContextByStudentId } from "@/app/data/student/st-get-installment-split-options";
 import { errorMessage } from "@/lib/error-message";
 import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 import { SplitRequestStatus } from "@/lib/generated/prisma/enums";
@@ -112,16 +113,6 @@ export async function hodReviewSplitRequest(
       };
     }
 
-    if (
-      !splitRequest.feeInstallmentId &&
-      !splitRequest.studentFeeInstallmentId
-    ) {
-      return {
-        status: "error",
-        message: "Request is missing fee source details.",
-      };
-    }
-
     if (!HOD_ALLOWED_TARGET_STATUSES.includes(validated.data.status)) {
       return {
         status: "error",
@@ -145,11 +136,30 @@ export async function hodReviewSplitRequest(
       };
     }
 
+    if (!splitRequest.studentId) {
+      return {
+        status: "error",
+        message: "Request is missing student details.",
+      };
+    }
+
+    const feeContext = await getStudentFeeSplitContextByStudentId(
+      splitRequest.studentId
+    );
+
+    if (!feeContext) {
+      return {
+        status: "error",
+        message: "Could not resolve the student's current fee balance.",
+      };
+    }
+
     const studentIdForInstallments =
       splitRequest.studentFeeInstallment?.studentId ?? splitRequest.studentId;
     const semesterFeeIdForInstallments =
       splitRequest.studentFeeInstallment?.semesterFeeId ??
-      splitRequest.feeInstallment?.semesterFeeId;
+      splitRequest.feeInstallment?.semesterFeeId ??
+      feeContext.semesterFeeId;
     const installmentIdForInstallments =
       splitRequest.feeInstallmentId ??
       splitRequest.studentFeeInstallment?.installmentId ??
@@ -162,33 +172,14 @@ export async function hodReviewSplitRequest(
       };
     }
 
-    const semesterFee = await prisma.semesterFee.findUnique({
-      where: {
-        id: semesterFeeIdForInstallments,
-      },
-      select: {
-        totalAmount: true,
-      },
-    });
-
-    if (!semesterFee) {
+    if (requestedAmount >= feeContext.remainingAmount) {
       return {
         status: "error",
-        message: "Could not resolve semester fee for this request.",
+        message: "Requested amount must be less than the remaining fee amount.",
       };
     }
 
-    const totalSemesterFeeAmount = Number(semesterFee.totalAmount);
-
-    if (requestedAmount >= totalSemesterFeeAmount) {
-      return {
-        status: "error",
-        message:
-          "Requested amount must be less than total semester fee amount.",
-      };
-    }
-
-    const remainingAmount = totalSemesterFeeAmount - requestedAmount;
+    const remainingAmount = feeContext.remainingAmount - requestedAmount;
 
     if (remainingAmount <= 0) {
       return {

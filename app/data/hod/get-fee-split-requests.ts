@@ -100,7 +100,9 @@ export async function hodGetFeeSplitRequests({
       : {}),
   };
 
-  const orderBy: Prisma.InstallmentSplitRequestOrderByWithRelationInput =
+  const orderBy:
+    | Prisma.InstallmentSplitRequestOrderByWithRelationInput
+    | Prisma.InstallmentSplitRequestOrderByWithRelationInput[] =
     sortBy === "studentName"
       ? {
           student: {
@@ -116,15 +118,29 @@ export async function hodGetFeeSplitRequests({
             },
           }
         : sortBy === "semester"
-          ? {
-              feeInstallment: {
-                semesterFee: {
-                  semester: {
-                    semester: direction,
+          ? [
+              {
+                feeInstallment: {
+                  semesterFee: {
+                    semester: {
+                      semester: direction,
+                    },
                   },
                 },
               },
-            }
+              {
+                studentFeeInstallment: {
+                  semesterFee: {
+                    semester: {
+                      semester: direction,
+                    },
+                  },
+                },
+              },
+              {
+                createdAt: "desc",
+              },
+            ]
           : {
               [sortBy]: direction,
             };
