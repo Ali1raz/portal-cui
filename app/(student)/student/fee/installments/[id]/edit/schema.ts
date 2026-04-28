@@ -3,7 +3,7 @@ import z from "zod";
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
-export const createInstallmentSplitRequestSchema = z
+export const updateInstallmentSplitRequestSchema = z
   .object({
     splitAmount: z
       .number()
@@ -22,6 +22,6 @@ export const createInstallmentSplitRequestSchema = z
     message: "Preferred due date cannot be in the past",
   });
 
-export type CreateInstallmentSplitRequestSchemaType = z.infer<
-  typeof createInstallmentSplitRequestSchema
+export type UpdateInstallmentSplitRequestSchemaType = z.infer<
+  typeof updateInstallmentSplitRequestSchema
 >;

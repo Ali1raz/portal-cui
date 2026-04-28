@@ -12,7 +12,6 @@ function getInstallmentStatus(
   installmentStatus?: string
 ): InstallmentStatus {
   if (installmentStatus === "PAID") return "paid";
-  if (installmentStatus === "OVERDUE") return "overdue";
 
   const now = new Date();
   const due = new Date(dueDate);
@@ -136,6 +135,10 @@ export async function studentGetFeeDetails() {
               semesterFeeId: data.id,
             },
           },
+          {
+            feeInstallmentId: null,
+            studentFeeInstallmentId: null,
+          },
         ],
       },
       orderBy: {
@@ -144,6 +147,8 @@ export async function studentGetFeeDetails() {
       select: {
         id: true,
         status: true,
+        requestedAmount: true,
+        preferredDueDate: true,
         feeInstallmentId: true,
         studentFeeInstallmentId: true,
         createdAt: true,
@@ -163,7 +168,7 @@ export async function studentGetFeeDetails() {
       amount: Number(inst.amount),
       dueDate: inst.dueDate,
       updatedAt: null,
-      status: undefined as undefined,
+      status: "UNPAID" as const,
     }));
 
   type DisplayedInstallment = {
@@ -173,6 +178,10 @@ export async function studentGetFeeDetails() {
     dueDate: Date;
     updatedAt: Date | null;
     status: string | undefined;
+    installmentSplitRequests?: {
+      id: string;
+      status: string;
+    }[];
   };
 
   const displayedInstallments: DisplayedInstallment[] = hasStudentInstallments
@@ -189,14 +198,19 @@ export async function studentGetFeeDetails() {
         }))
     : baseInstallments;
 
-  const paidAmount = displayedInstallments.reduce((sum, inst) => {
-    return sum + (inst.status === "PAID" ? inst.amount : 0);
+  const unpaidAmount = displayedInstallments.reduce((sum, inst) => {
+    return sum + (inst.status === "UNPAID" ? inst.amount : 0);
   }, 0);
 
-  const remainingAmount = Math.max(totalAmount - paidAmount, 0);
+  const remainingAmount = Math.max(unpaidAmount, 0);
 
   // If student installments exist and only 1, add remaining as second
-  if (hasStudentInstallments && displayedInstallments.length === 1) {
+  if (
+    hasStudentInstallments &&
+    displayedInstallments.length === 1 &&
+    displayedInstallments[0].status === "PAID" &&
+    remainingAmount > 0
+  ) {
     const firstInstallment = displayedInstallments[0];
     const secondDueDate = new Date(
       firstInstallment.dueDate.getTime() + 30 * 24 * 60 * 60 * 1000

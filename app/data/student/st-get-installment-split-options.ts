@@ -1,11 +1,103 @@
 import "server-only";
 
+import prisma from "@/lib/prisma";
 import { requirePermission } from "../permission/require-permission";
 import { redirect } from "next/navigation";
-import prisma from "@/lib/prisma";
 import { requireSession } from "../session/require-session";
 
-export async function studentGetFeeInstallmentOptions() {
+export type StudentFeeSplitContext = {
+  studentId: string;
+  semesterFeeId: string;
+  semesterLabel: string;
+  totalAmount: number;
+  remainingAmount: number;
+  semester: {
+    semester: number;
+    year: number;
+    batch: string;
+    program: string | null;
+    department: string;
+  };
+};
+
+export async function getStudentFeeSplitContextByStudentId(
+  studentId: string
+): Promise<StudentFeeSplitContext | null> {
+  const data = await prisma.semesterFee.findFirst({
+    where: {
+      status: "PUBLISHED",
+      semester: {
+        registrations: {
+          some: {
+            studentId,
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      id: true,
+      totalAmount: true,
+      semester: {
+        select: {
+          semester: true,
+          year: true,
+          batch: true,
+          program: true,
+          department: true,
+        },
+      },
+      studentFeeInstallments: {
+        where: {
+          studentId,
+        },
+        orderBy: {
+          orderNo: "asc",
+        },
+        select: {
+          amount: true,
+          status: true,
+          orderNo: true,
+        },
+      },
+    },
+  });
+
+  if (!data) {
+    return null;
+  }
+
+  const totalAmount = Number(data.totalAmount);
+  const unpaidAmount = data.studentFeeInstallments.reduce(
+    (sum, installment) => {
+      return (
+        sum + (installment.status === "UNPAID" ? Number(installment.amount) : 0)
+      );
+    },
+    0
+  );
+
+  const remainingAmount = data.studentFeeInstallments.length
+    ? Math.max(unpaidAmount, 0)
+    : totalAmount;
+  const semester = data.semester;
+  const semesterLabel = `Sem ${semester.semester} (${semester.batch}${semester.year
+    .toString()
+    .slice(-2)}-${semester.program}${semester.department})`;
+
+  return {
+    studentId,
+    semesterFeeId: data.id,
+    semesterLabel,
+    totalAmount,
+    remainingAmount,
+    semester,
+  };
+}
+
+export async function studentGetFeeSplitContext() {
   const can = await requirePermission({
     fee: ["view"],
   });
@@ -26,69 +118,12 @@ export async function studentGetFeeInstallmentOptions() {
   });
 
   if (!student) {
-    return [];
+    return null;
   }
 
-  const semesterFees = await prisma.semesterFee.findMany({
-    where: {
-      status: "PUBLISHED",
-      semester: {
-        registrations: {
-          some: {
-            studentId: student.id,
-          },
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    select: {
-      id: true,
-      totalAmount: true,
-      semester: {
-        select: {
-          semester: true,
-          year: true,
-          batch: true,
-          program: true,
-          department: true,
-        },
-      },
-      feeInstallments: {
-        // take: 1,
-        orderBy: {
-          installmentNo: "asc",
-        },
-
-        select: {
-          id: true,
-          installmentNo: true,
-          amount: true,
-          dueDate: true,
-        },
-      },
-    },
-  });
-
-  return semesterFees.flatMap((semesterFee) => {
-    const semester = semesterFee.semester;
-    const semesterLabel = `Sem ${semester.semester} (${semester.batch}${semester.year
-      .toString()
-      .slice(-2)}-${semester.program}${semester.department})`;
-
-    return semesterFee.feeInstallments.map((installment) => ({
-      feeInstallmentId: installment.id,
-      semesterFeeId: semesterFee.id,
-      installmentNo: installment.installmentNo,
-      amount: Number(installment.amount),
-      totalAmount: Number(semesterFee.totalAmount),
-      dueDate: installment.dueDate.toISOString(),
-      semesterLabel,
-    }));
-  });
+  return getStudentFeeSplitContextByStudentId(student.id);
 }
 
-export type StudentInstallmentSplitOption = Awaited<
-  ReturnType<typeof studentGetFeeInstallmentOptions>
->[number];
+export type StudentFeeSplitContextType = Awaited<
+  ReturnType<typeof studentGetFeeSplitContext>
+>;

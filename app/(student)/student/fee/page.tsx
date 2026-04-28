@@ -18,13 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 
-import {
-  CreditCard,
-  CalendarClock,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-} from "lucide-react";
+import { CreditCard, CalendarClock } from "lucide-react";
 import Link from "next/link";
 import { PrintAllVouchersButton } from "./_components/print-all";
 import { PrintVoucherButton } from "./_components/print-voucher";
@@ -32,6 +26,7 @@ import { FullFeeVoucherData, VoucherData } from "./_components/fee-voucher";
 import { Button } from "@/components/ui/button";
 import { formatFeeAmount, formatFeeDate } from "@/lib/utils/fee-format";
 import { SITE_INFO } from "@/lib/data/SITE";
+import { INSTALLMENT_STATUS_CONFIG } from "@/components/fee/installment-status-config";
 
 export default async function FeePage() {
   const data = await studentGetFeeDetails();
@@ -65,15 +60,28 @@ export default async function FeePage() {
     voucher: voucherDataList.find((v) => v.voucherId === row.id)!,
     rawInstallment: row,
     status: row.statusType,
-    statusConfig: STATUS_CONFIG[row.statusType],
+    statusConfig: INSTALLMENT_STATUS_CONFIG[row.statusType],
   }));
+
+  // Filter to only unpaid installments for the full fee voucher
+  const unpaidInstallments = voucherDataList.filter((voucher) => {
+    const displayedInst = data.displayedInstallments.find(
+      (d) => d.id === voucher.voucherId
+    );
+    return displayedInst?.status === "UNPAID";
+  });
+
+  const remainingAmount = unpaidInstallments.reduce(
+    (sum, inst) => sum + inst.amount,
+    0
+  );
 
   const fullFeeVoucherData: FullFeeVoucherData = {
     voucherId: data.id,
-    totalAmount: data.totalAmount,
+    totalAmount: remainingAmount,
     printedAt: today.toISOString(),
     institutionName: SITE_INFO.institution_name,
-    installments: voucherDataList,
+    installments: unpaidInstallments,
     student: data.student,
     semesterLabel: data.semesterLabel,
   };
@@ -111,7 +119,7 @@ export default async function FeePage() {
           </CardHeader>
         </Card>
 
-        <Card className="bg-linear-to-br from-blue-500/5 to-card shadow-xs">
+        <Card className="bg-linear-to-br from-blue-500/10 to-card shadow-xs">
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-1.5">
               <CalendarClock className="size-3.5" />
@@ -126,7 +134,7 @@ export default async function FeePage() {
           </CardHeader>
         </Card>
 
-        <Card className="bg-linear-to-br from-emerald-500/5 to-card shadow-xs">
+        <Card className="bg-linear-to-br from-emerald-500/10 to-card shadow-xs">
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-1.5">
               <CreditCard className="size-3.5" />
@@ -223,35 +231,3 @@ export default async function FeePage() {
     </div>
   );
 }
-
-type InstallmentStatus = "paid" | "overdue" | "upcoming" | "near";
-
-const STATUS_CONFIG: Record<
-  InstallmentStatus,
-  {
-    label: string;
-    variant: "secondary" | "destructive" | "warning" | "outline";
-    icon: React.ElementType;
-  }
-> = {
-  paid: {
-    label: "Paid",
-    variant: "secondary",
-    icon: CheckCircle2,
-  },
-  overdue: {
-    label: "Overdue",
-    variant: "destructive",
-    icon: AlertCircle,
-  },
-  upcoming: {
-    label: "Upcoming",
-    variant: "outline",
-    icon: Clock,
-  },
-  near: {
-    label: "This week",
-    variant: "warning",
-    icon: Clock,
-  },
-};

@@ -1,8 +1,4 @@
-import {
-  studentGetFeeDetails,
-  type InstallmentStatus,
-  type StudentInstallment,
-} from "@/app/data/student/st-get-fee";
+import { studentGetFeeDetails } from "@/app/data/student/st-get-fee";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -14,52 +10,29 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatFeeAmount, formatFeeDate } from "@/lib/utils/fee-format";
-import { CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { IconCreditCard } from "@tabler/icons-react";
 import { InstallmentActionsDropdown } from "./_components/installment-actions-dropdown";
+import { FeeSplitRequestActionsDropdown } from "./_components/fee-split-request-actions-dropdown";
 import type { VoucherData } from "../_components/fee-voucher";
 import { SITE_INFO } from "@/lib/data/SITE";
 
-const STATUS_CONFIG: Record<
-  InstallmentStatus,
-  {
-    label: string;
-    variant: "secondary" | "destructive" | "warning" | "outline";
-    icon: React.ElementType;
-  }
-> = {
-  paid: {
-    label: "Paid",
-    variant: "secondary",
-    icon: CheckCircle2,
-  },
-  overdue: {
-    label: "Overdue",
-    variant: "destructive",
-    icon: AlertCircle,
-  },
-  upcoming: {
-    label: "Upcoming",
-    variant: "outline",
-    icon: Clock,
-  },
-  near: {
-    label: "This week",
-    variant: "warning",
-    icon: Clock,
-  },
-};
-
-type StudentInstallmentRow = Omit<StudentInstallment, "updatedAt"> & {
-  updatedAt: Date | null;
-};
+import {
+  studentCanEditSplitRequest,
+  studentCanDeleteSplitRequest,
+  studentCanMarkPaidSplitRequest,
+} from "./installment-split-request-constants";
+import {
+  INSTALLMENT_STATUS_CONFIG,
+  type InstallmentStatus,
+} from "@/components/fee/installment-status-config";
+import { SplitRequestStatusBadge } from "@/components/fee/split-request-status-badge";
+import { SplitRequestStatus } from "@/lib/generated/prisma/enums";
 
 function getInstallmentStatus(
   dueDate: Date | string,
   status?: string
 ): InstallmentStatus {
   if (status === "PAID") return "paid";
-  if (status === "OVERDUE") return "overdue";
 
   const now = new Date();
   const due = new Date(dueDate);
@@ -84,22 +57,7 @@ export default async function Installments() {
     );
   }
 
-  const splitRequestByFeeInstallmentId = new Map(
-    data.installmentSplitRequests
-      .filter((request) => Boolean(request.feeInstallmentId))
-      .map((request) => [request.feeInstallmentId as string, request])
-  );
   const studentInfo = data.student;
-
-  function canDeleteRequest(status: string) {
-    return (
-      status === "PENDING" || status === "HOD_REJECTED" || status === "REJECTED"
-    );
-  }
-
-  function canMarkPaidRequest(status: string) {
-    return status === "HOD_APPROVED" || status === "APPROVED";
-  }
 
   function createVoucherData(params: {
     voucherId: string;
@@ -123,31 +81,24 @@ export default async function Installments() {
     statusType: getInstallmentStatus(inst.dueDate, inst.status),
   }));
 
-  const studentInstallments: StudentInstallmentRow[] =
-    data.studentFeeInstallments.map((inst) => ({
-      ...inst,
-      statusType: getInstallmentStatus(inst.dueDate, inst.status),
-      updatedAt: inst.updatedAt,
-      installmentSplitRequests: inst.installmentSplitRequests,
-    }));
+  const studentInstallments = data.displayedInstallments.map((inst) => ({
+    id: inst.id,
+    orderNo: inst.installmentNo,
+    amount: inst.amount,
+    dueDate: inst.dueDate,
+    status: inst.status,
+    updatedAt: inst.updatedAt,
+    installmentSplitRequests: inst.installmentSplitRequests ?? [],
+    statusType: getInstallmentStatus(inst.dueDate, inst.status),
+  }));
 
-  // If student installments exist and only 1, add remaining as second
-  if (data.hasStudentInstallments && studentInstallments.length === 1) {
-    const firstInstallment = studentInstallments[0];
-    const secondDueDate = new Date(
-      firstInstallment.dueDate.getTime() + 30 * 24 * 60 * 60 * 1000
-    );
-    studentInstallments.push({
-      id: "remaining",
-      orderNo: 2,
-      amount: data.remainingAmount,
-      dueDate: secondDueDate,
-      status: "UNPAID",
-      updatedAt: null,
-      installmentSplitRequests: [],
-      statusType: getInstallmentStatus(secondDueDate, "UNPAID"),
-    });
-  }
+  const feeSplitRequests = data.installmentSplitRequests.map(
+    (request, index) => ({
+      ...request,
+      requestedAmount: Number(request.requestedAmount),
+      requestNo: data.installmentSplitRequests.length - index,
+    })
+  );
 
   return (
     <div className="@container/main p-4 md:p-6 space-y-6">
@@ -172,7 +123,8 @@ export default async function Installments() {
               </TableHeader>
               <TableBody>
                 {studentInstallments.map((inst) => {
-                  const statusConfig = STATUS_CONFIG[inst.statusType];
+                  const statusConfig =
+                    INSTALLMENT_STATUS_CONFIG[inst.statusType];
                   const Icon = statusConfig.icon;
 
                   return (
@@ -199,25 +151,24 @@ export default async function Installments() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {inst.installmentSplitRequests &&
-                        inst.installmentSplitRequests.length > 0 ? (
-                          <InstallmentActionsDropdown
-                            requestId={inst.installmentSplitRequests[0].id}
-                            voucherData={createVoucherData({
-                              voucherId: inst.id,
-                              installmentNo: inst.orderNo,
-                              amount: inst.amount,
-                              dueDate: inst.dueDate,
-                            })}
-                            filename={`fee-${data.id.slice(0, 6)}`}
-                            canDelete={canDeleteRequest(
-                              inst.installmentSplitRequests[0].status
-                            )}
-                            canMarkPaid={canMarkPaidRequest(
-                              inst.installmentSplitRequests[0].status
-                            )}
-                          />
-                        ) : null}
+                        <InstallmentActionsDropdown
+                          canPrintVoucher={
+                            inst.statusType !== "paid" &&
+                            (inst.installmentSplitRequests?.[0]
+                              ? studentCanMarkPaidSplitRequest(
+                                  inst.installmentSplitRequests[0]
+                                    .status as SplitRequestStatus
+                                )
+                              : true)
+                          }
+                          voucherData={createVoucherData({
+                            voucherId: inst.id,
+                            installmentNo: inst.orderNo,
+                            amount: inst.amount,
+                            dueDate: inst.dueDate,
+                          })}
+                          filename={`fee-${data.id.slice(0, 6)}`}
+                        />
                       </TableCell>
                     </TableRow>
                   );
@@ -244,11 +195,9 @@ export default async function Installments() {
               </TableHeader>
               <TableBody>
                 {feeInstallments.map((inst) => {
-                  const statusConfig = STATUS_CONFIG[inst.statusType];
+                  const statusConfig =
+                    INSTALLMENT_STATUS_CONFIG[inst.statusType];
                   const Icon = statusConfig.icon;
-                  const splitRequest = splitRequestByFeeInstallmentId.get(
-                    inst.id
-                  );
 
                   return (
                     <TableRow key={inst.id}>
@@ -271,22 +220,83 @@ export default async function Installments() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {splitRequest ? (
-                          <InstallmentActionsDropdown
-                            requestId={splitRequest.id}
-                            voucherData={createVoucherData({
-                              voucherId: inst.id,
-                              installmentNo: inst.installmentNo,
-                              amount: inst.amount,
-                              dueDate: inst.dueDate,
-                            })}
-                            filename={`fee-${data.id.slice(0, 6)}`}
-                            canDelete={canDeleteRequest(splitRequest.status)}
-                            canMarkPaid={canMarkPaidRequest(
-                              splitRequest.status
-                            )}
-                          />
-                        ) : null}
+                        <InstallmentActionsDropdown
+                          canPrintVoucher={inst.statusType !== "paid"}
+                          voucherData={createVoucherData({
+                            voucherId: inst.id,
+                            installmentNo: inst.installmentNo,
+                            amount: inst.amount,
+                            dueDate: inst.dueDate,
+                          })}
+                          filename={`fee-${data.id.slice(0, 6)}`}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {feeSplitRequests.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Fee Split Requests</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="pl-6 w-16">#</TableHead>
+                  <TableHead>Requested Amount</TableHead>
+                  <TableHead>Preferred Due Date</TableHead>
+                  <TableHead>Submitted On</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {feeSplitRequests.map((request) => {
+                  return (
+                    <TableRow key={request.id}>
+                      <TableCell className="pl-6 font-mono text-muted-foreground">
+                        {String(request.requestNo).padStart(2, "0")}
+                      </TableCell>
+                      <TableCell className="font-semibold tabular-nums">
+                        {formatFeeAmount(request.requestedAmount)}
+                      </TableCell>
+                      <TableCell className="tabular-nums text-sm">
+                        {formatFeeDate(request.preferredDueDate)}
+                      </TableCell>
+                      <TableCell className="tabular-nums text-sm">
+                        {formatFeeDate(request.createdAt)}
+                      </TableCell>
+                      <TableCell>
+                        <SplitRequestStatusBadge status={request.status} />
+                      </TableCell>
+                      <TableCell>
+                        <FeeSplitRequestActionsDropdown
+                          requestId={request.id}
+                          voucherData={createVoucherData({
+                            voucherId: request.id,
+                            installmentNo: 1,
+                            amount: request.requestedAmount,
+                            dueDate: request.preferredDueDate,
+                          })}
+                          filename={`fee-split-${request.id.slice(0, 6)}`}
+                          canPrintVoucher={studentCanMarkPaidSplitRequest(
+                            request.status
+                          )}
+                          canEdit={studentCanEditSplitRequest(request.status)}
+                          canDelete={studentCanDeleteSplitRequest(
+                            request.status
+                          )}
+                          canMarkPaid={studentCanMarkPaidSplitRequest(
+                            request.status
+                          )}
+                        />
                       </TableCell>
                     </TableRow>
                   );

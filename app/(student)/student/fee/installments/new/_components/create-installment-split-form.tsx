@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useTransition } from "react";
+import { useTransition } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -12,13 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Field,
   FieldDescription,
   FieldError,
@@ -26,7 +19,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { FormDateField } from "@/components/general/form-calendar";
-import { formatDate } from "@/lib/utils";
 import { formatFeeAmount } from "@/lib/utils/fee-format";
 
 import {
@@ -34,7 +26,7 @@ import {
   type CreateInstallmentSplitRequestSchemaType,
 } from "../schema";
 import { createInstallmentSplitRequest } from "../actions";
-import type { StudentInstallmentSplitOption } from "@/app/data/student/st-get-installment-split-options";
+import type { StudentFeeSplitContextType } from "@/app/data/student/st-get-installment-split-options";
 
 function getTomorrowDate() {
   const tomorrow = new Date();
@@ -43,25 +35,18 @@ function getTomorrowDate() {
   return tomorrow;
 }
 
-function getDefaultFormValues(
-  installmentOptions: StudentInstallmentSplitOption[]
-) {
-  return {
-    feeInstallmentId: installmentOptions[0]?.feeInstallmentId ?? "",
-    firstInstallmentAmount: undefined,
-    preferredDueDate: getTomorrowDate(),
-    reason: "",
-  };
-}
-
 export function CreateInstallmentSplitForm({
-  installmentOptions,
+  splitContext,
 }: {
-  installmentOptions: StudentInstallmentSplitOption[];
+  splitContext: NonNullable<StudentFeeSplitContextType>;
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const defaultValues = getDefaultFormValues(installmentOptions);
+  const defaultValues = {
+    splitAmount: undefined,
+    preferredDueDate: getTomorrowDate(),
+    reason: "",
+  };
 
   const form = useForm<CreateInstallmentSplitRequestSchemaType>({
     resolver: zodResolver(createInstallmentSplitRequestSchema),
@@ -69,29 +54,16 @@ export function CreateInstallmentSplitForm({
     mode: "onChange",
   });
 
-  const installmentOptionById = useMemo(
-    () =>
-      new Map(
-        installmentOptions.map((option) => [option.feeInstallmentId, option])
-      ),
-    [installmentOptions]
-  );
-
-  const selectedInstallmentId = useWatch({
-    control: form.control,
-    name: "feeInstallmentId",
-  });
-  const firstInstallmentAmount =
+  const splitAmount =
     useWatch({
       control: form.control,
-      name: "firstInstallmentAmount",
+      name: "splitAmount",
     }) ?? 0;
 
-  const selectedInstallment = installmentOptionById.get(selectedInstallmentId);
-
-  const secondInstallmentAmount = selectedInstallment
-    ? selectedInstallment.totalAmount - firstInstallmentAmount
-    : 0;
+  const secondInstallmentAmount = Math.max(
+    splitContext.remainingAmount - splitAmount,
+    0
+  );
 
   function onSubmit(values: CreateInstallmentSplitRequestSchemaType) {
     startTransition(async () => {
@@ -120,56 +92,31 @@ export function CreateInstallmentSplitForm({
 
   return (
     <div>
+      <div className="mb-6 rounded-lg border bg-muted/30 p-4">
+        <p className="text-sm font-medium text-foreground">Current fee</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {splitContext.semesterLabel}
+        </p>
+        <p className="mt-2 text-sm">
+          Available amount to split:{" "}
+          {formatFeeAmount(splitContext.remainingAmount)}
+        </p>
+      </div>
+
       <form
         id="create-installment-split-form"
         onSubmit={form.handleSubmit(onSubmit)}
       >
         <FieldGroup>
           <Controller
-            name="feeInstallmentId"
+            name="splitAmount"
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="first-installment">
-                  First Installment
-                </FieldLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger id="first-installment" className="w-full">
-                    <SelectValue placeholder="Select first installment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {installmentOptions.map((option) => (
-                      <SelectItem
-                        key={option.feeInstallmentId}
-                        value={option.feeInstallmentId}
-                      >
-                        <span>
-                          {option.semesterLabel} ·{" "}
-                          {formatFeeAmount(option.amount)} - Due{" "}
-                          {formatDate(option.dueDate)}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {fieldState.invalid ? (
-                  <FieldError errors={[fieldState.error]} />
-                ) : null}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="firstInstallmentAmount"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="first-installment-amount">
-                  New First Installment Amount
-                </FieldLabel>
+                <FieldLabel htmlFor="split-amount">Split Amount</FieldLabel>
                 <Input
                   {...field}
-                  id="first-installment-amount"
+                  id="split-amount"
                   type="number"
                   step={50}
                   placeholder="Enter amount"
@@ -181,7 +128,11 @@ export function CreateInstallmentSplitForm({
                         : undefined
                     );
                   }}
+                  max={Math.max(splitContext.remainingAmount - 1, 0)}
                 />
+                <FieldDescription>
+                  Must be less than the available fee balance.
+                </FieldDescription>
                 {fieldState.invalid ? (
                   <FieldError errors={[fieldState.error]} />
                 ) : null}
@@ -190,17 +141,19 @@ export function CreateInstallmentSplitForm({
           />
 
           <Field>
-            <FieldLabel htmlFor="second-installment-amount">
-              New remaining Amount
+            <FieldLabel htmlFor="remaining-amount-after-split">
+              Remaining Amount After Split
             </FieldLabel>
             <Input
-              id="second-installment-amount"
+              id="remaining-amount-after-split"
               type="number"
               value={secondInstallmentAmount > 0 ? secondInstallmentAmount : 0}
               disabled
               className="bg-muted cursor-not-allowed"
             />
-            <FieldDescription>Automatically calculated.</FieldDescription>
+            <FieldDescription>
+              Automatically calculated from the available fee balance.
+            </FieldDescription>
           </Field>
 
           <FormDateField
@@ -235,7 +188,7 @@ export function CreateInstallmentSplitForm({
         </FieldGroup>
       </form>
 
-      <Field orientation="horizontal" className="justify-end space-x-2 mt-8">
+      <Field orientation="horizontal" className="mt-8 flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={() => form.reset()}>
           Reset
         </Button>
