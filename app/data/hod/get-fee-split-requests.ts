@@ -5,6 +5,7 @@ import type { Prisma } from "@/lib/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "../permission/require-permission";
 import { requireSession } from "../session/require-session";
+import { getStudentFeeSplitContextByStudentId } from "../student/st-get-installment-split-options";
 import type { HodFeeSplitSearchParams } from "@/app/(HOD)/hod/fee/fee-split-requests-search-params";
 
 type HodFeeSplitRequestsParams = Pick<
@@ -161,6 +162,7 @@ export async function hodGetFeeSplitRequests({
         updatedAt: true,
         student: {
           select: {
+            id: true,
             registrationNo: true,
             user: {
               select: {
@@ -238,35 +240,93 @@ export async function hodGetFeeSplitRequests({
     prisma.installmentSplitRequest.count({ where }),
   ]);
 
+  const feeContextByStudentId = new Map<
+    string,
+    Awaited<ReturnType<typeof getStudentFeeSplitContextByStudentId>>
+  >();
+
+  await Promise.all(
+    requests
+      .filter(
+        (request) => !request.feeInstallment && !request.studentFeeInstallment
+      )
+      .map(async (request) => {
+        const studentId = request.student?.id;
+
+        if (!studentId) {
+          return;
+        }
+
+        if (feeContextByStudentId.has(studentId)) {
+          return;
+        }
+
+        feeContextByStudentId.set(
+          studentId,
+          await getStudentFeeSplitContextByStudentId(studentId)
+        );
+      })
+  );
+
   return {
-    requests: requests.map((request) => ({
-      ...request,
-      requestedAmount: Number(request.requestedAmount),
-      feeInstallment: request.feeInstallment
-        ? {
-            ...request.feeInstallment,
-            amount: Number(request.feeInstallment.amount),
-            semesterFee: {
-              ...request.feeInstallment.semesterFee,
-              totalAmount: Number(
-                request.feeInstallment.semesterFee.totalAmount
-              ),
-            },
-          }
-        : null,
-      studentFeeInstallment: request.studentFeeInstallment
-        ? {
-            ...request.studentFeeInstallment,
-            amount: Number(request.studentFeeInstallment.amount),
-            semesterFee: {
-              ...request.studentFeeInstallment.semesterFee,
-              totalAmount: Number(
-                request.studentFeeInstallment.semesterFee.totalAmount
-              ),
-            },
-          }
-        : null,
-    })),
+    requests: requests.map((request) => {
+      const studentId = request.student?.id;
+      const feeContext =
+        request.feeInstallment || request.studentFeeInstallment
+          ? null
+          : studentId
+            ? (feeContextByStudentId.get(studentId) ?? null)
+            : null;
+
+      const semester =
+        request.feeInstallment?.semesterFee.semester ??
+        request.studentFeeInstallment?.semesterFee.semester ??
+        feeContext?.semester ??
+        null;
+
+      const totalAmount = Number(
+        request.feeInstallment?.semesterFee.totalAmount ??
+          request.studentFeeInstallment?.semesterFee.totalAmount ??
+          feeContext?.totalAmount ??
+          0
+      );
+
+      return {
+        ...request,
+        requestedAmount: Number(request.requestedAmount),
+        semester,
+        semesterLabel: semester
+          ? `Sem ${semester.semester} (${semester.batch}${semester.year
+              .toString()
+              .slice(-2)}-${semester.program ?? ""}${semester.department})`
+          : null,
+        totalAmount,
+        feeInstallment: request.feeInstallment
+          ? {
+              ...request.feeInstallment,
+              amount: Number(request.feeInstallment.amount),
+              semesterFee: {
+                ...request.feeInstallment.semesterFee,
+                totalAmount: Number(
+                  request.feeInstallment.semesterFee.totalAmount
+                ),
+              },
+            }
+          : null,
+        studentFeeInstallment: request.studentFeeInstallment
+          ? {
+              ...request.studentFeeInstallment,
+              amount: Number(request.studentFeeInstallment.amount),
+              semesterFee: {
+                ...request.studentFeeInstallment.semesterFee,
+                totalAmount: Number(
+                  request.studentFeeInstallment.semesterFee.totalAmount
+                ),
+              },
+            }
+          : null,
+      };
+    }),
     totalCount,
   };
 }

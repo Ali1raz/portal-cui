@@ -145,37 +145,15 @@ export function HodFeeSplitRequestsTable({
       {
         id: "semester",
         header: "Semester",
-        accessorFn: (row) =>
-          row.feeInstallment?.semesterFee.id ??
-          row.studentFeeInstallment?.semesterFee.id ??
-          "",
-        cell: ({ row }) => {
-          const semester =
-            row.original.feeInstallment?.semesterFee.semester ??
-            row.original.studentFeeInstallment?.semesterFee.semester;
-          if (!semester) {
-            return "-";
-          }
-
-          return `Sem ${semester.semester} ${semester.batch}${semester.year
-            .toString()
-            .slice(-2)}-${semester.program}${semester.department}`;
-        },
+        accessorFn: (row) => row.semesterLabel ?? "",
+        cell: ({ row }) => row.original.semesterLabel ?? "-",
       },
       {
         id: "totalFee",
         header: "Total Fee",
-        accessorFn: (row) =>
-          row.feeInstallment?.semesterFee.totalAmount ??
-          row.studentFeeInstallment?.semesterFee.totalAmount ??
-          0,
+        accessorFn: (row) => row.totalAmount,
         enableSorting: false,
-        cell: ({ row }) =>
-          formatFeeAmount(
-            row.original.feeInstallment?.semesterFee.totalAmount ??
-              row.original.studentFeeInstallment?.semesterFee.totalAmount ??
-              0
-          ),
+        cell: ({ row }) => formatFeeAmount(row.original.totalAmount),
       },
       {
         id: "requestedAmount",
