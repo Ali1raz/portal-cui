@@ -68,9 +68,9 @@ export const AccountantCreateFeeForm = ({
       if (result.status === "error") {
         toast.error(result.message);
       } else if (result.status === "success") {
-        toast.success(result.message);
         form.reset();
         router.push("/accountant/manage-fee");
+        toast.success(result.message);
       }
     });
   }
