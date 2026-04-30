@@ -195,6 +195,7 @@ export async function studentGetFeeDetails() {
           dueDate: inst.dueDate,
           updatedAt: inst.updatedAt,
           status: inst.status,
+          installmentSplitRequests: inst.installmentSplitRequests,
         }))
     : baseInstallments;
 

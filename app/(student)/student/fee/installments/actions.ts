@@ -192,3 +192,73 @@ export async function markInstallmentRequestAsPaid(
     };
   }
 }
+
+export async function markStudentInstallmentAsPaid(
+  studentFeeInstallmentId: string
+): Promise<ApiResponseType> {
+  try {
+    const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return { status: "error", message: deniedMessage };
+    }
+
+    const can = await requirePermission({ fee: ["view"] });
+    if (!can) {
+      return {
+        status: "error",
+        message: "You are not allowed to update installment status.",
+      };
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+
+    if (!student) {
+      return { status: "error", message: "Student profile not found." };
+    }
+
+    const installment = await prisma.studentFeeInstallment.findFirst({
+      where: {
+        id: studentFeeInstallmentId,
+        studentId: student.id,
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    if (!installment) {
+      return { status: "error", message: "Student installment not found." };
+    }
+
+    if (installment.status === "PAID") {
+      return {
+        status: "error",
+        message: "Installment is already marked as paid.",
+      };
+    }
+
+    await prisma.studentFeeInstallment.update({
+      where: { id: installment.id },
+      data: {
+        status: "PAID",
+        paidAt: new Date(),
+      },
+    });
+
+    return {
+      status: "success",
+      message: "Installment marked as paid successfully.",
+    };
+  } catch (error) {
+    return {
+      status: "error",
+      message: errorMessage(error, "Failed to mark installment as paid."),
+    };
+  }
+}

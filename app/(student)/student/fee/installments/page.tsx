@@ -90,6 +90,14 @@ export default async function Installments() {
     updatedAt: inst.updatedAt,
     installmentSplitRequests: inst.installmentSplitRequests ?? [],
     statusType: getInstallmentStatus(inst.dueDate, inst.status),
+    canMarkPaid:
+      inst.id !== "remaining" &&
+      inst.status !== "PAID" &&
+      (inst.installmentSplitRequests?.[0]
+        ? studentCanMarkPaidSplitRequest(
+            inst.installmentSplitRequests[0].status as SplitRequestStatus
+          )
+        : true),
   }));
 
   const feeSplitRequests = data.installmentSplitRequests.map(
@@ -152,6 +160,10 @@ export default async function Installments() {
                       </TableCell>
                       <TableCell>
                         <InstallmentActionsDropdown
+                          studentFeeInstallmentId={
+                            inst.id !== "remaining" ? inst.id : undefined
+                          }
+                          canMarkPaid={inst.canMarkPaid}
                           canPrintVoucher={
                             inst.statusType !== "paid" &&
                             (inst.installmentSplitRequests?.[0]

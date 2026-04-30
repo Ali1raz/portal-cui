@@ -91,6 +91,44 @@ export async function createInstallmentSplitRequest(
       };
     }
 
+    const [currentStudentInstallment, currentFeeInstallment] =
+      await Promise.all([
+        prisma.studentFeeInstallment.findFirst({
+          where: {
+            studentId: student.id,
+            semesterFeeId: feeSplitContext.semesterFeeId,
+            status: "UNPAID",
+          },
+          orderBy: {
+            orderNo: "asc",
+          },
+          select: {
+            id: true,
+          },
+        }),
+        prisma.feeInstallment.findFirst({
+          where: {
+            semesterFeeId: feeSplitContext.semesterFeeId,
+          },
+          orderBy: {
+            installmentNo: "asc",
+          },
+          select: {
+            id: true,
+          },
+        }),
+      ]);
+
+    const splitRequestLinkData = currentStudentInstallment
+      ? {
+          studentFeeInstallmentId: currentStudentInstallment.id,
+        }
+      : currentFeeInstallment
+        ? {
+            feeInstallmentId: currentFeeInstallment.id,
+          }
+        : {};
+
     const existingPendingRequest =
       await prisma.installmentSplitRequest.findFirst({
         where: {
@@ -120,6 +158,7 @@ export async function createInstallmentSplitRequest(
           requestedAmount: splitAmount,
           preferredDueDate: validated.data.preferredDueDate,
           reason: validated.data.reason,
+          ...splitRequestLinkData,
         },
         select: {
           id: true,
