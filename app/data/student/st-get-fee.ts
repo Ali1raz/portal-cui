@@ -82,6 +82,9 @@ export async function studentGetFeeDetails() {
           installmentNo: true,
           amount: true,
           dueDate: true,
+          paidStatus: true,
+          paidAt: true,
+          updatedAt: true,
           description: true,
         },
         orderBy: {
@@ -167,8 +170,8 @@ export async function studentGetFeeDetails() {
       installmentNo: inst.installmentNo,
       amount: Number(inst.amount),
       dueDate: inst.dueDate,
-      updatedAt: null,
-      status: "UNPAID" as const,
+      updatedAt: inst.paidAt ?? inst.updatedAt,
+      status: inst.paidStatus,
     }));
 
   type DisplayedInstallment = {

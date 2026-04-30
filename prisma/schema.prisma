@@ -832,6 +832,9 @@ model FeeInstallment {
   dueDate       DateTime
   description   String?
 
+  paidStatus FeeInstallmentPaidStatus @default(UNPAID)
+  paidAt     DateTime?
+
   studentFeeInstallments StudentFeeInstallment[]
 
   createdAt                DateTime                  @default(now())
@@ -840,6 +843,11 @@ model FeeInstallment {
 
   @@unique([semesterFeeId, installmentNo])
   @@map("fee_installment")
+}
+
+enum FeeInstallmentPaidStatus {
+  UNPAID
+  PAID
 }
 
 model StudentFeeInstallment {

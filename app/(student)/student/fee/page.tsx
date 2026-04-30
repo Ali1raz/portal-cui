@@ -21,12 +21,12 @@ import { Separator } from "@/components/ui/separator";
 import { CreditCard, CalendarClock } from "lucide-react";
 import Link from "next/link";
 import { PrintAllVouchersButton } from "./_components/print-all";
-import { PrintVoucherButton } from "./_components/print-voucher";
 import { FullFeeVoucherData, VoucherData } from "./_components/fee-voucher";
 import { Button } from "@/components/ui/button";
 import { formatFeeAmount, formatFeeDate } from "@/lib/utils/fee-format";
 import { SITE_INFO } from "@/lib/data/SITE";
 import { INSTALLMENT_STATUS_CONFIG } from "@/components/fee/installment-status-config";
+import { InstallmentActionsDropdown } from "./installments/_components/installment-actions-dropdown";
 
 export default async function FeePage() {
   const data = await studentGetFeeDetails();
@@ -212,13 +212,15 @@ export default async function FeePage() {
                       </TableCell>
 
                       <TableCell className="pr-6 text-right">
-                        <PrintVoucherButton
-                          data={voucher}
-                          variant="outline"
-                          label="Print Voucher"
-                          filename={`fee-${data.id.slice(0, 6)}`}
-                          size="sm"
-                        />
+                        <div className="flex justify-end">
+                          <InstallmentActionsDropdown
+                            feeInstallmentId={voucher.voucherId}
+                            canMarkPaid={rawInstallment.status !== "PAID"}
+                            canPrintVoucher={rawInstallment.status !== "PAID"}
+                            voucherData={voucher}
+                            filename={`fee-${data.id.slice(0, 6)}`}
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   );

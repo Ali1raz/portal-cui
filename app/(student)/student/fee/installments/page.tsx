@@ -233,7 +233,9 @@ export default async function Installments() {
                       </TableCell>
                       <TableCell>
                         <InstallmentActionsDropdown
+                          feeInstallmentId={inst.id}
                           canPrintVoucher={inst.statusType !== "paid"}
+                          canMarkPaid={inst.statusType !== "paid"}
                           voucherData={createVoucherData({
                             voucherId: inst.id,
                             installmentNo: inst.installmentNo,

@@ -34,15 +34,20 @@ import {
   type VoucherData,
 } from "../../_components/fee-voucher";
 import { saveAsPdf } from "../../_components/save-as-pdf";
-import { markStudentInstallmentAsPaid } from "../actions";
+import {
+  markFeeInstallmentAsPaid,
+  markStudentInstallmentAsPaid,
+} from "../actions";
 
 export function InstallmentActionsDropdown({
+  feeInstallmentId,
   studentFeeInstallmentId,
   canMarkPaid = false,
   canPrintVoucher = true,
   voucherData,
   filename,
 }: {
+  feeInstallmentId?: string;
   studentFeeInstallmentId?: string;
   canMarkPaid?: boolean;
   canPrintVoucher?: boolean;
@@ -77,14 +82,16 @@ export function InstallmentActionsDropdown({
   }
 
   async function handleMarkPaid() {
-    if (!studentFeeInstallmentId) {
+    if (!feeInstallmentId && !studentFeeInstallmentId) {
       toast.error("Installment cannot be marked as paid.");
       return;
     }
 
-    const { data: result, error } = await tryCatch(
-      markStudentInstallmentAsPaid(studentFeeInstallmentId)
-    );
+    const action = feeInstallmentId
+      ? markFeeInstallmentAsPaid(feeInstallmentId)
+      : markStudentInstallmentAsPaid(studentFeeInstallmentId!);
+
+    const { data: result, error } = await tryCatch(action);
 
     if (error) {
       toast.error("Something bad happened. Please try again.");
@@ -116,7 +123,9 @@ export function InstallmentActionsDropdown({
 
           {canMarkPaid ? (
             <DropdownMenuItem
-              disabled={isPending || !studentFeeInstallmentId}
+              disabled={
+                isPending || (!feeInstallmentId && !studentFeeInstallmentId)
+              }
               onSelect={(event) => {
                 event.preventDefault();
                 setIsMarkPaidOpen(true);
