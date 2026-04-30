@@ -48,7 +48,7 @@ export function getRelativeTime(date: Date) {
 }
 
 export const ASSIGNABLE_ROLES = Object.values(Role).filter(
-  (r) => r !== Role.BATCH_ADVISOR
+  (r) => r !== Role.BATCH_ADVISOR && r !== Role.STUDENT
 );
 
 /**

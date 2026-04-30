@@ -15,7 +15,10 @@ export const usersSortByValues = [
   "createdAt",
 ] as const;
 export const usersSortDirValues = ["asc", "desc"] as const;
-export const usersRoleValues = Object.values(Role);
+export const usersRoleValues = Object.values(Role).filter(
+  (r) => r !== Role.BATCH_ADVISOR
+);
+
 export const usersDepartmentValues = Object.values(Department);
 export type UsersJoinedAt = (typeof USER_JOINED_AT_FILTER_DAYS)[number];
 export const usersJoinedAtValues: UsersJoinedAt[] = [

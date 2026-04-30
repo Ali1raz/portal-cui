@@ -44,6 +44,14 @@ export async function setUserRole(
       };
     }
 
+    if (role === Role.STUDENT) {
+      return {
+        status: "error",
+        message:
+          "Student accounts must be created through the student registration/admission process.",
+      };
+    }
+
     const currentUser = await prisma.user.findUnique({
       where: { id: userId },
       select: {

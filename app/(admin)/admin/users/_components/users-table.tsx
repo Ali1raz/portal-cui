@@ -68,6 +68,7 @@ import {
   type UsersRole,
   usersJoinedAtValues,
   type UsersJoinedAt,
+  usersRoleValues,
 } from "../users-search-params";
 import {
   Tooltip,
@@ -75,7 +76,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { APP } from "@/lib/data/utils";
-import { ASSIGNABLE_ROLES } from "@/lib/utils";
 import { getJoinedAtLabel } from "@/lib/utils";
 
 export function UsersTable({
@@ -366,7 +366,7 @@ export function UsersTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Roles</SelectItem>
-            {ASSIGNABLE_ROLES.map((role) => (
+            {usersRoleValues.map((role) => (
               <SelectItem key={role} value={role}>
                 {role}
               </SelectItem>
