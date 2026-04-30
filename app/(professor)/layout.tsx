@@ -12,11 +12,11 @@ export default async function ProfessorLayout({
   children: React.ReactNode;
 }) {
   const session = await requireSession();
+  const isBA = await isProfessorBA();
 
   if (session.user.role !== Role.PROFESSOR) {
     return redirect("/unauthorized");
   }
-  const isBA = await isProfessorBA();
 
   return (
     <main>

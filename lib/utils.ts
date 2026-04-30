@@ -65,3 +65,47 @@ export function generatePassword({ length = 8 }): string {
 export function generateStudentEmail({ regNo }: { regNo: string }): string {
   return `${regNo.toLowerCase()}@${SITE_INFO.domain}`;
 }
+
+/**
+ * Utility functions for date filtering and formatting
+ */
+
+export const USER_JOINED_AT_FILTER_DAYS = [7, 30, 60] as const;
+
+export function isUserJoinedAtFilterDay(
+  days: number
+): days is (typeof USER_JOINED_AT_FILTER_DAYS)[number] {
+  return (USER_JOINED_AT_FILTER_DAYS as readonly number[]).includes(days);
+}
+
+/**
+ * Calculate the date range for "last N days" filter
+ * @param days - Number of days back (e.g., 7, 30, 60)
+ * @returns Object with startDate and endDate (all time today)
+ */
+export function getDateRangeFromDaysAgo(days: number): {
+  startDate: Date;
+  endDate: Date;
+} {
+  const endDate = new Date();
+  endDate.setHours(23, 59, 59, 999);
+
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  startDate.setHours(0, 0, 0, 0);
+
+  return { startDate, endDate };
+}
+
+/**
+ * Get label for joined date filter
+ */
+export function getJoinedAtLabel(
+  days: (typeof USER_JOINED_AT_FILTER_DAYS)[number] | null
+): string {
+  if (days && USER_JOINED_AT_FILTER_DAYS.includes(days)) {
+    return `Last ${days} days`;
+  }
+
+  return "All time";
+}

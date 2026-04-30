@@ -7,6 +7,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { SidebarProvider as RightSidebarProvider } from "@/components/ui/sidebar";
 import React, { Suspense } from "react";
@@ -35,8 +36,9 @@ export function RightSidebar({
         className="sticky top-0 hidden h-svh border-l xl:flex"
         {...props}
       >
-        <SidebarHeader className="p-6 h-16">
+        <SidebarHeader className="p-6 h-16 flex flex-row">
           <h1 className="text-lg font-semibold ">Announcements</h1>
+          <SidebarTrigger />
         </SidebarHeader>
 
         <SidebarContent className="space-y-4 p-4">

@@ -12,14 +12,19 @@ import { Suspense } from "react";
 import type { OfferingSearchParams } from "@/app/(admin)/admin/offering/offering-search-params";
 import { offeringSearchParamsCache } from "@/app/(admin)/admin/offering/offering-search-params";
 import { OfferingsTable } from "./_components/offerings-table";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 export default async function OfferingPage(
   props: PageProps<"/admin/offering">
 ) {
   return (
     <div className="@container/main">
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex sm:items-center sm:justify-between items-start flex-col sm:flex-row gap-4 mb-5">
         <h1 className="text-2xl font-bold">All Subject Offerings</h1>
+        <Link href={"/admin/offering/create"} className={buttonVariants()}>
+          New offering
+        </Link>
       </div>
       <Suspense fallback={<OfferingTableSkeleton />}>
         <OfferingList searchParams={props.searchParams} />

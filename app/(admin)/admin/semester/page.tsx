@@ -24,10 +24,7 @@ export default async function SemesterPage(
     <div className="@container/main space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Semesters</h1>
-        <Link
-          href="/admin/semester/create"
-          className={buttonVariants({ size: "sm" })}
-        >
+        <Link href="/admin/semester/create" className={buttonVariants()}>
           Create Semester
         </Link>
       </div>

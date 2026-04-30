@@ -68,7 +68,7 @@ export default async function AdminAnnouncementPage(
   const { searchParams } = await props;
   return (
     <div className="@container/main space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex sm:items-center flex-col sm:flex-row items-start gap-4 sm:justify-between">
         <h2 className="text-2xl font-bold">Manage Announcements</h2>
         <Button asChild>
           <Link href="/admin/announcements/new">Create Announcement</Link>

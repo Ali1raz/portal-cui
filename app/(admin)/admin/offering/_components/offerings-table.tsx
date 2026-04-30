@@ -310,13 +310,12 @@ export function OfferingsTable({
   return (
     <div className="max-w-full space-y-4" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div>
+        <div className="max-sm:w-full">
           <Label htmlFor="offering-search" className="sr-only">
             Search offerings
           </Label>
           <Input
             id="offering-search"
-            className="w-[300px]"
             placeholder="Search by subject or teacher"
             value={queryState.query}
             onChange={(event) => {

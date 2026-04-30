@@ -22,7 +22,7 @@ export default async function SubjectsPage(
     <div>
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-xl font-bold">All Subjects</h1>
-        <Link href={"/admin/subjects/create"} className={buttonVariants({})}>
+        <Link href={"/admin/subjects/create"} className={buttonVariants()}>
           Create subject
         </Link>
       </div>

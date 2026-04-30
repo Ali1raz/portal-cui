@@ -472,13 +472,13 @@ export function AdminAnnouncementsTable({
   return (
     <div className="w-full" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex-1 min-w-50">
+        <div className="max-sm:w-full">
           <Label htmlFor="announcements-search" className="sr-only">
             Search announcements
           </Label>
           <Input
             id="announcements-search"
-            placeholder="Search by title, content, or author..."
+            placeholder="Search by title, content..."
             value={queryState.query}
             onChange={(event) => {
               const nextValue = event.target.value;
@@ -492,107 +492,109 @@ export function AdminAnnouncementsTable({
             }}
           />
         </div>
-        <Select
-          value={queryState.status || "all"}
-          onValueChange={handleStatusChange}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            {Object.values(AnnouncementStatus).map((status) => (
-              <SelectItem key={status} value={status}>
-                {formatEnumLabel(status)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={queryState.type || "all"}
-          onValueChange={handleTypeChange}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            {Object.values(AnnouncementType).map((type) => (
-              <SelectItem key={type} value={type}>
-                {formatEnumLabel(type)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="grid gap-2 grid-cols-2 sm:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] w-full">
+          <Select
+            value={queryState.status || "all"}
+            onValueChange={handleStatusChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              {Object.values(AnnouncementStatus).map((status) => (
+                <SelectItem key={status} value={status}>
+                  {formatEnumLabel(status)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={queryState.type || "all"}
+            onValueChange={handleTypeChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {Object.values(AnnouncementType).map((type) => (
+                <SelectItem key={type} value={type}>
+                  {formatEnumLabel(type)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select
-          value={queryState.department || "all"}
-          onValueChange={handleDepartmentChange}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Department" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Departments</SelectItem>
-            {Object.values(Department).map((dept) => (
-              <SelectItem key={dept} value={dept}>
-                {dept}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select
+            value={queryState.department || "all"}
+            onValueChange={handleDepartmentChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Department" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Departments</SelectItem>
+              {Object.values(Department).map((dept) => (
+                <SelectItem key={dept} value={dept}>
+                  {dept}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select
-          value={queryState.batch || "all"}
-          onValueChange={handleBatchChange}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Batch" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Batches</SelectItem>
-            {Object.values(Batch).map((batch) => (
-              <SelectItem key={batch} value={batch}>
-                {batch === "SP" ? "Spring" : "Fall"}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select
+            value={queryState.batch || "all"}
+            onValueChange={handleBatchChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Batch" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Batches</SelectItem>
+              {Object.values(Batch).map((batch) => (
+                <SelectItem key={batch} value={batch}>
+                  {batch === "SP" ? "Spring" : "Fall"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select value={queryState.pinned} onValueChange={handlePinnedChange}>
-          <SelectTrigger className="max-w-40">
-            <SelectValue placeholder="Pinned" />
-          </SelectTrigger>
-          <SelectContent>
-            {announcementPinnedValues.map((value) => (
-              <SelectItem key={value} value={value}>
-                {formatEnumLabel(value)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select value={queryState.pinned} onValueChange={handlePinnedChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Pinned" />
+            </SelectTrigger>
+            <SelectContent>
+              {announcementPinnedValues.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {formatEnumLabel(value)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
+          <Select
+            value={queryState.hasAttachment}
+            onValueChange={handleAttachmentChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All Attachment Status" />
+            </SelectTrigger>
+            <SelectContent>
+              {announcementAttachmentValues.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {formatEnumLabel(value)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <TableDateRangeFilter
+          className="max-sm:w-full"
           value={dateRange}
           onChange={handleDateRangeChange}
           placeholder="Select created at date range"
         />
-
-        <Select
-          value={queryState.hasAttachment}
-          onValueChange={handleAttachmentChange}
-        >
-          <SelectTrigger className="max-w-40">
-            <SelectValue placeholder="All Attachment Status" />
-          </SelectTrigger>
-          <SelectContent>
-            {announcementAttachmentValues.map((value) => (
-              <SelectItem key={value} value={value}>
-                {formatEnumLabel(value)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {hasActiveParams ? (
