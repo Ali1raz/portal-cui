@@ -33,6 +33,7 @@ import { formatEnumLabel } from "@/lib/utils";
 import { AccountantGetAllSemestersType } from "@/app/data/accountant/acc-get-all-semesters";
 import { FeeInstallmentsFormFields } from "@/app/(accountant)/accountant/_components/fee-installments-form-fields";
 import { accountantCreateSemesterFee } from "../../actions";
+import { useRouter } from "next/navigation";
 
 export const AccountantCreateFeeForm = ({
   semesters,
@@ -40,6 +41,7 @@ export const AccountantCreateFeeForm = ({
   semesters: AccountantGetAllSemestersType;
 }) => {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const form = useForm<AccountantCreateFeeSchemaType>({
     resolver: zodResolver(accountantCreateFeeSchema),
@@ -67,7 +69,8 @@ export const AccountantCreateFeeForm = ({
         toast.error(result.message);
       } else if (result.status === "success") {
         toast.success(result.message);
-        //   form.reset();
+        form.reset();
+        router.push("/accountant/manage-fee");
       }
     });
   }
