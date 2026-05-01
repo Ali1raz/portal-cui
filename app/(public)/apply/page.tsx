@@ -1,9 +1,15 @@
+import { Metadata } from "next";
 import { getCurrentSemester } from "@/app/data/user/user-get-current-semester";
 import { ApplyForm } from "../_components/apply-form";
 import { buttonVariants } from "@/components/ui/button";
 import { cn, formatDate } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Apply for admissions",
+  description: "Apply for registration by selecting available semester.",
+};
 
 export default async function ApplyPage(props: PageProps<"/apply">) {
   const searchParams = await props.searchParams;

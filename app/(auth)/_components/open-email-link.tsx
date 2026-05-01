@@ -11,9 +11,9 @@ export function OpenEmailLink({ userEmail }: OpenEmailLinkProps) {
   const hasEmailContext = Boolean(userEmail && senderEmail);
 
   const gmailSearchUrl = hasEmailContext
-    ? `https://mail.google.com/mail/u/${encodeURIComponent(
+    ? `https://mail.google.com/mail/u/0/?authuser=${encodeURIComponent(
         userEmail as string
-      )}/#search/from:${encodeURIComponent(senderEmail as string)}`
+      )}#search/from:${encodeURIComponent(senderEmail as string)}`
     : "https://mail.google.com/mail/u/0/";
 
   return (

@@ -5,7 +5,7 @@ import { nextCookies } from "better-auth/next-js";
 import { Role } from "./generated/prisma/enums";
 import prisma from "./prisma";
 
-import { admin } from "better-auth/plugins";
+import { admin, username } from "better-auth/plugins";
 import { roles } from "./permissions";
 import { env } from "@/lib/env";
 
@@ -121,6 +121,16 @@ export const auth = betterAuth({
   },
 
   plugins: [
+    username({
+      usernameValidator: (username) => {
+        // Accept registration numbers: SP25-BSE-001, FA24-BCS-012, etc.
+        return /^[a-zA-Z0-9_-]+$/.test(username);
+      },
+      displayUsernameValidator: (displayUsername) => {
+        // Allow only alphanumeric characters, underscores, and hyphens
+        return /^[a-zA-Z0-9_-]+$/.test(displayUsername);
+      },
+    }),
     admin({
       defaultRole: Role.USER,
       roles,

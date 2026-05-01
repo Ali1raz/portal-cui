@@ -10,10 +10,10 @@ export function UserImage({
   name?: string | null;
   className?: string;
 }) {
-  const constructedImageUrl = useConstructImageUrl(image || "");
+  const constructedImageUrl = useConstructImageUrl(image ?? "");
 
   const imageUrl = !image
-    ? `https://avatar.vercel.sh/${name && name.length > 0 ? name : "U"}`
+    ? `https://avatar.vercel.sh/${name ?? "U"}`
     : image.includes("avatars.vercel.sh")
       ? image
       : constructedImageUrl;

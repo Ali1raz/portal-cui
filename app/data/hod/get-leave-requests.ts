@@ -59,6 +59,7 @@ export async function hodGetLeaveRequests({
     student: {
       department: hod.department,
     },
+    status: "HOD_PENDING",
     // Text search
     ...(trimmedQuery
       ? {

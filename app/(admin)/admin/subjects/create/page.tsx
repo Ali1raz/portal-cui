@@ -1,4 +1,10 @@
+import { Metadata } from "next";
 import { CreateSubjectForm } from "./_components/create-subject-form";
+
+export const metadata: Metadata = {
+  title: "Create Subject",
+  description: "Add a new subject with code and credit hour details.",
+};
 
 export default function CreateSubject() {
   return (

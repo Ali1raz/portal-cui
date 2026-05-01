@@ -1,4 +1,10 @@
+import { Metadata } from "next";
 import { CreateComplaintForm } from "./_components/create-complain-form";
+
+export const metadata: Metadata = {
+  title: "New Complaint",
+  description: "Submit a new complaint to your department batch advisor.",
+};
 
 export default function NewCompliant() {
   return (

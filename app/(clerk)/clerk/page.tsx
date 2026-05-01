@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { Suspense } from "react";
 
 import { getClerkApplicationsLast30Days } from "@/app/data/clerk/get-clerk-applications-last-30-days";
@@ -7,6 +8,12 @@ import {
   SectionCards,
   SectionCardsSkeleton,
 } from "./_components/section-cards";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description:
+    "Clerk dashboard — review application metrics, recent activity, and processing status.",
+};
 
 async function DashboardCardsWrapper() {
   const [stats, chartData] = await Promise.all([

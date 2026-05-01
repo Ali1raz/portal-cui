@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { Suspense } from "react";
 import { getProfessorSectionStudents } from "@/app/data/professor/get-professor-students";
 import { AttendanceForm } from "./_components/attendance-form";
@@ -10,6 +11,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+
+export const metadata: Metadata = {
+  title: "Subject Attendance",
+  description: "Manage attendance for your class.",
+};
 
 export default async function AttendencePage(
   props: PageProps<"/professor/subject/[offeringId]/attendance">

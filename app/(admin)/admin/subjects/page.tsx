@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { adminGetAllSubjects } from "@/app/data/admin/get-all-subjects";
 import { AdminSubjectsTable } from "./_components/admin-subjects-table";
 import Link from "next/link";
@@ -15,6 +16,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { SubjectsSearchParams } from "@/app/(admin)/admin/subjects/subjects-search-params";
 import { subjectsSearchParamsCache } from "@/app/(admin)/admin/subjects/subjects-search-params";
 
+export const metadata: Metadata = {
+  title: "Subjects",
+  description:
+    "Manage subjects, codes, credit hours, and their offering relationships.",
+};
+
 export default async function SubjectsPage(
   props: PageProps<"/admin/subjects">
 ) {
@@ -22,7 +29,7 @@ export default async function SubjectsPage(
     <div>
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-xl font-bold">All Subjects</h1>
-        <Link href={"/admin/subjects/create"} className={buttonVariants({})}>
+        <Link href={"/admin/subjects/create"} className={buttonVariants()}>
           Create subject
         </Link>
       </div>

@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { adminGetSemesterdetails } from "@/app/data/admin/get-semester-details";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,6 +21,12 @@ import {
   normalizeSemesterChartDays,
   semesterChartSearchParamsCache,
 } from "./semester-chart-search-params";
+
+export const metadata: Metadata = {
+  title: "Semester Details",
+  description:
+    "Review semester dates, registration activity, offerings, and current status.",
+};
 
 export default async function SemesterDetailPage(
   props: PageProps<"/admin/semester/[semesterId]">

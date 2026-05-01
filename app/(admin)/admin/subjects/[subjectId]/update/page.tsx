@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { adminGetSubjectForEdit } from "@/app/data/admin/get-subject-for-edit";
 import {
   Card,
@@ -7,6 +8,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { UpdateSubjectForm } from "./_components/update-subject-form";
+
+export const metadata: Metadata = {
+  title: "Update Subject",
+  description: "Edit subject details.",
+};
 
 export default async function EditSubject(
   props: PageProps<"/admin/subjects/[subjectId]/update">

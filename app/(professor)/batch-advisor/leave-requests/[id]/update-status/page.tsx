@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { IconArrowLeft } from "@tabler/icons-react";
 
@@ -8,6 +9,11 @@ import { LeaveStatus } from "@/lib/generated/prisma/enums";
 import { formatDate } from "@/lib/utils";
 
 import { UpdateStatusForm } from "./_components/update-status-form";
+
+export const metadata: Metadata = {
+  title: "Update Leave Request Status",
+  description: "Update and record leave request review actions.",
+};
 
 const REVIEWABLE_STATUSES: LeaveStatus[] = [
   LeaveStatus.PENDING,

@@ -30,6 +30,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { format } from "date-fns";
 import type { AdminGetUsersType } from "@/app/data/admin/get-admin-users";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,9 +62,13 @@ import {
 import { useQueryStates } from "nuqs";
 import { UserActions } from "./user-actions";
 import {
-  usersRoleValues,
+  usersDepartmentValues,
+  type UsersDepartment,
   usersSearchParamsParsers,
   type UsersRole,
+  usersJoinedAtValues,
+  type UsersJoinedAt,
+  usersRoleValues,
 } from "../users-search-params";
 import {
   Tooltip,
@@ -71,6 +76,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { APP } from "@/lib/data/utils";
+import { getJoinedAtLabel } from "@/lib/utils";
 
 export function UsersTable({
   users,
@@ -98,7 +104,15 @@ export function UsersTable({
     queryState.sortBy !== "name" ||
     queryState.sortDir !== "asc" ||
     queryState.query.length > 0 ||
-    queryState.role !== null;
+    queryState.role !== null ||
+    queryState.department !== null ||
+    queryState.joinedAt !== null;
+
+  const shouldShowDepartmentFilter =
+    queryState.role === "PROFESSOR" ||
+    queryState.role === "HOD" ||
+    queryState.role === "STUDENT" ||
+    queryState.role === null;
 
   const pagination: PaginationState = {
     pageIndex: Math.max(queryState.page - 1, 0),
@@ -163,6 +177,30 @@ export function UsersTable({
           </TooltipContent>
         </Tooltip>
       ),
+    },
+    {
+      id: "createdAt",
+      header: "Joined At",
+      accessorFn: (row) => row.createdAt,
+      cell: ({ row }) => (
+        <Tooltip>
+          <TooltipTrigger>
+            <div className="text-sm text-muted-foreground">
+              {format(new Date(row.original.createdAt), "dd MMM yyyy, hh:mm a")}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent align="center" side="right">
+            <div>
+              {format(
+                new Date(row.original.createdAt),
+                "dd MMM yyyy, hh:mm:ss a"
+              )}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      ),
+      sortUndefined: "last",
+      sortDescFirst: true,
     },
     {
       id: "role",
@@ -284,7 +322,7 @@ export function UsersTable({
   return (
     <div className="w-full" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div>
+        <div className="max-sm:w-full">
           <Label htmlFor="users-search" className="sr-only">
             Search users
           </Label>
@@ -307,9 +345,17 @@ export function UsersTable({
         <Select
           value={queryState.role ?? "all"}
           onValueChange={(value) => {
+            const nextRole = value === "all" ? null : (value as UsersRole);
+            const keepDepartment =
+              nextRole === "PROFESSOR" ||
+              nextRole === "HOD" ||
+              nextRole === "STUDENT" ||
+              value === "all";
+
             startTransition(() => {
               void setQueryState({
-                role: value === "all" ? null : (value as UsersRole),
+                role: nextRole,
+                department: keepDepartment ? queryState.department : null,
                 page: 1,
               });
             });
@@ -327,21 +373,72 @@ export function UsersTable({
             ))}
           </SelectContent>
         </Select>
-        {hasActiveParams ? (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
+        {shouldShowDepartmentFilter ? (
+          <Select
+            value={queryState.department ?? "all"}
+            onValueChange={(value) => {
               startTransition(() => {
-                void setQueryState(null);
+                void setQueryState({
+                  department:
+                    value === "all" ? null : (value as UsersDepartment),
+                  page: 1,
+                });
               });
             }}
           >
-            Clear
-          </Button>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Department" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Departments</SelectItem>
+              {usersDepartmentValues.map((department) => (
+                <SelectItem key={department} value={department}>
+                  {department}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         ) : null}
+        <Select
+          value={queryState.joinedAt?.toString() ?? "all"}
+          onValueChange={(value) => {
+            startTransition(() => {
+              void setQueryState({
+                joinedAt:
+                  value === "all" ? null : (Number(value) as UsersJoinedAt),
+                page: 1,
+              });
+            });
+          }}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Joined At" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All time</SelectItem>
+            {usersJoinedAtValues.map((days) => (
+              <SelectItem key={days} value={days.toString()}>
+                {getJoinedAtLabel(days)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-      <div className="rounded-md border">
+      {hasActiveParams ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            startTransition(() => {
+              void setQueryState(null);
+            });
+          }}
+        >
+          Clear
+        </Button>
+      ) : null}
+      <div className="rounded-md border mt-4">
         <DndContext
           id={tableId}
           collisionDetection={closestCenter}

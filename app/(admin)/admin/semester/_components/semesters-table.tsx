@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/incompatible-library */
 "use client";
 
-import { useId, useState, useTransition, useEffect } from "react";
+import { useId, useState, useTransition } from "react";
 import type {
   ColumnDef,
   PaginationState,
@@ -94,25 +94,6 @@ export function SemestersTable({
 
   // Local state for input to avoid cursor jumping
   const [localQuery, setLocalQuery] = useState(queryState.query || "");
-
-  // Sync local query with URL params when they change externally
-  useEffect(() => {
-    setLocalQuery(queryState.query || "");
-  }, [queryState.query]);
-
-  // Debounced effect to update URL params
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      startTransition(() => {
-        void setQueryState({
-          query: localQuery.trim().length > 0 ? localQuery : null,
-          page: 1,
-        });
-      });
-    }, 300); // 300ms debounce
-
-    return () => clearTimeout(timer);
-  }, [localQuery, setQueryState]);
 
   const sorting: SortingState = queryState.sortBy
     ? [{ id: queryState.sortBy, desc: queryState.sortDir === "desc" }]
@@ -316,13 +297,12 @@ export function SemestersTable({
   return (
     <div className="max-w-full space-y-4" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div>
+        <div className="max-sm:w-full">
           <Label htmlFor="semester-search" className="sr-only">
             Search semesters
           </Label>
           <Input
             id="semester-search"
-            className="w-70"
             placeholder="Search by session (FA22-BSE), year"
             value={localQuery}
             onChange={(event) => {
@@ -330,7 +310,6 @@ export function SemestersTable({
             }}
           />
         </div>
-
         <Select
           value={queryState.department ?? "all"}
           onValueChange={(value) => {

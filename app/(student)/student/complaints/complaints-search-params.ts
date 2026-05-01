@@ -41,12 +41,6 @@ export const complaintsSearchParamsParsers = {
     .withOptions({ clearOnDefault: true }),
   status: parseAsString.withDefault("").withOptions({ clearOnDefault: true }),
   category: parseAsString.withDefault("").withOptions({ clearOnDefault: true }),
-  dateFrom: parseAsString.withDefault("").withOptions({
-    clearOnDefault: true,
-  }),
-  dateTo: parseAsString.withDefault("").withOptions({
-    clearOnDefault: true,
-  }),
   hasAttachment: parseAsStringEnum(
     Object.values(complaintAttachmentValues)
   ).withOptions({ clearOnDefault: true }),

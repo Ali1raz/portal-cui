@@ -19,16 +19,8 @@ type StudentComplaintsParams = Pick<
   | "sortDir"
   | "status"
   | "category"
-  | "dateFrom"
-  | "dateTo"
   | "hasAttachment"
 >;
-
-function parseDateValue(value: string) {
-  if (!value) return undefined;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
-}
 
 /// Fetch paginated student complaints with filters.
 export async function studentsGetComplaints({
@@ -38,8 +30,6 @@ export async function studentsGetComplaints({
   sortDir,
   status,
   category,
-  dateFrom,
-  dateTo,
   hasAttachment,
 }: StudentComplaintsParams) {
   const session = await requireSession();
@@ -80,19 +70,6 @@ export async function studentsGetComplaints({
     .map((value) => value.trim())
     .filter((value) => categoryValues.has(value as ComplaintCategory));
 
-  const dateFromValue = parseDateValue(dateFrom);
-  const dateToValue = parseDateValue(dateTo);
-
-  const createdAtFilter =
-    dateFromValue || dateToValue
-      ? {
-          createdAt: {
-            ...(dateFromValue ? { gte: dateFromValue } : {}),
-            ...(dateToValue ? { lte: dateToValue } : {}),
-          },
-        }
-      : {};
-
   const attachmentFilter =
     hasAttachment === "with"
       ? {
@@ -112,7 +89,6 @@ export async function studentsGetComplaints({
     ...(categoryFilters.length
       ? { category: { in: categoryFilters as ComplaintCategory[] } }
       : {}),
-    ...createdAtFilter,
     ...attachmentFilter,
   };
 
@@ -134,6 +110,7 @@ export async function studentsGetComplaints({
       select: {
         id: true,
         title: true,
+        details: true,
         createdAt: true,
         status: true,
         category: true,

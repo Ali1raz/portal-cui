@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { getAdminUsers } from "@/app/data/admin/get-admin-users";
 import { UsersTable } from "./_components/users-table";
 import { Suspense } from "react";
@@ -14,6 +15,11 @@ import {
   usersSearchParamsCache,
   type UsersSearchParams,
 } from "./users-search-params";
+
+export const metadata: Metadata = {
+  title: "Users",
+  description: "Manage all users in the platform.",
+};
 
 export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
   return (

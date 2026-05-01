@@ -1,6 +1,18 @@
+import { Metadata } from "next";
 import { CUILogo } from "@/components/general/cui-logo";
 import { SignOutButton } from "@/components/general/signout-button";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s | Clerk Dashboard",
+    default: "Clerk Dashboard",
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function ClerkLayou({
   children,

@@ -1,5 +1,17 @@
+import { Metadata } from "next";
 import { Footer } from "@/components/footer";
 import { HeroHeader } from "@/components/general/Header";
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s | COMSATS University Islamabad",
+    default: "COMSATS University Islamabad",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
 
 export default function PublicLayout({
   children,

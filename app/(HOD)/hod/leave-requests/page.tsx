@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { hodGetLeaveRequests } from "@/app/data/hod/get-leave-requests";
 import {
   Table,
@@ -12,6 +13,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { LeaveRequestSearchParams } from "./leave-request-search-params";
 import { leaveRequestSearchParamsCache } from "./leave-request-search-params";
 import { LeaveRequestsTable } from "./_components/leave-requests-table";
+
+export const metadata: Metadata = {
+  title: "Leave Requests",
+  description:
+    "Manage and review leave requests from students in your department.",
+};
 
 export default async function LeaveRequestsPage(
   props: PageProps<"/hod/leave-requests">

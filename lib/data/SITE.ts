@@ -1,5 +1,3 @@
-import { env } from "@/lib/env";
-
 export const SITE_INFO = {
   name: "CUI Portal",
   institution_name: "COMSATS University Islamabad",

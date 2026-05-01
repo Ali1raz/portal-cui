@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { getStudentAttendances } from "@/app/data/student/get-student-attendances";
 import AttendanceTable, {
   AttendanceTableSkeleton,
@@ -13,13 +14,18 @@ import {
   type AttendanceSearchParams,
 } from "./attendance-search-params";
 
+export const metadata: Metadata = {
+  title: "Attendance",
+  description: "Track your subject attendance records and statistics.",
+};
+
 export default async function StudentAttendancePage(
   props: PageProps<"/student/subject/[offeringId]/attendance">
 ) {
   const { offeringId } = await props.params;
 
   return (
-    <div className="max-w-5xl w-full px-4 sm:px-6 my-6">
+    <div className="max-w-5xl w-full px-2 sm:px-4 my-4">
       <h1 className="text-lg font-semibold mb-4">My Attendance</h1>
       <div className="my-6">
         <Suspense fallback={<SubjectOverviewSkeleton />}>

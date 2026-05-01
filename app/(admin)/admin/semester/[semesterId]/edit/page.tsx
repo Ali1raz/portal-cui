@@ -1,5 +1,11 @@
+import { Metadata } from "next";
 import { adminGetSemesterdetails } from "@/app/data/admin/get-semester-details";
 import { EditSemesterForm } from "../../_components/edit-semester-form";
+
+export const metadata: Metadata = {
+  title: "Edit Semester",
+  description: "Update semester dates, deadlines, and activation settings.",
+};
 
 export default async function SemesterEditPage(
   props: PageProps<"/admin/semester/[semesterId]/edit">

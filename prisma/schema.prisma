@@ -36,7 +36,11 @@ model User {
 
   registration Registration?
 
+  username        String?
+  displayUsername String?
+
   @@unique([email])
+  @@unique([username])
   @@map("user")
 }
 

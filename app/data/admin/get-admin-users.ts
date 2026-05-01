@@ -6,10 +6,18 @@ import { requireSession } from "../session/require-session";
 import { requirePermission } from "../permission/require-permission";
 import { redirect } from "next/navigation";
 import type { UsersSearchParams } from "@/app/(admin)/admin/users/users-search-params";
+import { getDateRangeFromDaysAgo, isUserJoinedAtFilterDay } from "@/lib/utils";
 
 type AdminGetUsersParams = Pick<
   UsersSearchParams,
-  "page" | "pageSize" | "sortBy" | "sortDir" | "query" | "role"
+  | "page"
+  | "pageSize"
+  | "sortBy"
+  | "sortDir"
+  | "query"
+  | "role"
+  | "department"
+  | "joinedAt"
 >;
 
 /// Fetch paginated admin users with filters.
@@ -20,6 +28,8 @@ export async function getAdminUsers({
   sortDir,
   query,
   role,
+  department,
+  joinedAt,
 }: AdminGetUsersParams) {
   const session = await requireSession();
   const can = await requirePermission({
@@ -35,6 +45,63 @@ export async function getAdminUsers({
   const direction: Prisma.SortOrder = sortDir;
   const trimmedQuery = query.trim();
 
+  const dateFilter =
+    joinedAt && isUserJoinedAtFilterDay(joinedAt)
+      ? getDateRangeFromDaysAgo(joinedAt)
+      : null;
+
+  const departmentFilter: Prisma.UserWhereInput | null = department
+    ? role === "PROFESSOR"
+      ? {
+          professor: {
+            is: {
+              department,
+            },
+          },
+        }
+      : role === "HOD"
+        ? {
+            hod: {
+              is: {
+                department,
+              },
+            },
+          }
+        : role === "STUDENT"
+          ? {
+              student: {
+                is: {
+                  department,
+                },
+              },
+            }
+          : {
+              OR: [
+                {
+                  professor: {
+                    is: {
+                      department,
+                    },
+                  },
+                },
+                {
+                  hod: {
+                    is: {
+                      department,
+                    },
+                  },
+                },
+                {
+                  student: {
+                    is: {
+                      department,
+                    },
+                  },
+                },
+              ],
+            }
+    : null;
+
   const where: Prisma.UserWhereInput = {
     id: {
       not: session?.user.id,
@@ -48,6 +115,15 @@ export async function getAdminUsers({
           ],
         }
       : {}),
+    ...(dateFilter
+      ? {
+          createdAt: {
+            gte: dateFilter.startDate,
+            lte: dateFilter.endDate,
+          },
+        }
+      : {}),
+    ...(departmentFilter ?? {}),
   };
 
   const orderBy: Prisma.UserOrderByWithRelationInput =

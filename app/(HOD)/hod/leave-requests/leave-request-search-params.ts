@@ -17,14 +17,8 @@ export const leaveRequestSortByValues = [
 
 export const leaveRequestSortDirValues = ["asc", "desc"] as const;
 
-export const leaveRequestStatusValues = [
-  "PENDING",
-  "APPROVED",
-  "REJECTED",
-] as const;
+export const leaveRequestStatusValues = ["HOD_PENDING", "APPROVED"] as const;
 
-export type LeaveRequestSortBy = (typeof leaveRequestSortByValues)[number];
-export type LeaveRequestSortDir = (typeof leaveRequestSortDirValues)[number];
 export type LeaveRequestStatus = (typeof leaveRequestStatusValues)[number];
 
 /// Shared nuqs parsers for leave request search params.

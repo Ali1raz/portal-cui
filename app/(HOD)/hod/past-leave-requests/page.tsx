@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { Suspense } from "react";
 import { getPastLeaveRequests } from "@/app/data/hod/get-past-leave-requests";
 import {
@@ -11,6 +12,12 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate } from "@/lib/utils";
+
+export const metadata: Metadata = {
+  title: "Past Leave Requests",
+  description:
+    "View history of all leave requests reviewed by your department.",
+};
 
 export default function PastLeaveRequestsPage() {
   return (

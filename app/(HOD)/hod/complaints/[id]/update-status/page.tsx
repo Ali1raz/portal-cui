@@ -1,9 +1,14 @@
+import { Metadata } from "next";
 import { hodGetComplaintDetails } from "@/app/data/hod/get-complaint-details";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatDate } from "@/lib/utils";
 import { UpdateComplaintStatusForm } from "./_components/update-status-form";
 import { STATUS_CONFIG } from "@/components/complaints/complaint-constants";
+
+export const metadata: Metadata = {
+  title: "Update Complaint Status",
+};
 
 /// Page for HOD to update complaint status and remarks.
 export default async function UpdateComplaintStatusPage(

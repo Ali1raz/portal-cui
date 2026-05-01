@@ -1,8 +1,14 @@
+import { Metadata } from "next";
 import { accountantGetAnnouncementForUpdate } from "@/app/data/accountant/get-announcement-for-update";
 import { UpdateAnnouncementForm } from "./_components/update-announcement-form";
 
 type PageProps = {
   params: Promise<{ announcementId: string }>;
+};
+
+export const metadata: Metadata = {
+  title: "Edit Announcement",
+  description: "Update announcement details.",
 };
 
 /// Page for editing existing fee announcements.

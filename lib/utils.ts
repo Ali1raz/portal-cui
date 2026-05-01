@@ -2,6 +2,8 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format } from "date-fns";
 import { Role } from "./generated/prisma/enums";
+import { randomBytes } from "crypto";
+import { SITE_INFO } from "./data/SITE";
 
 /**
  * Merges Tailwind class names, resolving any conflicts.
@@ -46,7 +48,7 @@ export function getRelativeTime(date: Date) {
 }
 
 export const ASSIGNABLE_ROLES = Object.values(Role).filter(
-  (r) => r !== Role.BATCH_ADVISOR
+  (r) => r !== Role.BATCH_ADVISOR && r !== Role.STUDENT
 );
 
 export function formatCurrencyToPKR(amount: number): string {

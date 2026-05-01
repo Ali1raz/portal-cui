@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { adminGetSemesters } from "@/app/data/admin/get-semesters";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +18,12 @@ import {
 } from "./semester-search-params";
 import { SemestersTable } from "./_components/semesters-table";
 
+export const metadata: Metadata = {
+  title: "Semesters",
+  description:
+    "Manage semesters, registration windows, and enrollment schedules.",
+};
+
 export default async function SemesterPage(
   props: PageProps<"/admin/semester">
 ) {
@@ -24,10 +31,7 @@ export default async function SemesterPage(
     <div className="@container/main space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Semesters</h1>
-        <Link
-          href="/admin/semester/create"
-          className={buttonVariants({ size: "sm" })}
-        >
+        <Link href="/admin/semester/create" className={buttonVariants()}>
           Create Semester
         </Link>
       </div>

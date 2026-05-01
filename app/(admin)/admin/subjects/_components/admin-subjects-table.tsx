@@ -239,7 +239,7 @@ export function AdminSubjectsTable({
   return (
     <div className="w-full" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="w-full max-w-md">
+        <div className="max-sm:w-full">
           <Label htmlFor="subject-search" className="sr-only">
             Search subjects
           </Label>
