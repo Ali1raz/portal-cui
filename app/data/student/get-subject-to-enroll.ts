@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import "server-only";
 import { requireSession } from "../session/require-session";
+import { redirect } from "next/navigation";
 
 export async function studentGetSubjectsToEnroll() {
   const session = await requireSession();
@@ -14,18 +15,14 @@ export async function studentGetSubjectsToEnroll() {
     },
   });
 
-  //   if (!student) {
-  //     return redirect("/unauthorized");
-  //   }
+  if (!student) {
+    return redirect("/unauthorized");
+  }
 
   const reg = await prisma.registration.findFirst({
     where: {
       studentId: student?.id,
       status: "APPROVED",
-      semester: {
-        enrollmentStart: { lte: now },
-        enrollmentEnd: { gte: now },
-      },
     },
     orderBy: {
       createdAt: "desc",
@@ -41,15 +38,18 @@ export async function studentGetSubjectsToEnroll() {
     },
   });
 
-  // if (!reg?.semesterId) {
-  //   return []; // No active registration found, so no subjects to enroll in
-  // }
+  if (!reg?.semesterId) {
+    return []; // No active registration found, so no subjects to enroll in
+  }
 
   const offerings = await prisma.subjectOffering.findMany({
     where: {
       semesterId: reg?.semesterId,
       department: student?.department,
       semester: {
+        enrollmentEnd: {
+          gte: now,
+        },
         registrations: {
           some: {
             studentId: student?.id,
@@ -78,12 +78,6 @@ export async function studentGetSubjectsToEnroll() {
         },
       },
       teachingAssignments: {
-        where: {
-          offering: {
-            semesterId: reg?.semesterId,
-            department: student?.department,
-          },
-        },
         orderBy: {
           section: "asc",
         },
@@ -113,7 +107,7 @@ export async function studentGetSubjectsToEnroll() {
               `${assignment.professor.user.name} (${assignment.section ?? "A"})`
           )
           .join(", ") || "TBA";
-    console.log(studentEnrollment?.status);
+
     return {
       id: offering.id,
       department: offering.department,

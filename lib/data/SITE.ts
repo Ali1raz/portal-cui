@@ -1,7 +1,7 @@
 export const SITE_INFO = {
-  name: "CUI portal",
-  url: "http://localhost:3000",
-  domain: "cui.edu.pk",
+  name: "CUI Portal",
+  institution_name: "COMSATS University Islamabad",
+  url: env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
   description: "A dashboard built for the COMSATS University Islamabad.",
   keywords: [
     "CUI portal",

@@ -15,7 +15,7 @@ interface iAppProps {
 
 export function SubjectsToEnrollTable({ data }: iAppProps) {
   if (data.length === 0) {
-    return null;
+    return <div>No subjects are available to enroll yet.</div>;
   }
 
   return (

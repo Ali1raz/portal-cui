@@ -15,7 +15,7 @@ export const auth = betterAuth({
   }),
   baseURL: {
     allowedHosts: [
-      env.BETTER_AUTH_URL,
+      env.NEXT_PUBLIC_BETTER_AUTH_URL,
       "*.vercel.app", // All Vercel previews
       "localhost:*", // Local development all ports
     ],

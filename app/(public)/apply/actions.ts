@@ -12,7 +12,7 @@ import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 import { env } from "@/lib/env";
 
 function getApplicationTrackingLink(applicationId: string) {
-  const appBaseUrl = env.BETTER_AUTH_URL ?? "localhost:3000";
+  const appBaseUrl = env.NEXT_PUBLIC_BETTER_AUTH_URL ?? "localhost:3000";
 
   if (!appBaseUrl) {
     return `/my-applications/${applicationId}`;

@@ -19,20 +19,18 @@ export default async function HodComplaintsPage({
   const parsedParams = hodComplaintsSearchParamsCache.parse(await searchParams);
 
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="@container/main flex flex-1 flex-col gap-2">
-        <div className="flex flex-col gap-4 p-4 md:gap-6 md:py-6">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-bold">Department Complaints</h1>
-            <p className="text-muted-foreground">
-              View and manage complaints from your department students.
-            </p>
-          </div>
-          <div className="my-2">
-            <Suspense fallback={<ComplaintsTableSkeleton />}>
-              <ComplaintsList params={parsedParams} />
-            </Suspense>
-          </div>
+    <div className="@container/main flex flex-1 flex-col gap-2">
+      <div className="flex flex-col gap-4 p-4 md:gap-6 md:py-6">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-bold">Department Complaints</h1>
+          <p className="text-muted-foreground">
+            View and manage complaints from your department students.
+          </p>
+        </div>
+        <div className="my-2">
+          <Suspense fallback={<ComplaintsTableSkeleton />}>
+            <ComplaintsList params={parsedParams} />
+          </Suspense>
         </div>
       </div>
     </div>

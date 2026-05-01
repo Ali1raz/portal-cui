@@ -38,12 +38,22 @@ function generateRegNumber({
 }
 
 function getSignInLink() {
-  const appBaseUrl = env.BETTER_AUTH_URL || "localhost:3000";
+  const appBaseUrl = env.NEXT_PUBLIC_BETTER_AUTH_URL || "localhost:3000";
+
+  if (!appBaseUrl) {
+    return "/login";
+  }
+
   return `${appBaseUrl.replace(/\/$/, "")}/login`;
 }
 
 function getApplicationTrackingLink(applicationId: string) {
-  const appBaseUrl = env.BETTER_AUTH_URL || "localhost:3000";
+  const appBaseUrl = env.NEXT_PUBLIC_BETTER_AUTH_URL || "localhost:3000";
+
+  if (!appBaseUrl) {
+    return `/my-applications/${applicationId}`;
+  }
+
   return `${appBaseUrl.replace(/\/$/, "")}/my-applications/${applicationId}`;
 }
 

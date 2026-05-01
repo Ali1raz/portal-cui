@@ -37,25 +37,6 @@ export async function userGetApplicationDetails(applicationId: string) {
       createdAt: true,
       updatedAt: true,
       semesterId: true,
-      _count: {
-        select: {
-          applicationReviews: true,
-        },
-      },
-      applicationReviews: {
-        orderBy: {
-          createdAt: "asc",
-        },
-        select: {
-          id: true,
-          actorRole: true,
-          action: true,
-          remarks: true,
-          fromStatus: true,
-          toStatus: true,
-          createdAt: true,
-        },
-      },
     },
   });
 

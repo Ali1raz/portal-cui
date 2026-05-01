@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import { userGetApplicationDetails } from "@/app/data/user/user-get-application-details";
 import { StudentApplicationStatusBanner } from "@/components/student-applications/student-application-status-banner";
-import { StudentApplicationTimelineItem } from "@/components/student-applications/student-application-timeline-item";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,20 +52,6 @@ async function MyApplicationDetailsContent({
     );
   }
 
-  if (!details) {
-    return (
-      <Card>
-        <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">
-            Application not found
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const reviews = details.applicationReviews ?? [];
-  const reviewCount = details._count?.applicationReviews ?? reviews.length;
   const canEdit = MY_APPLICATION_EDITABLE_STATUSES.includes(details.status);
 
   return (
@@ -195,42 +180,6 @@ async function MyApplicationDetailsContent({
                 </div>
               </div>
             </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold flex items-center justify-between">
-                Review Timeline
-                {reviewCount > 0 && (
-                  <Badge size="md">
-                    {reviewCount} {reviewCount === 1 ? "event" : "events"}
-                  </Badge>
-                )}
-              </CardTitle>
-            </CardHeader>
-
-            {reviews.length === 0 ? (
-              <CardContent className="py-8 text-center">
-                <p className="text-sm text-muted-foreground">
-                  No activity yet.
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Timeline events appear here as reviewers process your
-                  application.
-                </p>
-              </CardContent>
-            ) : (
-              <CardContent>
-                {reviews.map((review, index) => (
-                  <StudentApplicationTimelineItem
-                    key={review.id}
-                    review={review}
-                    isLast={index === reviews.length - 1}
-                    actorLabelOverride={{ USER: "You" }}
-                  />
-                ))}
-              </CardContent>
-            )}
           </Card>
         </section>
 

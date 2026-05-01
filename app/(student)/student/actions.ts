@@ -103,6 +103,53 @@ export async function enrollCourse(
       };
     }
 
+    // ── Fee gate ────────────────────────────────────────────────────────────────
+    // Enrollment is allowed only when the student has paid at least one
+    const publishedSemesterFee = await prisma.semesterFee.findFirst({
+      where: {
+        semesterId: offering.semesterId,
+        status: "PUBLISHED",
+      },
+      select: { id: true },
+    });
+
+    if (!publishedSemesterFee) {
+      return {
+        status: "error",
+        message:
+          "Semester fee has not been published yet. Please contact the accounts office.",
+      };
+    }
+
+    const studentInstallments = await prisma.studentFeeInstallment.findMany({
+      where: {
+        studentId: student.id,
+        semesterFeeId: publishedSemesterFee.id,
+      },
+      select: {
+        status: true,
+        dueDate: true,
+      },
+    });
+
+    const hasAnyPaidInstallment = studentInstallments.some(
+      (installment) => installment.status === "PAID"
+    );
+
+    if (!hasAnyPaidInstallment) {
+      const hasOverdueUnpaidInstallment = studentInstallments.some(
+        (installment) =>
+          installment.status === "UNPAID" && installment.dueDate < now
+      );
+
+      return {
+        status: "error",
+        message: hasOverdueUnpaidInstallment
+          ? "You have unpaid overdue semester fee installments. Please clear at least one installment before enrolling in courses."
+          : "Please pay at least one semester fee installment before enrolling in courses.",
+      };
+    }
+
     const existingEnrollment = await prisma.enrollment.findUnique({
       where: {
         studentId_offeringId: {
