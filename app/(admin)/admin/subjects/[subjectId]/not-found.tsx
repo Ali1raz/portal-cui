@@ -20,9 +20,9 @@ export default function NotFound() {
           <div className="bg-primary/10 rounded-full p-4 mb-2">
             <Ban className="size-10 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold">Page Not Found</h1>
+          <h1 className="text-2xl font-bold">Subject Not Found</h1>
           <p className="text-center text-muted-foreground">
-            The complaint you&apos;re looking for doesn&apos;t exist.
+            The subject you&apos;re looking for doesn&apos;t exist.
           </p>
           <Button onClick={() => router.back()}>
             <ArrowLeft data-icon="inline-start" />
