@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { IconArrowLeft } from "@tabler/icons-react";
 
@@ -7,6 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { ClerkApplicationUpdateStatusForm } from "./_components/clerk-application-update-status-form";
 import { CLERK_APPLICATION_REVIEWABLE_STATUSES } from "@/lib/data/utils";
+
+export const metadata: Metadata = {
+  title: "Update Application Status",
+};
 
 export default async function ClerkUpdateApplicationStatusPage(
   props: PageProps<"/clerk/applications/[applicationId]/update-status">

@@ -1,5 +1,10 @@
+import { Metadata } from "next";
 import { UpdateAnnouncementForm } from "./_components/update-announcement-form";
 import { hodGetAnnouncementForUpdate } from "@/app/data/hod/hodGetAnnouncementForUpdate";
+
+export const metadata: Metadata = {
+  title: "Edit Announcement",
+};
 
 /// HOD announcement edit page.
 export default async function UpdateAnnouncementPage(

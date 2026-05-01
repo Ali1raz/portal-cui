@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { getSubjectDetails } from "@/app/data/admin/get-subject-details";
 import {
   Card,
@@ -14,6 +15,11 @@ import {
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { UserImage } from "@/components/user/user-image";
+
+export const metadata: Metadata = {
+  title: "Subject Details",
+  description: "Review subject details.",
+};
 
 export default async function SubjectPAge(
   props: PageProps<"/admin/subjects/[subjectId]">

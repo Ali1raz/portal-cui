@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { Suspense } from "react";
 import { hodGetAnnouncements } from "@/app/data/hod/get-announcements";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -5,6 +6,12 @@ import { hodAnnouncementsSearchParamsCache } from "./announcements-search-params
 import { HodAnnouncementsTable } from "./_components/announcements-table";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+
+export const metadata: Metadata = {
+  title: "Announcements",
+  description:
+    "Manage department announcements — create, edit, and schedule messages to your department.",
+};
 
 /// HOD announcements list page with filters and pagination.
 export default async function AnnouncementsPage({

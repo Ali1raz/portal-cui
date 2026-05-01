@@ -1,4 +1,11 @@
+import { Metadata } from "next";
 import { requireSession } from "@/app/data/session/require-session";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description:
+    "Accountant dashboard — manage fee, installments and announcements for students.",
+};
 
 export default async function AccountantDashboardPage() {
   const session = await requireSession();
@@ -13,7 +20,7 @@ export default async function AccountantDashboardPage() {
           </span>
         </h1>
         <p className="text-muted-foreground">
-          Manage fee announcements and financial communications for students.
+          Manage fee, installments and announcements for students.
         </p>
       </div>
 

@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { userGetApplicationDetails } from "@/app/data/user/user-get-application-details";
 import { StudentApplicationStatusBanner } from "@/components/student-applications/student-application-status-banner";
 import { StudentApplicationTimelineItem } from "@/components/student-applications/student-application-timeline-item";
@@ -10,6 +11,14 @@ import { IconArrowLeft, IconClockHour4 } from "@tabler/icons-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { MY_APPLICATION_EDITABLE_STATUSES } from "../my-application-constants";
+
+export const metadata: Metadata = {
+  title: "Application Details",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function MyApplicationDetailsPage(
   props: PageProps<"/my-applications/[applicationId]">

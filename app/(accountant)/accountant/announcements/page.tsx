@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { Suspense } from "react";
 import { accountantGetAnnouncements } from "@/app/data/accountant/get-announcements";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -5,6 +6,11 @@ import { accountantAnnouncementsSearchParamsCache } from "./announcements-search
 import { AccountantAnnouncementsTable } from "./_components/announcements-table";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+
+export const metadata: Metadata = {
+  title: "Announcements",
+  description: "Manage, create and schedule announcements.",
+};
 
 /// Accountant announcements list page with filters and pagination.
 export default async function AnnouncementsPage({

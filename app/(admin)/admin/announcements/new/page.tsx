@@ -1,4 +1,10 @@
+import { Metadata } from "next";
 import { AdminCreateAnnoucenmentForm } from "./_components/admin-create-announcement-form";
+
+export const metadata: Metadata = {
+  title: "New Announcement",
+  description: "Create and publish a new announcement for the platform.",
+};
 
 export default function AdminNewAnnoucenmtPage() {
   return (

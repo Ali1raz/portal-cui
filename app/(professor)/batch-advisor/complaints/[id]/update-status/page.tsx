@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatDate } from "@/lib/utils";
@@ -8,6 +9,11 @@ import { ALREADY_REVIEWED_COMPLAINT_STATUS } from "@/lib/data/utils";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { IconArrowLeft } from "@tabler/icons-react";
+
+export const metadata: Metadata = {
+  title: "Update Complaint Status",
+  description: "Update the status and add remarks for this complaint.",
+};
 
 export default async function BaUpdateComplaintStatusPage(
   props: PageProps<"/batch-advisor/complaints/[id]/update-status">

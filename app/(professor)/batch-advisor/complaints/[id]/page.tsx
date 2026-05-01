@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { baGetComplaintDetails } from "@/app/data/professor/get-ba-complaint-details";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,10 @@ import { cn } from "@/lib/utils";
 import { STATUS_CONFIG } from "@/components/complaints/complaint-constants";
 import { ComplaintStatusBanner } from "@/components/complaints/complaint-status-banner";
 import { ComplaintTimelineItem } from "@/components/complaints/complaint-timeline-item";
+
+export const metadata: Metadata = {
+  title: "Complaint Details",
+};
 
 /// Batch Advisor complaint details page.
 export default async function BaComplaintDetailsPage(

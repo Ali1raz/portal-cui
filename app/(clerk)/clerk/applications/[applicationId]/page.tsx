@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { getClerkApplicationDetails } from "@/app/data/clerk/get-clerk-application-details";
 import { StudentApplicationStatusBanner } from "@/components/student-applications/student-application-status-banner";
 import { StudentApplicationTimelineItem } from "@/components/student-applications/student-application-timeline-item";
@@ -10,6 +11,10 @@ import { formatDate } from "@/lib/utils";
 import { IconArrowLeft, IconClockHour4 } from "@tabler/icons-react";
 import Link from "next/link";
 import { Suspense } from "react";
+
+export const metadata: Metadata = {
+  title: "Application Details",
+};
 
 export default async function ClerkApplicationDetailsPage(
   props: PageProps<"/clerk/applications/[applicationId]">

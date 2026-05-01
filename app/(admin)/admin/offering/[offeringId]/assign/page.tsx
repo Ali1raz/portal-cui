@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { adminGetOfferingAssignData } from "@/app/data/admin/get-offering-assign-data";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -9,6 +10,11 @@ import {
 } from "@/components/ui/card";
 import { UserImage } from "@/components/user/user-image";
 import { AssignTeacherForm } from "./_components/assign-teacher-form";
+
+export const metadata: Metadata = {
+  title: "Assign Teacher",
+  description: "Assign a professor to the selected subject offering.",
+};
 
 export default async function AssignTeacherPage(
   props: PageProps<"/admin/offering/[offeringId]/assign">

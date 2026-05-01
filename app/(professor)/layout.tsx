@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { Role } from "@/lib/generated/prisma/enums";
 import { requireSession } from "../data/session/require-session";
 import { redirect } from "next/navigation";
@@ -5,6 +6,17 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/sidebar/site-header";
 import { isProfessorBA } from "../data/professor/get-professor-details";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s | Professor Dashboard",
+    default: "Professor Dashboard",
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function ProfessorLayout({
   children,

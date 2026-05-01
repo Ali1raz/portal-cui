@@ -1,4 +1,10 @@
+import { Metadata } from "next";
 import { AccountantCreateAnnouncementForm } from "./_components/create-announcement-form";
+
+export const metadata: Metadata = {
+  title: "New Announcement",
+  description: "Draft and publish a new announcement for students.",
+};
 
 export default function NewAnnouncementPage() {
   return (

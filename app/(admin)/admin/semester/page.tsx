@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { adminGetSemesters } from "@/app/data/admin/get-semesters";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +17,12 @@ import {
   type SemesterSearchParams,
 } from "./semester-search-params";
 import { SemestersTable } from "./_components/semesters-table";
+
+export const metadata: Metadata = {
+  title: "Semesters",
+  description:
+    "Manage semesters, registration windows, and enrollment schedules.",
+};
 
 export default async function SemesterPage(
   props: PageProps<"/admin/semester">

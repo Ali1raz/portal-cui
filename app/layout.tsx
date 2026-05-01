@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   title: {
-    template: `%s – ${SITE_INFO.name}`,
+    template: `%s | ${SITE_INFO.name}`,
     default: `CUI portal Vehari Campus`,
   },
   description: SITE_INFO.description,
@@ -42,6 +42,16 @@ export const metadata: Metadata = {
     url: "/",
     type: "website",
     locale: "en_US",
+    images: [
+      { url: "/og-default.png", width: 1200, height: 630, alt: SITE_INFO.name },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@ali1razdev",
+    creator: "@ali1razdev",
+    description: SITE_INFO.description,
+    images: ["/og-default.png"],
   },
 };
 

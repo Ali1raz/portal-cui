@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { getStudentEnrolledSubjects } from "@/app/data/student/get-subjects-enrolled";
 
 import Link from "next/link";
@@ -5,6 +6,11 @@ import { LeaveRequestForm } from "./_components/leave-request-form";
 import { redirect } from "next/navigation";
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { ArrowUpRightIcon } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Request Leave",
+  description: "Submit a leave request to your batch advisor for approval.",
+};
 
 export default async function LeaveRequestPage() {
   const can = await requirePermission({

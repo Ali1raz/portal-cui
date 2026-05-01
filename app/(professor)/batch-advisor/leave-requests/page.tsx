@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { baGetLeaveRequests } from "@/app/data/professor/get-ba-leave-requests";
@@ -14,6 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+export const metadata: Metadata = {
+  title: "Leave Requests",
+  description: "Manage leave requests for your batch.",
+};
 
 export default async function BALRPage(
   props: PageProps<"/batch-advisor/leave-requests">

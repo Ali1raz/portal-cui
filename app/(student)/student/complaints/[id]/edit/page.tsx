@@ -1,8 +1,13 @@
+import { Metadata } from "next";
 import { studentGetComplaintDetails } from "@/app/data/student/get-complaint-details";
 import { UpdateComplaintForm } from "./_components/update-complaint-form";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ALREADY_REVIEWED_COMPLAINT_STATUS } from "@/lib/data/utils";
+
+export const metadata: Metadata = {
+  title: "Update Complaint",
+};
 
 export default async function EditComplaintPage(
   props: PageProps<"/student/complaints/[id]/edit">

@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { userGetApplications } from "@/app/data/user/user-get-applications";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -6,6 +7,16 @@ import { formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "My Applications",
+  description:
+    "View the status, history, and details of your submitted applications.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function MyApplicationsPage() {
   return (

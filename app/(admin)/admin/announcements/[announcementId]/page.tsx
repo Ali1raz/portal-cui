@@ -1,5 +1,11 @@
+import { Metadata } from "next";
 import { adminGetAnnouncementForUpdate } from "@/app/data/admin/get-announcement-for-update";
 import { UpdateAnnouncementForm } from "./_components/update-announcement-form";
+
+export const metadata: Metadata = {
+  title: "Edit Announcement",
+  description: "Update announcement details.",
+};
 
 export default async function AdminUpdateAnnouncementPage(
   props: PageProps<"/admin/announcements/[announcementId]">

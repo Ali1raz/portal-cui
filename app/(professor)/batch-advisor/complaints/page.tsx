@@ -3,6 +3,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { baGetComplaints } from "@/app/data/professor/get-ba-complaints";
 import { baComplaintsSearchParamsCache } from "./ba-complaints-search-params";
 import { BaComplaintsTable } from "./_components/ba-complaints-table";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Leave requests",
+  description: "Manage complaints of your department.",
+};
 
 /// Batch Advisor complaints list page with server-side filtering, sorting, and pagination.
 export default async function BaComplaintsPage({

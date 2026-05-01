@@ -1,35 +1,35 @@
 "use client";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from "@/components/ui/empty";
-import { ArrowLeft } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, Ban } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function NotFound() {
   const router = useRouter();
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden">
-      <Empty>
-        <EmptyHeader>
-          <EmptyTitle className="font-extrabold text-9xl">404</EmptyTitle>
-          <EmptyDescription className="mt-8 text-nowrap text-foreground/80">
+    <div className="min-h-screen flex items-center justify-center bg-muted">
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+
+      <Card className="max-w-md">
+        <CardContent className="flex flex-col items-center gap-6 p-8 text-center">
+          <div className="bg-primary/10 rounded-full p-4 mb-2">
+            <Ban className="size-10 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold">Page Not Found</h1>
+          <p className="text-center text-muted-foreground">
             The complaint you&apos;re looking for doesn&apos;t exist.
-          </EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
+          </p>
           <Button onClick={() => router.back()}>
             <ArrowLeft data-icon="inline-start" />
             Go Back
           </Button>
-        </EmptyContent>
-      </Empty>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { studentGetAnnouncementById } from "@/app/data/student/get-announcement-by-id";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { GeneralImage } from "@/components/general/general-image";
+
+export const metadata: Metadata = {
+  title: "Announcement Details",
+};
 
 export default async function AnnouncementDetailPage(
   props: PageProps<"/student/announcements/[id]">

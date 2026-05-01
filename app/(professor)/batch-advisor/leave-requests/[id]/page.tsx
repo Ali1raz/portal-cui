@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { IconArrowLeft, IconClockHour4 } from "@tabler/icons-react";
 
 import { baGetLeaveRequestDetails } from "@/app/data/professor/get-ba-leave-request-details";
@@ -17,6 +18,10 @@ import {
 import { LeaveStatus } from "@/lib/generated/prisma/enums";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Leave Request Details",
+};
 
 const REVIEWABLE_STATUSES: LeaveStatus[] = [
   LeaveStatus.PENDING,

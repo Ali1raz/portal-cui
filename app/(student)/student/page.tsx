@@ -1,7 +1,14 @@
+import { Metadata } from "next";
 import { getStudentSubjects } from "@/app/data/student/get-student-subjects";
 import { SubjectCard } from "./_components/subject-card";
 import { studentGetSubjectsToEnroll } from "@/app/data/student/get-subject-to-enroll";
 import { SubjectsToEnrollTable } from "./_components/subjects-to-enroll-table";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description:
+    "View your enrolled subjects and available courses for enrollment.",
+};
 
 export default async function StudentPage() {
   const [subjects, subj] = await Promise.all([

@@ -1,7 +1,14 @@
+import { Metadata } from "next";
 import { isProfessorBA } from "@/app/data/professor/get-professor-details";
 import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Batch Advisor",
+  description:
+    "Batch advisor dashboard — manage complaints and leave requests of your department.",
+};
 
 export default async function BatchAdvisorDashboardPage() {
   const isBA = await isProfessorBA();

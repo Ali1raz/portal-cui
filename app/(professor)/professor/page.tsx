@@ -1,9 +1,15 @@
+import { Metadata } from "next";
 import { requireSession } from "@/app/data/session/require-session";
 import { UserDetailsSection } from "@/components/user/user-details-section";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { CourseCard } from "./_components/subject-card";
 import { getProfessorSubjects } from "@/app/data/professor/get-professor-courses";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Your professor dashboard — overview of assigned subjects.",
+};
 
 export default async function ProfessorPage() {
   const [session, { professor, assignments }] = await Promise.all([
