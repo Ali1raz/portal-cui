@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { IconArrowLeft, IconClockHour4 } from "@tabler/icons-react";
 
 import { getLeaveRequestDetails } from "@/app/data/hod/get-leave-request-details";
@@ -20,6 +21,10 @@ import { formatDate } from "@/lib/utils";
 import { Suspense } from "react";
 import { UpdateStatusDialog } from "./_components/update-status";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Leave Request Details",
+};
 
 const REVIEWABLE_STATUSES: LeaveStatus[] = [LeaveStatus.HOD_PENDING];
 

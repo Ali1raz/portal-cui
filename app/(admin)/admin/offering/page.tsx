@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { getAdminOfferings } from "@/app/data/admin/get-offerings";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -14,6 +15,12 @@ import { offeringSearchParamsCache } from "@/app/(admin)/admin/offering/offering
 import { OfferingsTable } from "./_components/offerings-table";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+
+export const metadata: Metadata = {
+  title: "Offerings",
+  description:
+    "Manage subject offerings, teacher assignments, and semester coverage.",
+};
 
 export default async function OfferingPage(
   props: PageProps<"/admin/offering">

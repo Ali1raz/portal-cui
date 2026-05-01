@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { getStudentLeaveRequestDetails } from "@/app/data/student/get-leave-request-details";
 import { GeneralImage } from "@/components/general/general-image";
 import { LeaveRequestStatusBanner } from "@/components/leave-requests/leave-request-status-banner";
@@ -20,6 +21,10 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EDITABLE_LEAVE_REQUEST_STATUS } from "@/lib/data/utils";
+
+export const metadata: Metadata = {
+  title: "Leave Request Details",
+};
 
 export default async function LeaveRequestDetailsPage(
   props: PageProps<"/student/past-leave-requests/[id]">

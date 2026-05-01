@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { studentGetComplaintDetails } from "@/app/data/student/get-complaint-details";
 import { GeneralImage } from "@/components/general/general-image";
@@ -22,6 +23,10 @@ import { Badge } from "@/components/ui/badge";
 import { STATUS_CONFIG } from "@/components/complaints/complaint-constants";
 import { ComplaintStatusBanner } from "@/components/complaints/complaint-status-banner";
 import { ALREADY_REVIEWED_COMPLAINT_STATUS } from "@/lib/data/utils";
+
+export const metadata: Metadata = {
+  title: "Complaint Details",
+};
 
 export default async function ComplaintDetailsPage(
   props: PageProps<"/student/complaints/[id]">

@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { Suspense } from "react";
 import { getClerkApplications } from "@/app/data/clerk/get-clerk-applications";
 import {
@@ -14,6 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+export const metadata: Metadata = {
+  title: "Applications",
+  description: "Review and manage student admission applications.",
+};
 
 export default async function ClerkApplicationsPage(
   props: PageProps<"/clerk/applications">

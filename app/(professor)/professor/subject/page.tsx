@@ -1,6 +1,12 @@
+import { Metadata } from "next";
 import { Suspense } from "react";
 import { CourseCard, SectionCardSkeleton } from "../_components/subject-card";
 import { getProfessorSubjects } from "@/app/data/professor/get-professor-courses";
+
+export const metadata: Metadata = {
+  title: "Subjects",
+  description: "Manage your assigned subjects and classes.",
+};
 
 async function SectionsContent() {
   const { assignments } = await getProfessorSubjects();

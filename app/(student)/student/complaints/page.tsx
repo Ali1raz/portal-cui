@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { studentsGetComplaints } from "@/app/data/student/get-complaints";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,6 +9,11 @@ import {
   complaintsSearchParamsCache,
   type ComplaintsSearchParams,
 } from "./complaints-search-params";
+
+export const metadata: Metadata = {
+  title: "My Complaints",
+  description: "View and manage all your submitted complaints.",
+};
 
 /// Loading skeleton for complaints cards.
 function ComplaintsTableSkeleton() {

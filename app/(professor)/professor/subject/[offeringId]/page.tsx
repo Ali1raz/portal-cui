@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { getProfessorSubjectDetails } from "@/app/data/professor/get-section-details";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconAsset, IconNotes, IconUser } from "@tabler/icons-react";
@@ -97,3 +98,8 @@ export default async function SectionPage(
     </div>
   );
 }
+
+export const metadata: Metadata = {
+  title: "Subject Details",
+  description: "Class overview and management tools for this subject.",
+};

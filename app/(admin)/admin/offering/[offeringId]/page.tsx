@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { adminGetOfferingDetails } from "@/app/data/admin/get-offering-details";
 import {
   Accordion,
@@ -19,6 +20,11 @@ import { IconTrendingUp } from "@tabler/icons-react";
 import { ArrowUpRightIcon } from "lucide-react";
 import Link from "next/link";
 import { ComponentProps } from "react";
+
+export const metadata: Metadata = {
+  title: "Offering Details",
+  description: "Review subject offering details, assigned teachers.",
+};
 
 export default async function OfferingIdPage(
   props: PageProps<"/admin/offering/[offeringId]">

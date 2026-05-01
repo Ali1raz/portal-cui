@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { getStudentAttendances } from "@/app/data/student/get-student-attendances";
 import AttendanceTable, {
   AttendanceTableSkeleton,
@@ -12,6 +13,11 @@ import {
   attendanceSearchParamsCache,
   type AttendanceSearchParams,
 } from "./attendance-search-params";
+
+export const metadata: Metadata = {
+  title: "Attendance",
+  description: "Track your subject attendance records and statistics.",
+};
 
 export default async function StudentAttendancePage(
   props: PageProps<"/student/subject/[offeringId]/attendance">

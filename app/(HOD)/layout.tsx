@@ -1,9 +1,21 @@
+import { Metadata } from "next";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Role } from "@/lib/generated/prisma/enums";
 import { redirect } from "next/navigation";
 import { requireSession } from "../data/session/require-session";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SiteHeader } from "@/components/sidebar/site-header";
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s | HOD Dashboard",
+    default: "HOD Dashboard",
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function HODLayout({
   children,

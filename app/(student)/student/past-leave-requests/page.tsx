@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { getStudentLeaveRequests } from "@/app/data/student/get-leave-requests";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
@@ -16,6 +17,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { buttonVariants } from "@/components/ui/button";
+
+export const metadata: Metadata = {
+  title: "Leave Requests",
+  description: "View the history and status of your leave requests.",
+};
 
 /// Loading skeleton for student leave requests table.
 function LeaveRequestsTableSkeleton() {

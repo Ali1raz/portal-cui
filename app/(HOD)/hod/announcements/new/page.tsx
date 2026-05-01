@@ -1,4 +1,10 @@
+import { Metadata } from "next";
 import { HodCreateAnnouncementForm } from "./_components/create-announcement-form";
+
+export const metadata: Metadata = {
+  title: "New Announcement",
+  description: "Draft and schedule a new announcement for your department.",
+};
 
 /// HOD announcement creation page.
 export default function HodAnnouncementCreatePage() {

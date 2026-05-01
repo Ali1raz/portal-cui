@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { IconArrowLeft } from "@tabler/icons-react";
 
@@ -7,6 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { EditMyApplicationForm } from "./_components/edit-my-application-form";
 import { MY_APPLICATION_EDITABLE_STATUSES } from "../../my-application-constants";
+
+export const metadata: Metadata = {
+  title: "Edit Application",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function EditMyApplicationPage(
   props: PageProps<"/my-applications/[applicationId]/edit">

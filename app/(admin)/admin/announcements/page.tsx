@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { adminGetAllAnnouncements } from "@/app/data/admin/get-all-announcemnets";
 import { adminAnnouncementsSearchParamsCache } from "./announcement-search-params";
 import { AdminAnnouncementsTable } from "./_components/announcements-table";
+
+export const metadata: Metadata = {
+  title: "Announcements",
+  description: "Manage announcements across the platform.",
+};
 
 /// Wrapper component that fetches announcements data.
 async function AnnouncementsTableWrapper({

@@ -1,7 +1,12 @@
+import { Metadata } from "next";
 import { professorGetLeaveRequestDetails } from "@/app/data/professor/get-leave-request-details";
 import { GeneralImage } from "@/components/general/general-image";
 import { UserImage } from "@/components/user/user-image";
 import { formatDate } from "@/lib/utils";
+
+export const metadata: Metadata = {
+  title: "Leave Request Details",
+};
 
 export default async function ProfessorLeaveRequestDetailsPage(
   props: PageProps<"/professor/subject/[offeringId]/leave-requests/[leaveRequestId]">

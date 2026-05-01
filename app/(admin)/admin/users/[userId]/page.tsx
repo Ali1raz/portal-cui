@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { adminGetUserData } from "@/app/data/admin/get-user-data";
 import { UserImage } from "@/components/user/user-image";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,11 @@ import { requirePermission } from "@/app/data/permission/require-permission";
 import { ChangeUserRoleDialog } from "../_components/change-role";
 import { SetDepartmentDialog } from "../_components/set-department-dialog";
 import { MakeBatchAdvisorDialog } from "../_components/make-batchadvisor-dialog";
+
+export const metadata: Metadata = {
+  title: "User Details",
+  description: "Review a user profile and manage role.",
+};
 
 export default async function AdminUserDetailsPage(
   props: PageProps<"/admin/users/[userId]">

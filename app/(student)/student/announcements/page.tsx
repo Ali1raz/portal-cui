@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { studentGetAllAnnouncements } from "@/app/data/student/get-all-annoucements";
 import {
   Card,
@@ -13,6 +14,11 @@ import { Suspense } from "react";
 import { getRelativeTime } from "@/lib/utils";
 import { UserImage } from "@/components/user/user-image";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Announcements",
+  description: "View announcements from your university.",
+};
 
 export default function StudentAnnouncementsPage() {
   return (

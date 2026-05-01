@@ -1,9 +1,14 @@
+import { Metadata } from "next";
 import { getStudentLeaveRequestDetails } from "@/app/data/student/get-leave-request-details";
 import { getStudentEnrolledSubjects } from "@/app/data/student/get-subjects-enrolled";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { EDITABLE_LEAVE_REQUEST_STATUS } from "@/lib/data/utils";
 import { UpdateLeaveRequestForm } from "../../_components/update-leave-request-form";
+
+export const metadata: Metadata = {
+  title: "Update Leave Request",
+};
 
 export default async function EditLeaveRequestPage(
   props: PageProps<"/student/past-leave-requests/[id]/edit">

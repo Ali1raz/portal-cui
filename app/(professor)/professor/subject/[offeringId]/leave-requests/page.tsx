@@ -1,7 +1,13 @@
+import { Metadata } from "next";
 import { professorGetLeaveRequests } from "@/app/data/professor/get-leave-requests";
 import { ProfessorLeaveRequestsTable } from "./_components/professor-leave-requests-table";
 import type { LeaveRequestsSearchParams } from "./leave-requests-search-params";
 import { leaveRequestsSearchParamsCache } from "./leave-requests-search-params";
+
+export const metadata: Metadata = {
+  title: "Subject Leave Requests",
+  description: "View and manage leave requests submitted for this subject.",
+};
 
 export default async function LeaveRequests(
   props: PageProps<"/professor/subject/[offeringId]/leave-requests">

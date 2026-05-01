@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { getStudentRegistrationDetails } from "@/app/data/student/get-student-registration-details";
 import { formatDate } from "@/lib/utils";
 import {
@@ -8,6 +9,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+export const metadata: Metadata = {
+  title: "Registration Details",
+  description: "View your semester and program registration details.",
+};
 
 export default async function RegistrationPage() {
   const data = await getStudentRegistrationDetails();

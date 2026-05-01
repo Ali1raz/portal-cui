@@ -1,8 +1,14 @@
+import { Metadata } from "next";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { hodGetComplaints } from "@/app/data/hod/get-complaints";
 import { hodComplaintsSearchParamsCache } from "./complaints-search-params";
 import { HodComplaintsTable } from "./_components/complaints-table";
+
+export const metadata: Metadata = {
+  title: "Complaints",
+  description: "View and manage complaints from your department.",
+};
 
 /// HOD complaints list page with server-side filtering, sorting, and pagination.
 export default async function HodComplaintsPage({

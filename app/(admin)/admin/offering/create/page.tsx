@@ -1,5 +1,11 @@
+import { Metadata } from "next";
 import { adminGetOfferingFormData } from "@/app/data/admin/get-offering-form-data";
 import { AdminCreateOfferingForm } from "./_components/create-offering-form";
+
+export const metadata: Metadata = {
+  title: "Create Offering",
+  description: "Create a new subject offering for a semester.",
+};
 
 export default async function CreateOfferingOffer() {
   const { semesters, subjects } = await adminGetOfferingFormData();

@@ -1,5 +1,11 @@
+import { Metadata } from "next";
 import { ChartAreaInteractive } from "@/app/(director)/_components/chart-area-interactive";
 import { SectionCards } from "@/app/(director)/_components/section-cards";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Admin dashboard.",
+};
 
 export default function Page() {
   return (

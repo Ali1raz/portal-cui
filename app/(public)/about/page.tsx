@@ -1,4 +1,10 @@
+import { Metadata } from "next";
 import Image from "next/image";
+
+export const metadata: Metadata = {
+  title: "About",
+  description: "Learn about COMSATS University Islamabad.",
+};
 
 export default function AboutPage() {
   return (
