@@ -65,7 +65,7 @@
     "dotenv": "^17.2.3",
     "framer-motion": "^12.23.25",
     "html2canvas-pro": "^2.0.2",
-    "inngest": "^3.52.1",
+    "inngest": "^4.2.6",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.556.0",
     "motion": "^12.23.25",

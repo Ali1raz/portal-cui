@@ -131,8 +131,8 @@ importers:
         specifier: ^2.0.2
         version: 2.0.2
       inngest:
-        specifier: ^3.52.1
-        version: 3.52.7(@opentelemetry/core@2.6.0(@opentelemetry/api@1.9.0))(hono@4.11.4)(next@16.1.3(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.3)(zod@4.3.6)
+        specifier: ^4.2.6
+        version: 4.2.6(@opentelemetry/core@2.6.0(@opentelemetry/api@1.9.0))(hono@4.11.4)(next@16.1.3(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)(zod@4.3.6)
       jspdf:
         specifier: ^4.2.1
         version: 4.2.1
@@ -7249,10 +7249,10 @@ packages:
         integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==,
       }
 
-  inngest@4.2.4:
+  inngest@4.2.6:
     resolution:
       {
-        integrity: sha512-MBFcRhhQ+dcGHLYCbIcMYxiAZCxzfAx0+3b/euYQKc7MK3rOnNHaNHuF2e0WsT13oWJiGzjuC3T4Nocggmh5WQ==,
+        integrity: sha512-d6oFhG4CXIyJHJ8Z029shqENn9R2Etn/5PPZHXVlK0YgHOW77DchO5gnMu9TQdUoyWnZeXKq1veZQL+NCRmRNQ==,
       }
     engines: { node: ">=20" }
     peerDependencies:
@@ -15254,7 +15254,7 @@ snapshots:
 
   inherits@2.0.4: {}
 
-  inngest@4.2.4(@opentelemetry/core@2.6.0(@opentelemetry/api@1.9.0))(hono@4.11.4)(next@16.1.3(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)(zod@4.3.6):
+  inngest@4.2.6(@opentelemetry/core@2.6.0(@opentelemetry/api@1.9.0))(hono@4.11.4)(next@16.1.3(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)(zod@4.3.6):
     dependencies:
       "@bufbuild/protobuf": 2.11.0
       "@inngest/ai": 0.1.7
