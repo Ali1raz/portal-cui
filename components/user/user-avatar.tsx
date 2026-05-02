@@ -27,7 +27,6 @@ export default function UserAvatarDropdown({
   name,
   email,
   image,
-  role,
 }: UserAvatarProps) {
   const handleSignOut = useSignOut();
 
@@ -48,7 +47,6 @@ export default function UserAvatarDropdown({
                 {name && name.length > 0 ? name : email.split("@")[0]}
               </span>
               <p className="text-muted-foreground truncate text-xs">{email}</p>
-              <p>{role}</p>
             </div>
           </div>
         </DropdownMenuLabel>
@@ -71,8 +69,9 @@ export default function UserAvatarDropdown({
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem
+            variant="destructive"
             onClick={handleSignOut}
-            className="cursor-pointer text-red-600 dark:text-red-400"
+            className="cursor-pointer"
           >
             <LogOutIcon size={16} aria-hidden="true" />
             <span>Logout</span>

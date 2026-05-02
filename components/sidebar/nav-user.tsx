@@ -50,11 +50,7 @@ export function NavUser({ user }: { user: User }) {
               <IconDotsVertical className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-44"
-            sideOffset={4}
-          >
+          <DropdownMenuContent align="start" className="max-w-64 min-w-60">
             <DropdownMenuLabel>
               <div className="flex items-start gap-2 text-left text-sm">
                 <UserImage name={user?.name} image={user?.image} />
@@ -67,7 +63,6 @@ export function NavUser({ user }: { user: User }) {
                   <p className="text-muted-foreground truncate text-xs">
                     {user.email}
                   </p>
-                  <p>{user.role}</p>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -83,6 +78,7 @@ export function NavUser({ user }: { user: User }) {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem
+                variant="destructive"
                 onClick={handleSignOut}
                 className="cursor-pointer"
               >
