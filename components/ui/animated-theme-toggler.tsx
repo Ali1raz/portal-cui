@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
@@ -100,23 +100,56 @@ export const AnimatedThemeToggler = ({
         <Button
           ref={buttonRef}
           onClick={toggleTheme}
-          className={cn("relative", className)}
+          className={cn(
+            "relative rounded transition-all duration-300 active:scale-95",
+            className
+          )}
           variant="outline"
           size="sm"
           {...props}
         >
-          <Sun
-            className={cn(
-              "h-[1.2rem] w-[1.2rem] transition-all",
-              isDark ? "scale-100 rotate-0" : "scale-0 -rotate-90"
-            )}
-          />
-          <Moon
-            className={cn(
-              "absolute inset-0 m-auto h-[1.2rem] w-[1.2rem] transition-all",
-              isDark ? "scale-0 rotate-90" : "scale-100 rotate-0"
-            )}
-          />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            fill="currentColor"
+            strokeLinecap="round"
+            viewBox="0 0 32 32"
+          >
+            <clipPath id="skiper-btn-2">
+              <motion.path
+                animate={{ y: isDark ? 10 : 0, x: isDark ? -12 : 0 }}
+                transition={{ ease: "easeInOut", duration: 0.35 }}
+                d="M0-5h30a1 1 0 0 0 9 13v24H0Z"
+              />
+            </clipPath>
+            <g clipPath="url(#skiper-btn-2)">
+              <motion.circle
+                animate={{ r: isDark ? 10 : 8 }}
+                transition={{ ease: "easeInOut", duration: 0.35 }}
+                cx="16"
+                cy="16"
+              />
+              <motion.g
+                animate={{
+                  rotate: isDark ? -100 : 0,
+                  scale: isDark ? 0.5 : 1,
+                  opacity: isDark ? 0 : 1,
+                }}
+                transition={{ ease: "easeInOut", duration: 0.35 }}
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path d="M16 5.5v-4" />
+                <path d="M16 30.5v-4" />
+                <path d="M1.5 16h4" />
+                <path d="M26.5 16h4" />
+                <path d="m23.4 8.6 2.8-2.8" />
+                <path d="m5.7 26.3 2.9-2.9" />
+                <path d="m5.8 5.8 2.8 2.8" />
+                <path d="m23.4 23.4 2.9 2.9" />
+              </motion.g>
+            </g>
+          </svg>
           <span className="sr-only">Toggle theme</span>
         </Button>
       </TooltipTrigger>
@@ -126,3 +159,45 @@ export const AnimatedThemeToggler = ({
     </Tooltip>
   );
 };
+
+export const ThemeToggleButton2 = ({
+  className = "",
+  isDark = false,
+}: {
+  className?: string;
+  isDark?: boolean;
+}) => {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "rounded-full transition-all duration-300 active:scale-95",
+        isDark ? "bg-black text-white" : "bg-white text-black",
+        className
+      )}
+    ></button>
+  );
+};
+
+/**
+ * Theme Toggle Animations — React + Framer Motion Recreation
+ * Inspired by and adapted from https://toggles.dev/ (Open Source CSS Theme Toggles by Alfie Jones)
+ * This implementation is rebuilt in React and Framer Motion, avoiding external toggle packages.
+ *
+ * Attribution: https://toggles.dev/
+ *
+ * License & Usage:
+ * - Free to use and modify in both personal and commercial projects.
+ * - Attribution to Skiper UI is required when using the free version.
+ * - No attribution required with Skiper UI Pro.
+ *
+ * Feedback and contributions are welcome.
+ *
+ * Author: @gurvinder-singh02
+ * Website: https://gxuri.in
+ * Twitter: https://x.com/Gur__vi
+ * 
+ 
+Animation by 
+ 
+*/
