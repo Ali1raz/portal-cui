@@ -26,7 +26,7 @@ export default async function SubjectsPage(
   props: PageProps<"/admin/subjects">
 ) {
   return (
-    <div>
+    <div className="@container/main">
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-xl font-bold">All Subjects</h1>
         <Link href={"/admin/subjects/create"} className={buttonVariants()}>
