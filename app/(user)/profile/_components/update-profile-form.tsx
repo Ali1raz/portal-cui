@@ -31,7 +31,10 @@ export function UpdateProfileForm({ session }: { session: Session }) {
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
       name: session?.user?.name || "",
-      imageKey: session?.user?.image || "",
+      imageKey:
+        session?.user?.image && !session.user.image.includes("avatar.vercel.sh")
+          ? session.user.image
+          : "",
     },
     mode: "onChange",
   });
