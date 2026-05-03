@@ -1,6 +1,5 @@
 import { useConstructImageUrl } from "@/hooks/use-construct-url";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-
 export function UserImage({
   image,
   name,
@@ -14,9 +13,7 @@ export function UserImage({
 
   const imageUrl = !image
     ? `https://avatar.vercel.sh/${name ?? "U"}`
-    : image.includes("avatars.vercel.sh")
-      ? image
-      : constructedImageUrl;
+    : constructedImageUrl;
 
   return (
     <Avatar className={className}>
