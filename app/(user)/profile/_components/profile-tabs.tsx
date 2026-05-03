@@ -1,87 +1,54 @@
-"use client";
-
-import { useLayoutEffect, useRef, useState } from "react";
-
-import { motion } from "motion/react";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UpdateProfileForm } from "./update-profile-form";
+import { UserSessionsCard } from "./user-sessions-tab";
+import { SecurityTab } from "./security-tab";
+import { userGetAllSessions } from "@/app/data/user/user-get-all-sessions";
+import { requireSession } from "@/app/data/session/require-session";
 
-const tabs = [
-  {
-    name: "Update Profile",
-    value: "update-profile",
-    content: <UpdateProfileForm />,
-  },
-  {
-    name: "Surprise Me",
-    value: "surprise",
-    content: (
-      <>
-        <span className="text-foreground font-semibold">Surprise!</span>{" "}
-        Here&apos;s something unexpected—a fun fact, a quirky tip, or a daily
-        challenge. Come back for a new surprise every day!
-      </>
-    ),
-  },
-];
-
-const ProfileTabs = () => {
-  const [activeTab, setActiveTab] = useState("update-profile");
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const [underlineStyle, setUnderlineStyle] = useState({ left: 0, width: 0 });
-
-  useLayoutEffect(() => {
-    const activeIndex = tabs.findIndex((tab) => tab.value === activeTab);
-    const activeTabElement = tabRefs.current[activeIndex];
-
-    if (activeTabElement) {
-      const { offsetLeft, offsetWidth } = activeTabElement;
-
-      setUnderlineStyle({
-        left: offsetLeft,
-        width: offsetWidth,
-      });
-    }
-  }, [activeTab]);
+const ProfileTabs = async () => {
+  const [sessions, currentSession] = await Promise.all([
+    userGetAllSessions(),
+    requireSession(),
+  ]);
 
   return (
     <div className="w-full max-w-5xl mb-8">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-8">
-        <TabsList className="bg-background relative rounded-none border-b p-0">
-          {tabs.map((tab, index) => (
-            <TabsTrigger
-              key={tab.value}
-              value={tab.value}
-              ref={(el) => {
-                tabRefs.current[index] = el;
-              }}
-              className="bg-background cursor-pointer dark:data-[state=active]:bg-background relative z-10 rounded-none border-0 data-[state=active]:shadow-none"
-            >
-              {tab.name}
-            </TabsTrigger>
-          ))}
-
-          <motion.div
-            className="bg-primary absolute bottom-0 z-20 h-0.5"
-            layoutId="underline"
-            style={{
-              left: underlineStyle.left,
-              width: underlineStyle.width,
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 400,
-              damping: 40,
-            }}
-          />
+      <Tabs defaultValue={"update-profile"} className="gap-8">
+        <TabsList className="rounded flex **:px-8">
+          <TabsTrigger
+            value={"update-profile"}
+            className="cursor-pointer  relative z-10 rounded "
+          >
+            Update Profile
+          </TabsTrigger>
+          <TabsTrigger
+            value={"sessions"}
+            className=" cursor-pointer relative z-10 rounded "
+          >
+            Sessions
+          </TabsTrigger>
+          <TabsTrigger
+            value={"security"}
+            className="cursor-pointer relative z-10 rounded"
+          >
+            Security
+          </TabsTrigger>
         </TabsList>
 
-        {tabs.map((tab) => (
-          <TabsContent key={tab.value} value={tab.value}>
-            {tab.content}
-          </TabsContent>
-        ))}
+        <TabsContent value="update-profile">
+          <UpdateProfileForm session={currentSession} />
+        </TabsContent>
+
+        <TabsContent value="sessions">
+          <UserSessionsCard
+            sessions={sessions}
+            currentToken={currentSession.session.token}
+          />
+        </TabsContent>
+
+        <TabsContent value="security">
+          <SecurityTab />
+        </TabsContent>
       </Tabs>
     </div>
   );

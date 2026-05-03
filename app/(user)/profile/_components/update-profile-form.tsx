@@ -21,10 +21,9 @@ import { updateProfileSchema, UpdateProfileType } from "../schema";
 import { tryCatch } from "@/hooks/tryCatch";
 import { updateProfileAction } from "../actions";
 import Uploader from "@/components/uploader";
-import { useSession } from "@/lib/auth-client";
+import { Session } from "@/lib/auth";
 
-export function UpdateProfileForm() {
-  const { data: session } = useSession();
+export function UpdateProfileForm({ session }: { session: Session }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
