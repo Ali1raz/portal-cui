@@ -62,7 +62,11 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       const link = new URL(url);
-      link.searchParams.set("from", "/");
+
+      // better-auth appends `callbackURL` to the verification link when
+      // signUp.email() is called with callbackURL — read it instead of hardcoding.
+      const callbackURL = link.searchParams.get("callbackURL") || "/";
+      link.searchParams.set("from", callbackURL); // ✅ was hardcoded as "/"
 
       if (env.NODE_ENV === "production") {
         await SendEmail({

@@ -50,6 +50,7 @@ export function RegisterForm({
           name: values.name,
           email: values.email,
           password: values.password,
+          callbackURL: callbackUrl || "/",
           image: `https://avatar.vercel.sh/${values.email.split("@")[0]}`,
           fetchOptions: {
             onError: (ctx) => {
@@ -72,6 +73,8 @@ export function RegisterForm({
       const successUrl = `/register/success?email=${encodeURIComponent(values.email)}${
         callbackUrl ? `&from=${encodeURIComponent(callbackUrl)}` : ""
       }`;
+
+      console.log("========", { successUrl, callbackUrl });
 
       router.push(successUrl as Route);
     });
@@ -156,7 +159,9 @@ export function RegisterForm({
         <div className="text-center text-sm">
           Already have an account?{" "}
           <Link
-            href="/login"
+            href={
+              `/login${callbackUrl ? `?from=${encodeURIComponent(callbackUrl)}` : ""}` as Route
+            }
             className="text-primary hover:underline underline-offset-4"
           >
             Login
