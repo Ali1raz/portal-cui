@@ -17,7 +17,7 @@ import {
 import { CLERK_APPLICATION_REVIEWABLE_STATUSES } from "@/lib/data/utils";
 import { SendEmail } from "@/app/actions/send-email";
 import { env } from "@/lib/env";
-import { generatePassword, generateStudentEmail } from "@/lib/utils";
+import { headers } from "next/headers";
 
 function generateRegNumber({
   batch,
@@ -35,16 +35,6 @@ function generateRegNumber({
   const yearTwoDigits = String(year).slice(-2);
   const formattedSeq = String(seq).padStart(3, "0");
   return `${batch}${yearTwoDigits}-${program}${department}-${formattedSeq}`;
-}
-
-function getSignInLink() {
-  const appBaseUrl = env.NEXT_PUBLIC_BETTER_AUTH_URL || "localhost:3000";
-
-  if (!appBaseUrl) {
-    return "/login";
-  }
-
-  return `${appBaseUrl.replace(/\/$/, "")}/login`;
 }
 
 function getApplicationTrackingLink(applicationId: string) {
@@ -92,6 +82,7 @@ export async function clerkUpdateApplicationStatus(
         user: {
           select: {
             email: true,
+            id: true,
             name: true,
           },
         },
@@ -125,7 +116,6 @@ export async function clerkUpdateApplicationStatus(
     // Only BS programs are supported currently.
     const program: Program = "B";
 
-    // Captured from inside the transaction closure, read after commit.
     let approvedRegistrationNo: string | null = null;
 
     await prisma.$transaction(async (tx) => {
@@ -135,10 +125,6 @@ export async function clerkUpdateApplicationStatus(
       });
 
       if (parsed.status === "APPROVED") {
-        // NOTE: getStudentRegistrationSeqCount ideally should accept `tx` to
-        // prevent a race condition where two concurrent approvals for the same
-        // department/batch/year read the same count and generate duplicate reg
-        // numbers. Until then, concurrent bulk approvals carry this risk.
         const seq = await getStudentRegistrationSeqCount({
           batch: seme.batch,
           year: seme.year,
@@ -172,55 +158,44 @@ export async function clerkUpdateApplicationStatus(
       });
     });
 
-    // -------------------------------------------------------------------------
-    // Post-transaction: create a brand-new Better Auth user for the student.
-    //
-    // The original applicant user is left completely unchanged (role stays
-    // USER, email stays personal). A separate, dedicated student account is
-    // created with:
-    //   - email / username  → derived from the registration number
-    //   - role              → STUDENT
-    //   - emailVerified     → true  (no verification email needed)
-    //   - password          → auto-generated, sent to the applicant's inbox
-    //
-    // Student and Registration records are then linked to this new user ID.
-    // -------------------------------------------------------------------------
     if (parsed.status === "APPROVED" && approvedRegistrationNo) {
       const registrationNo = approvedRegistrationNo as string;
-      const generatedPassword = generatePassword({});
-      const studentEmail = generateStudentEmail({ regNo: registrationNo });
-
-      // Create the dedicated student Better Auth account.
-      const { user: newAuthUser } = await auth.api.createUser({
-        body: {
-          email: studentEmail,
-          password: generatedPassword,
-          name: application.user.name,
-          role: "STUDENT",
-          data: {
-            username: registrationNo,
-            displayUsername: registrationNo,
-            emailVerified: true,
-          },
-        },
-      });
 
       // Atomically create the Student profile and initial Registration record
       // both linked to the new student user account.
       await prisma.$transaction(async (tx) => {
+        const user = await auth.api.adminUpdateUser({
+          body: {
+            userId: application.user.id,
+            data: {
+              username: registrationNo,
+              displayUsername: registrationNo,
+            },
+          },
+          headers: await headers(),
+        });
+
+        await auth.api.setRole({
+          body: {
+            userId: application.user.id,
+            role: "STUDENT",
+          },
+          headers: await headers(),
+        });
+
         const student = await tx.student.create({
           data: {
             department: application.preferredDepartment,
             program,
             registrationNo,
-            user: { connect: { id: newAuthUser.id } },
+            user: { connect: { id: user.id } },
           },
           select: { id: true },
         });
 
         await tx.registration.create({
           data: {
-            userId: newAuthUser.id,
+            userId: user.id,
             studentId: student.id,
             semesterId: application.semesterId as string,
             status: "APPROVED",
@@ -232,18 +207,21 @@ export async function clerkUpdateApplicationStatus(
       await SendEmail({
         to: application.user.email,
         subject:
-          "Your Registration Application Is Approved – Login Credentials",
+          "Your Registration Application Is Approved - Login Credentials",
         meta: {
           description:
             `Congratulations ${application.user.name}, your registration application has been approved.\n\n` +
             `Your student login credentials:\n` +
             `  Username / Registration No: ${registrationNo}\n` +
-            `  Email: ${studentEmail}\n` +
-            `  Password: ${generatedPassword}\n\n` +
-            `You can sign in using your registration number or your CUI email with the password above.`,
-          link: getSignInLink(),
+            `You can sign in using your registration number or your email.`,
+          link: `${env.NEXT_PUBLIC_BETTER_AUTH_URL}/login`,
         },
       });
+
+      return {
+        message: "User application approved successfully!",
+        status: "success",
+      };
     }
 
     if (parsed.status === "REVIEW_REQUESTED") {
@@ -264,11 +242,9 @@ export async function clerkUpdateApplicationStatus(
     return {
       status: "success",
       message:
-        parsed.status === "APPROVED"
-          ? "Application approved successfully."
-          : parsed.status === "REVIEW_REQUESTED"
-            ? "Student has been asked to provide more information."
-            : "Application rejected successfully.",
+        parsed.status === "REVIEW_REQUESTED"
+          ? "Student has been asked to provide more information."
+          : "Application rejected successfully.",
     };
   } catch (error: unknown) {
     return {

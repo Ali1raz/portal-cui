@@ -185,7 +185,7 @@ export const roles = {
   }),
   CLERK: access.newRole({
     userProfiles: ["view"],
-    user: [],
+    user: ["update", "set-role"],
     session: [],
     attendance: [],
     leaveRequest: [],
