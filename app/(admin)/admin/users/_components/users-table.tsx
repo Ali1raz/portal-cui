@@ -75,6 +75,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { CopyButton } from "@/components/ui/copy-button";
 import { APP } from "@/lib/data/utils";
 import { getJoinedAtLabel } from "@/lib/utils";
 import { UserImage } from "@/components/user/user-image";
@@ -174,16 +175,25 @@ export function UsersTable({
       header: "Email",
       accessorFn: (row) => row.email,
       cell: ({ row }) => (
-        <Tooltip>
-          <TooltipTrigger>
-            <div className="font-medium max-w-[20ch] text-ellipsis overflow-hidden">
-              {row.original.email}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent align="center" side="right">
-            <div>{row.original.email}</div>
-          </TooltipContent>
-        </Tooltip>
+        <div className="flex items-center justify-between gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="font-medium max-w-[20ch] text-ellipsis overflow-hidden">
+                {row.original.email}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent align="center" side="right">
+              <div>{row.original.email}</div>
+            </TooltipContent>
+          </Tooltip>
+          <CopyButton
+            text={row.original.email}
+            className="size-8 shrink-0"
+            variant="ghost"
+            size="icon"
+            labels={{ idle: "Tap to copy email" }}
+          />
+        </div>
       ),
     },
     {
