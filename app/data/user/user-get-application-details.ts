@@ -66,7 +66,10 @@ export async function userGetApplicationDetails(applicationId: string) {
     return notFound();
   }
 
-  return application;
+  return {
+    ...application,
+    percentage: Number(application.percentage),
+  };
 }
 
 export type UserGetApplicationDetailsType = Awaited<
