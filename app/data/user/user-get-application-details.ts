@@ -4,6 +4,10 @@ import prisma from "@/lib/prisma";
 import { requireSession } from "../session/require-session";
 import { notFound, redirect } from "next/navigation";
 import { requirePermission } from "../permission/require-permission";
+import {
+  ApplicationAction,
+  ApplicationActorRole,
+} from "@/lib/generated/prisma/enums";
 
 export async function userGetApplicationDetails(applicationId: string) {
   const session = await requireSession();
@@ -37,6 +41,24 @@ export async function userGetApplicationDetails(applicationId: string) {
       createdAt: true,
       updatedAt: true,
       semesterId: true,
+      applicationReviews: {
+        where: {
+          action: ApplicationAction.CLERK_REVIEW_REQUESTED,
+          actorRole: ApplicationActorRole.CLERK,
+          remarks: {
+            not: null,
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 1,
+        select: {
+          id: true,
+          remarks: true,
+          createdAt: true,
+        },
+      },
     },
   });
 

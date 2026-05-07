@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StudentApplicationStatus } from "@/lib/generated/prisma/enums";
 import { formatDate } from "@/lib/utils";
 import { IconArrowLeft, IconClockHour4 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -53,6 +54,9 @@ async function MyApplicationDetailsContent({
   }
 
   const canEdit = MY_APPLICATION_EDITABLE_STATUSES.includes(details.status);
+  const isReviewRequested =
+    details.status === StudentApplicationStatus.REVIEW_REQUESTED;
+  const latestReviewRequestedNote = details.applicationReviews?.[0] ?? null;
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -90,97 +94,137 @@ async function MyApplicationDetailsContent({
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <section className="lg:col-span-2 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold">Application</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge>{details.status}</Badge>
-                <Badge>{details.preferredDepartment}</Badge>
-                <Badge>Attempt #{details.attemptNo}</Badge>
-              </div>
+          {isReviewRequested ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold">
+                  Update Required
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge>{details.status}</Badge>
+                  <Badge>{details.preferredDepartment}</Badge>
+                  <Badge>Attempt #{details.attemptNo}</Badge>
+                </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Full Name
-                  </p>
-                  <p className="font-medium">{details.fullName}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Gender
-                  </p>
-                  <p className="font-medium">{details.gender}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Date of Birth
-                  </p>
-                  <p className="font-medium">
-                    {formatDate(details.dateOfBirth)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Phone Number
-                  </p>
-                  <p className="font-medium">{details.phoneNo}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    City
-                  </p>
-                  <p className="font-medium">{details.city}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Department
-                  </p>
-                  <p className="font-medium">{details.preferredDepartment}</p>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Address
+                <p className="text-sm text-muted-foreground">
+                  Your application is currently under review update request.
+                  Detailed fields are hidden on this page until you update and
+                  resubmit.
                 </p>
-                <p className="text-sm whitespace-pre-wrap mt-1">
-                  {details.address}
-                </p>
-              </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+                {latestReviewRequestedNote?.remarks ? (
+                  <div className="rounded-md border p-3 space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Clerk Note
+                    </p>
+                    <p className="text-sm">
+                      {latestReviewRequestedNote.remarks}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Requested{" "}
+                      {formatDate(latestReviewRequestedNote.createdAt)}
+                    </p>
+                  </div>
+                ) : null}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold">
+                  Application
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge>{details.status}</Badge>
+                  <Badge>{details.preferredDepartment}</Badge>
+                  <Badge>Attempt #{details.attemptNo}</Badge>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Full Name
+                    </p>
+                    <p className="font-medium">{details.fullName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Gender
+                    </p>
+                    <p className="font-medium">{details.gender}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Date of Birth
+                    </p>
+                    <p className="font-medium">
+                      {formatDate(details.dateOfBirth)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Phone Number
+                    </p>
+                    <p className="font-medium">{details.phoneNo}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      City
+                    </p>
+                    <p className="font-medium">{details.city}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Department
+                    </p>
+                    <p className="font-medium">{details.preferredDepartment}</p>
+                  </div>
+                </div>
+
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Previous Degree
+                    Address
                   </p>
-                  <p className="font-medium">{details.previousDegree}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Previous Institution
-                  </p>
-                  <p className="font-medium">{details.previousInstitution}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Passing Year
-                  </p>
-                  <p className="font-medium">{details.previousPassingYear}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Percentage
-                  </p>
-                  <p className="font-medium">
-                    {details.percentage.toString()}%
+                  <p className="text-sm whitespace-pre-wrap mt-1">
+                    {details.address}
                   </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Previous Degree
+                    </p>
+                    <p className="font-medium">{details.previousDegree}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Previous Institution
+                    </p>
+                    <p className="font-medium">{details.previousInstitution}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Passing Year
+                    </p>
+                    <p className="font-medium">{details.previousPassingYear}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Percentage
+                    </p>
+                    <p className="font-medium">
+                      {details.percentage.toString()}%
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </section>
 
         <section className="space-y-4">
