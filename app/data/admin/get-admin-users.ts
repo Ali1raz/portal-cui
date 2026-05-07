@@ -164,6 +164,7 @@ export async function getAdminUsers({
         student: {
           select: {
             department: true,
+            registrationNo: true,
           },
         },
         hod: {

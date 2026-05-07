@@ -159,12 +159,19 @@ export function UsersTable({
             name={row.original.name}
             className="h-10 w-10"
           />
-          <Link
-            href={`/admin/users/${row.original.id}`}
-            className="hover:text-primary hover:underline hover:underline-offset-4 group-hover:text-primary"
-          >
-            {row.original.name}
-          </Link>
+          <div className="flex flex-col">
+            <Link
+              href={`/admin/users/${row.original.id}`}
+              className="hover:text-primary hover:underline hover:underline-offset-4 group-hover:text-primary"
+            >
+              {row.original.name}
+            </Link>
+            {row.original.student?.registrationNo && (
+              <span className="text-xs text-muted-foreground">
+                {row.original.student.registrationNo}
+              </span>
+            )}
+          </div>
         </div>
       ),
       sortUndefined: "last",
