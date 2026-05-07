@@ -77,6 +77,7 @@ import {
 } from "@/components/ui/tooltip";
 import { APP } from "@/lib/data/utils";
 import { getJoinedAtLabel } from "@/lib/utils";
+import { UserImage } from "@/components/user/user-image";
 
 export function UsersTable({
   users,
@@ -148,15 +149,22 @@ export function UsersTable({
     },
     {
       id: "name",
-      header: "Name",
+      header: "User",
       accessorFn: (row) => row.name,
       cell: ({ row }) => (
-        <Link
-          href={`/admin/users/${row.original.id}`}
-          className="hover:text-primary hover:underline hover:underline-offset-4 group-hover:text-primary"
-        >
-          {row.original.name}
-        </Link>
+        <div className="flex items-center gap-2">
+          <UserImage
+            image={row.original.image}
+            name={row.original.name}
+            className="h-10 w-10"
+          />
+          <Link
+            href={`/admin/users/${row.original.id}`}
+            className="hover:text-primary hover:underline hover:underline-offset-4 group-hover:text-primary"
+          >
+            {row.original.name}
+          </Link>
+        </div>
       ),
       sortUndefined: "last",
       sortDescFirst: false,
