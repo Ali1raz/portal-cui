@@ -57,7 +57,9 @@ describe("LoginForm", () => {
 
     // Check if validation error messages are displayed (based on zod schema)
     await waitFor(() => {
-      expect(screen.getByText(/Not a valid email/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Username or email is required/i)
+      ).toBeInTheDocument();
       expect(
         screen.getByText(/Password should be 8 chars long/i)
       ).toBeInTheDocument();

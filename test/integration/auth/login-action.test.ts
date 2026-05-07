@@ -50,9 +50,9 @@ describe("signIn action", () => {
   // ------------------------------------------------------------------
   // Validation failures
   // ------------------------------------------------------------------
-  it("should return error for an invalid email", async () => {
+  it("should return error for a missing username/email", async () => {
     const response = await signIn({
-      email: "not-an-email",
+      email: "",
       password: "Password123!",
     });
 
@@ -124,8 +124,7 @@ describe("signIn action", () => {
     });
 
     expect(response.status).toBe("error");
-    // errorMessage() returns "Something went wrong!" for generic errors
-    expect(response.message).toBe("Something went wrong!");
+    expect(response.message).toBe("Something went wrong: ");
   });
 
   it("should return error when email is not verified", async () => {
@@ -140,6 +139,6 @@ describe("signIn action", () => {
     });
 
     expect(response.status).toBe("error");
-    expect(response.message).toBe("Something went wrong!");
+    expect(response.message).toBe("Something went wrong: ");
   });
 });

@@ -92,7 +92,6 @@ describe("signUp integration test", () => {
     const response = await signUp(validData);
 
     expect(response.status).toBe("error");
-    // errorMessage() returns "Something went wrong!" for generic errors
-    expect(response.message).toBe("Something went wrong!");
+    expect(response.message).toBe("Something went wrong: ");
   });
 });

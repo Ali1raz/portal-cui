@@ -106,6 +106,7 @@ describe("RegisterForm", () => {
         name: "John Doe",
         email: "john@example.com",
         password: "Password123!",
+        callbackURL: "/",
         image: "https://avatar.vercel.sh/john",
         fetchOptions: expect.objectContaining({
           onError: expect.any(Function),
