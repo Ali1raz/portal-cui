@@ -236,15 +236,7 @@ export function UsersTable({
       enableSorting: false,
       cell: ({ row }) => (
         <div className="text-center">
-          <UserActions
-            userId={row.original.id}
-            hasDepartment={
-              row.original.role === "PROFESSOR" &&
-              !!row.original.professor?.department
-            }
-            name={row.original.name}
-            userRole={row.original.role}
-          />
+          <UserActions user={row.original} />
         </div>
       ),
     },

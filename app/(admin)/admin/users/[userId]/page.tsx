@@ -16,6 +16,7 @@ import { requirePermission } from "@/app/data/permission/require-permission";
 import { ChangeUserRoleDialog } from "../_components/change-role";
 import { SetDepartmentDialog } from "../_components/set-department-dialog";
 import { MakeBatchAdvisorDialog } from "../_components/make-batchadvisor-dialog";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "User Details",
@@ -56,13 +57,13 @@ export default async function AdminUserDetailsPage(
             </div>
           </CardDescription>
           <div className="flex items-center flex-wrap w-full gap-2 mt-4">
-            <ChangeUserRoleDialog
-              userRole={user.role}
-              userId={userId}
-              name={user.name}
-            />
-            {user.role === "PROFESSOR" && !user.professor?.department ? (
-              <SetDepartmentDialog userId={userId} name={user.name} />
+            <ChangeUserRoleDialog user={user} />
+            {user.role === "PROFESSOR" || user.role === "HOD" ? (
+              <SetDepartmentDialog userId={userId} name={user.name}>
+                <Button size="sm" variant="outline">
+                  Set or Update Department
+                </Button>
+              </SetDepartmentDialog>
             ) : null}
             {user.role === "PROFESSOR" &&
             user.professor?.department &&
@@ -94,6 +95,13 @@ export default async function AdminUserDetailsPage(
                   {
                     label: "Department",
                     value: user.professor.department || "Not specified",
+                  },
+                  {
+                    label: "Programs",
+                    value:
+                      user.professor.programs.length > 0
+                        ? user.professor.programs.join(", ")
+                        : "Not specified",
                   },
 
                   {

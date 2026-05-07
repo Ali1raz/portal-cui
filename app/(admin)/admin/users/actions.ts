@@ -8,6 +8,10 @@ import prisma from "@/lib/prisma";
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import {
+  changeUserRoleSchema,
+  type ChangeUserRolePayload,
+} from "./user-role-form-schema";
 
 /// Updates a user's role for admin management.
 
@@ -18,7 +22,7 @@ function generateEmployeeNo() {
 
 export async function setUserRole(
   userId: string,
-  role: Role
+  payload: ChangeUserRolePayload
 ): Promise<ApiResponseType> {
   const session = await requireSession();
 
@@ -36,28 +40,31 @@ export async function setUserRole(
       return { status: "error", message: "You are not allowed to set-role." };
     }
 
-    if (role === Role.BATCH_ADVISOR) {
+    const parsedPayload = changeUserRoleSchema.safeParse(payload);
+    if (!parsedPayload.success) {
       return {
         status: "error",
         message:
-          "Batch Advisor must be appointed through the BA management page.",
+          parsedPayload.error.issues[0]?.message ?? "Invalid role payload.",
       };
     }
 
-    if (role === Role.STUDENT) {
-      return {
-        status: "error",
-        message:
-          "Student accounts must be created through the student registration/admission process.",
-      };
-    }
+    const { role, professorDepartment, professorPrograms, hodDepartment } =
+      parsedPayload.data;
 
     const currentUser = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         role: true,
-        professor: { select: { id: true } },
-        hod: { select: { id: true } },
+        professor: {
+          select: {
+            id: true,
+            employeeNo: true,
+            department: true,
+            programs: true,
+          },
+        },
+        hod: { select: { id: true, department: true } },
         accountant: { select: { id: true } },
         director: { select: { id: true } },
         batchAdvisor: { select: { id: true, department: true } },
@@ -79,43 +86,162 @@ export async function setUserRole(
       };
     }
 
-    // Typed as PrismaPromise<unknown>[] — no any needed, transaction accepts this
     const ops: Prisma.PrismaPromise<unknown>[] = [
       prisma.user.update({ where: { id: userId }, data: { role } }),
     ];
 
-    // Delete old profile record
-    if (currentUser.professor) {
-      ops.push(prisma.professor.delete({ where: { userId } }));
-    }
-    if (currentUser.hod) {
-      ops.push(prisma.hod.delete({ where: { userId } }));
-    }
-    if (currentUser.accountant) {
-      ops.push(prisma.accountant.delete({ where: { userId } }));
-    }
-    if (currentUser.director) {
-      ops.push(prisma.director.delete({ where: { userId } }));
-    }
-
-    // Create new profile record
     if (role === Role.PROFESSOR) {
+      if (!professorDepartment) {
+        return {
+          status: "error",
+          message: "Department is required for professors.",
+        };
+      }
+
+      if (!professorPrograms?.length) {
+        return {
+          status: "error",
+          message: "Select at least one program for the professor.",
+        };
+      }
+
+      if (currentUser.hod) {
+        ops.push(prisma.hod.delete({ where: { userId } }));
+      }
+      if (currentUser.accountant) {
+        ops.push(prisma.accountant.delete({ where: { userId } }));
+      }
+      if (currentUser.director) {
+        ops.push(prisma.director.delete({ where: { userId } }));
+      }
+
+      const professorData = {
+        department: professorDepartment,
+        programs: professorPrograms ?? [],
+      };
+
+      if (currentUser.professor) {
+        ops.push(
+          prisma.professor.upsert({
+            where: { userId },
+            update: professorData,
+            create: {
+              userId,
+              employeeNo:
+                currentUser.professor.employeeNo ?? generateEmployeeNo(),
+              ...professorData,
+            },
+          })
+        );
+      } else {
+        ops.push(
+          prisma.professor.create({
+            data: {
+              userId,
+              employeeNo: generateEmployeeNo(),
+              ...professorData,
+            },
+          })
+        );
+      }
+    } else if (role === Role.HOD) {
+      if (!hodDepartment) {
+        return {
+          status: "error",
+          message: "Department is required for HODs.",
+        };
+      }
+
+      if (currentUser.professor) {
+        ops.push(prisma.professor.delete({ where: { userId } }));
+      }
+      if (currentUser.accountant) {
+        ops.push(prisma.accountant.delete({ where: { userId } }));
+      }
+      if (currentUser.director) {
+        ops.push(prisma.director.delete({ where: { userId } }));
+      }
+
+      const hodData = {
+        department: hodDepartment,
+      };
+
+      if (currentUser.hod) {
+        ops.push(
+          prisma.hod.upsert({
+            where: { userId },
+            update: hodData,
+            create: {
+              userId,
+              ...hodData,
+            },
+          })
+        );
+      } else {
+        ops.push(
+          prisma.hod.create({
+            data: {
+              userId,
+              ...hodData,
+            },
+          })
+        );
+      }
+    } else if (role === Role.ACCOUNTANT) {
+      if (currentUser.professor) {
+        ops.push(prisma.professor.delete({ where: { userId } }));
+      }
+      if (currentUser.hod) {
+        ops.push(prisma.hod.delete({ where: { userId } }));
+      }
+      if (currentUser.director) {
+        ops.push(prisma.director.delete({ where: { userId } }));
+      }
+
       ops.push(
-        prisma.professor.create({
-          data: {
-            userId,
-            employeeNo: generateEmployeeNo(),
-          },
+        prisma.accountant.upsert({
+          where: { userId },
+          update: {},
+          create: { userId },
         })
       );
-    }
+    } else if (role === Role.DIRECTOR) {
+      if (currentUser.professor) {
+        ops.push(prisma.professor.delete({ where: { userId } }));
+      }
+      if (currentUser.hod) {
+        ops.push(prisma.hod.delete({ where: { userId } }));
+      }
+      if (currentUser.accountant) {
+        ops.push(prisma.accountant.delete({ where: { userId } }));
+      }
 
-    if (role === Role.ACCOUNTANT) {
-      ops.push(prisma.accountant.create({ data: { userId } }));
-    }
-
-    if (role === Role.DIRECTOR) {
-      ops.push(prisma.director.create({ data: { userId } }));
+      ops.push(
+        prisma.director.upsert({
+          where: { userId },
+          update: {},
+          create: { userId },
+        })
+      );
+    } else if (role === Role.USER) {
+      if (currentUser.professor) {
+        ops.push(prisma.professor.delete({ where: { userId } }));
+      }
+      if (currentUser.hod) {
+        ops.push(prisma.hod.delete({ where: { userId } }));
+      }
+      if (currentUser.accountant) {
+        ops.push(prisma.accountant.delete({ where: { userId } }));
+      }
+      if (currentUser.director) {
+        ops.push(prisma.director.delete({ where: { userId } }));
+      }
+    } else {
+      return {
+        status: "error",
+        message:
+          "Batch Advisor and Student roles are managed through dedicated flows.",
+      };
     }
 
     await prisma.$transaction(ops);

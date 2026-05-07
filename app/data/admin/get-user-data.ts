@@ -30,6 +30,7 @@ export async function adminGetUserData(userId: string) {
       professor: {
         select: {
           id: true,
+          employeeNo: true,
           department: true,
           programs: true,
           createdAt: true,

@@ -9,23 +9,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Role } from "@/lib/generated/prisma/enums";
 import { EyeIcon, MoreHorizontal, UserPen } from "lucide-react";
 import Link from "next/link";
-import { Role } from "@/lib/generated/prisma/enums";
+import type { ChangeUserRoleTarget } from "../user-role-form-schema";
 import { ChangeUserRoleDialog } from "./change-role";
 import { SetDepartmentDialog } from "./set-department-dialog";
 
-export function UserActions({
-  userId,
-  userRole,
-  name,
-  hasDepartment,
-}: {
-  userId: string;
-  name: string | null;
-  userRole: Role;
-  hasDepartment: boolean;
-}) {
+export function UserActions({ user }: { user: ChangeUserRoleTarget }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -38,22 +29,21 @@ export function UserActions({
         <DropdownMenuLabel>User Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={`/admin/users/${userId}`}>
+          <Link href={`/admin/users/${user.id}`}>
             <EyeIcon className="size-4" />
             View Details
           </Link>
         </DropdownMenuItem>
 
-        <ChangeUserRoleDialog userRole={userRole} userId={userId} name={name}>
+        <ChangeUserRoleDialog user={user}>
           <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
             <UserPen className="size-4" />
             Update Role
           </DropdownMenuItem>
         </ChangeUserRoleDialog>
 
-        {/* Only show if user is professor and doesn't already have department */}
-        {userRole === Role.PROFESSOR && !hasDepartment ? (
-          <SetDepartmentDialog userId={userId} name={name}>
+        {user.role === Role.PROFESSOR || user.role === "HOD" ? (
+          <SetDepartmentDialog userId={user.id} name={user.name}>
             <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
               <UserPen className="size-4" />
               Set Department

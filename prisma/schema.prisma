@@ -160,8 +160,6 @@ model Clerk {
 model Hod {
   id         String     @id @default(uuid())
   department Department @unique // Each department can have only one HOD
-  year       DateTime // date of appointment
-  endYear    DateTime // End date of appointment
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
