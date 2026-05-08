@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { AttendanceStatus } from "@/lib/generated/prisma/enums";
 import { tryCatch } from "@/hooks/tryCatch";
-import { markAttendance } from "../actions";
+import { markAttendance, updateAttendance } from "../actions";
 import { AttendanceTable } from "./attendence-table";
 import type { ProfessorSectionStudents } from "@/app/data/professor/get-professor-students";
 import { attendanceFormSchema, AttendanceFormSchemaType } from "../zod-schema";
@@ -34,18 +34,30 @@ import { availableTimesForAttendance } from "@/lib/data/attendence-form";
 type AttendanceFormProps = {
   offeringId: string;
   students: ProfessorSectionStudents[];
+  initialData?: {
+    recordId: string;
+    topic: string;
+    date: Date;
+    startTime: string;
+    endTime: string;
+    attendances: Record<string, AttendanceStatus>; // studentId -> status
+  };
 };
 
-export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
+export function AttendanceForm({
+  offeringId,
+  students,
+  initialData,
+}: AttendanceFormProps) {
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<AttendanceFormSchemaType>({
     resolver: zodResolver(attendanceFormSchema),
     defaultValues: {
-      topic: "",
-      date: new Date(),
-      startTime: availableTimesForAttendance[0],
-      endTime: availableTimesForAttendance[1],
+      topic: initialData?.topic ?? "",
+      date: initialData?.date ?? new Date(),
+      startTime: initialData?.startTime ?? availableTimesForAttendance[0],
+      endTime: initialData?.endTime ?? availableTimesForAttendance[1],
     },
     mode: "onChange",
   });
@@ -53,6 +65,7 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
   const [attendanceMap, setAttendanceMap] = React.useState<
     Record<string, AttendanceStatus>
   >(() => {
+    if (initialData) return initialData.attendances;
     const initialMap: Record<string, AttendanceStatus> = {};
     students.forEach((student) => {
       initialMap[student.id] = AttendanceStatus.ABSENT;
@@ -85,17 +98,21 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
         status: attendanceMap[student.id] ?? AttendanceStatus.ABSENT,
       }));
 
+      const payload = {
+        offeringId,
+        attendances,
+        values: {
+          topic: values.topic,
+          date: values.date,
+          startTime: values.startTime,
+          endTime: values.endTime,
+        },
+      };
+
       const { data: result, error } = await tryCatch(
-        markAttendance({
-          offeringId,
-          attendances,
-          values: {
-            topic: values.topic,
-            date: values.date,
-            startTime: values.startTime,
-            endTime: values.endTime,
-          },
-        })
+        initialData
+          ? updateAttendance({ recordId: initialData.recordId, ...payload })
+          : markAttendance(payload)
       );
 
       if (error) {
@@ -109,17 +126,20 @@ export function AttendanceForm({ offeringId, students }: AttendanceFormProps) {
       }
 
       toast.success(result.message);
-      setAttendanceMap((prev) => {
-        const next: Record<string, AttendanceStatus> = { ...prev };
-        students.forEach((student) => {
-          next[student.id] = AttendanceStatus.ABSENT;
+
+      if (!initialData) {
+        setAttendanceMap((prev) => {
+          const next: Record<string, AttendanceStatus> = { ...prev };
+          students.forEach((student) => {
+            next[student.id] = AttendanceStatus.ABSENT;
+          });
+          return next;
         });
-        return next;
-      });
-      form.reset({
-        ...values,
-        topic: "",
-      });
+        form.reset({
+          ...values,
+          topic: "",
+        });
+      }
     });
   }
 

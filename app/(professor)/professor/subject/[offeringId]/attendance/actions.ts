@@ -166,3 +166,156 @@ export async function markAttendance({
     };
   }
 }
+
+/// Updates an existing attendance record.
+export async function updateAttendance({
+  recordId,
+  attendances,
+  offeringId,
+  values,
+}: {
+  recordId: string;
+  offeringId: string;
+  attendances: AttendanceRecord[];
+  values: AttendanceFormSchemaType;
+}): Promise<ApiResponseType> {
+  try {
+    if (!attendances.length) {
+      return {
+        status: "error",
+        message: "No attendance entries provided.",
+      };
+    }
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+    if (values.date > todayEnd) {
+      return {
+        status: "error",
+        message: "Future dates are not allowed.",
+      };
+    }
+    const session = await requireProfessorSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
+
+    const can = await requirePermission({
+      attendance: ["mark"],
+    });
+
+    if (!can) {
+      return {
+        status: "error",
+        message: "You are not allowed to mark attendance",
+      };
+    }
+
+    // Fetch teaching assignment for this professor and offering
+    const teachingAssignment = await prisma.teachingAssignment.findFirst({
+      where: {
+        offeringId: offeringId,
+        professor: { userId: session.user.id },
+      },
+      select: { id: true, section: true },
+    });
+
+    if (!teachingAssignment) {
+      return {
+        status: "error",
+        message: "No teaching assignment found for this offering.",
+      };
+    }
+
+    // Check if the record exists
+    const existing = await prisma.attendanceRecord.findFirst({
+      where: {
+        id: recordId,
+        offeringId: offeringId,
+      },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      return {
+        status: "error",
+        message: "Attendance record not found.",
+      };
+    }
+
+    // For each student, verify enrollment in the offering and section
+    const regNos = Array.from(
+      new Set(attendances.map((a) => a.registrationNo))
+    );
+    const enrollments = await prisma.enrollment.findMany({
+      where: {
+        offeringId: offeringId,
+        section: teachingAssignment.section,
+        student: { registrationNo: { in: regNos } },
+      },
+      select: {
+        studentId: true,
+        student: { select: { registrationNo: true } },
+      },
+    });
+
+    const regNoToId = new Map(
+      enrollments.map((e) => [e.student.registrationNo, e.studentId])
+    );
+
+    const validAttendances = attendances
+      .map((a) => ({
+        status: a.status,
+        studentId: regNoToId.get(a.registrationNo) ?? null,
+      }))
+      .filter((a) => !!a.studentId);
+
+    if (!validAttendances.length) {
+      return {
+        status: "error",
+        message: "No enrolled students found for this offering/section.",
+      };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.attendanceRecord.update({
+        where: { id: recordId },
+        data: {
+          date: values.date,
+          startTime: values.startTime,
+          endTime: values.endTime,
+          topic: values.topic,
+        },
+      });
+
+      // Overwrite previous student attendances
+      await tx.studentAttendance.deleteMany({
+        where: { recordId: recordId },
+      });
+
+      await tx.studentAttendance.createMany({
+        data: validAttendances.map((a) => ({
+          status: a.status,
+          recordId: recordId,
+          studentId: a.studentId as string,
+        })),
+      });
+    });
+
+    return {
+      status: "success",
+      message: `Attendance updated for ${validAttendances.length} students`,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      message: errorMessage(error, "Could not update attendance."),
+    };
+  }
+}
