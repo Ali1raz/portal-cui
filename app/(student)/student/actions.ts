@@ -132,16 +132,33 @@ export async function enrollCourse(
       },
     });
 
-    const hasAnyPaidInstallment = studentInstallments.some(
-      (installment) => installment.status === "PAID"
-    );
+    let hasAnyPaidInstallment = false;
+    let hasOverdueUnpaidInstallment = false;
 
-    if (!hasAnyPaidInstallment) {
-      const hasOverdueUnpaidInstallment = studentInstallments.some(
+    if (studentInstallments.length > 0) {
+      hasAnyPaidInstallment = studentInstallments.some(
+        (installment) => installment.status === "PAID"
+      );
+      hasOverdueUnpaidInstallment = studentInstallments.some(
         (installment) =>
           installment.status === "UNPAID" && installment.dueDate < now
       );
+    } else {
+      const baseInstallments = await prisma.feeInstallment.findMany({
+        where: { semesterFeeId: publishedSemesterFee.id },
+        select: { paidStatus: true, dueDate: true },
+      });
 
+      hasAnyPaidInstallment = baseInstallments.some(
+        (installment) => installment.paidStatus === "PAID"
+      );
+      hasOverdueUnpaidInstallment = baseInstallments.some(
+        (installment) =>
+          installment.paidStatus === "UNPAID" && installment.dueDate < now
+      );
+    }
+
+    if (!hasAnyPaidInstallment) {
       return {
         status: "error",
         message: hasOverdueUnpaidInstallment
