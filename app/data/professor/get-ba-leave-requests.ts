@@ -59,6 +59,9 @@ export async function baGetLeaveRequests({
   const dateToValue = parseDate(dateTo);
 
   const where: Prisma.LeaveRequestWhereInput = {
+    student: {
+      department: ba.department,
+    },
     ...(trimmedQuery
       ? {
           OR: [
