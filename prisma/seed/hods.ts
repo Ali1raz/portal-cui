@@ -16,10 +16,6 @@ export async function seedHODs() {
     // User and Professor record should already be created by seedProfessors
     // We just link the HOD record.
 
-    const now = new Date();
-    const appointmentDate = new Date(now.getFullYear(), 0, 1);
-    const endDate = new Date(now.getFullYear() + 2, 11, 31);
-
     await prisma.hod.upsert({
       where: { department: user.department },
       update: {
@@ -28,8 +24,6 @@ export async function seedHODs() {
       create: {
         userId: user.id,
         department: user.department,
-        year: appointmentDate,
-        endYear: endDate,
       },
     });
     console.log(`  ✓ HOD: ${user.name} (${user.department})`);
