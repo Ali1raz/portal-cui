@@ -207,6 +207,10 @@ export async function accountantCreateSemesterFee(
             amount: firstInstallmentAmount,
             dueDate: firstInstallmentDueDate,
             description: firstInstallmentDescription,
+            fineType: validated.data.installments.fineType ?? null,
+            fineAmount: validated.data.installments.fineAmount ?? null,
+            fineMaxDays: validated.data.installments.fineMaxDays ?? null,
+            fineCapAmount: validated.data.installments.fineCapAmount ?? null,
           },
         });
 
@@ -218,6 +222,10 @@ export async function accountantCreateSemesterFee(
             amount: secondInstallmentAmount,
             dueDate: secondDueDate,
             description: secondInstallmentDescription,
+            fineType: validated.data.installments.fineType ?? null,
+            fineAmount: validated.data.installments.fineAmount ?? null,
+            fineMaxDays: validated.data.installments.fineMaxDays ?? null,
+            fineCapAmount: validated.data.installments.fineCapAmount ?? null,
           },
         });
       }

@@ -825,6 +825,11 @@ enum SemesterFeeStatus {
   PUBLISHED
 }
 
+enum FinePolicyType {
+  FIXED // flat charge applied once past due date
+  PER_DAY // dailyRate × daysOverdue
+}
+
 model FeeInstallment {
   id            String      @id @default(uuid())
   semesterFeeId String
@@ -836,6 +841,12 @@ model FeeInstallment {
 
   paidStatus FeeInstallmentPaidStatus @default(UNPAID)
   paidAt     DateTime?
+
+  // Fine policy configuration (applied at read time)
+  fineType      FinePolicyType? // null = no fine
+  fineAmount    Decimal?        @db.Decimal(10, 2) // flat amount or per-day rate
+  fineMaxDays   Int? // PER_DAY only — stop charging after N days
+  fineCapAmount Decimal?        @db.Decimal(10, 2) // PER_DAY only — max total fine in PKR
 
   studentFeeInstallments StudentFeeInstallment[]
 
