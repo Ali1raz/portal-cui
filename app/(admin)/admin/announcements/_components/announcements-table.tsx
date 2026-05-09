@@ -472,27 +472,24 @@ export function AdminAnnouncementsTable({
   return (
     <div className="w-full" aria-busy={isPending}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="max-sm:w-full">
-          <Label htmlFor="announcements-search" className="sr-only">
-            Search announcements
-          </Label>
-          <Input
-            id="announcements-search"
-            placeholder="Search by title, content..."
-            value={queryState.query}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-
-              startTransition(() => {
-                void setQueryState({
-                  query: nextValue.trim().length > 0 ? nextValue : "",
-                  page: 1,
-                });
-              });
-            }}
-          />
-        </div>
         <div className="grid gap-2 grid-cols-2 sm:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] w-full">
+          <div className="max-sm:w-full">
+            <Input
+              id="announcements-search"
+              placeholder="Search by title, content..."
+              value={queryState.query}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+
+                startTransition(() => {
+                  void setQueryState({
+                    query: nextValue.trim().length > 0 ? nextValue : "",
+                    page: 1,
+                  });
+                });
+              }}
+            />
+          </div>
           <Select
             value={queryState.status || "all"}
             onValueChange={handleStatusChange}
@@ -588,13 +585,13 @@ export function AdminAnnouncementsTable({
               ))}
             </SelectContent>
           </Select>
+          <TableDateRangeFilter
+            className="max-sm:w-full overflow-hidden"
+            value={dateRange}
+            onChange={handleDateRangeChange}
+            placeholder="Select created at date range"
+          />
         </div>
-        <TableDateRangeFilter
-          className="max-sm:w-full"
-          value={dateRange}
-          onChange={handleDateRangeChange}
-          placeholder="Select created at date range"
-        />
       </div>
 
       {hasActiveParams ? (
