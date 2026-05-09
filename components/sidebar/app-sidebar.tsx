@@ -30,10 +30,10 @@ export function AppSidebar({
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
+              className="data-[slot=sidebar-menu-button]:p-1!"
             >
               <Link href="/">
-                <Image src="/cui.svg" alt="CUI" height={24} width={24} />
+                <Image src="/image.png" alt="CUI" height={44} width={44} />
                 <span className="text-base font-semibold">CUI Portal</span>
               </Link>
             </SidebarMenuButton>
