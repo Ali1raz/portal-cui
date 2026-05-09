@@ -1,18 +1,8 @@
 "use client";
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import {
-  MoreHorizontal,
-  Trash2,
-  CircleDollarSign,
-  Loader2,
-  Check,
-  Printer,
-  Pencil,
-} from "lucide-react";
+import { MoreHorizontal, Trash2, Loader2, Printer, Pencil } from "lucide-react";
 import { toast } from "sonner";
-
 import { tryCatch } from "@/hooks/tryCatch";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,20 +21,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  deleteInstallmentSplitRequest,
-  markInstallmentRequestAsPaid,
-} from "../actions";
+import { deleteInstallmentSplitRequest } from "../actions";
 import {
   FeeVoucherTemplate,
   type VoucherData,
 } from "../../_components/fee-voucher";
 import { saveAsPdf } from "../../_components/save-as-pdf";
+import { useState, useRef, useTransition } from "react";
 
 export function FeeSplitRequestActionsDropdown({
   requestId,
   canDelete,
-  canMarkPaid,
   canEdit,
   canPrintVoucher = true,
   voucherData,
@@ -52,17 +39,15 @@ export function FeeSplitRequestActionsDropdown({
 }: {
   requestId: string;
   canDelete: boolean;
-  canMarkPaid: boolean;
   canEdit: boolean;
   canPrintVoucher?: boolean;
   voucherData: VoucherData;
   filename?: string;
 }) {
   const router = useRouter();
-  const [isPending, startTransition] = React.useTransition();
-  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
-  const [isMarkPaidOpen, setIsMarkPaidOpen] = React.useState(false);
-  const voucherRef = React.useRef<HTMLDivElement>(null);
+  const [isPending, startTransition] = useTransition();
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const voucherRef = useRef<HTMLDivElement>(null);
 
   async function handlePrintVoucher() {
     if (!voucherRef.current) {
@@ -84,26 +69,6 @@ export function FeeSplitRequestActionsDropdown({
     } catch {
       toast.error("Failed to download voucher.");
     }
-  }
-
-  async function handleMarkPaid() {
-    const { data: result, error } = await tryCatch(
-      markInstallmentRequestAsPaid(requestId)
-    );
-
-    if (error) {
-      toast.error("Something bad happened. Please try again.");
-      return;
-    }
-
-    if (result.status === "error") {
-      toast.error(result.message);
-      return;
-    }
-
-    toast.success(result.message);
-    setIsMarkPaidOpen(false);
-    router.refresh();
   }
 
   async function handleDelete() {
@@ -154,27 +119,9 @@ export function FeeSplitRequestActionsDropdown({
             </DropdownMenuItem>
           ) : null}
 
-          {canMarkPaid ? (
+          {canEdit && (
             <DropdownMenuItem
-              disabled={isPending}
-              onSelect={(event) => {
-                event.preventDefault();
-                setIsMarkPaidOpen(true);
-              }}
-            >
-              <CircleDollarSign className="size-4" />
-              Mark as Paid
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem disabled>
-              <Check className="size-4" />
-              Mark as Paid
-            </DropdownMenuItem>
-          )}
-
-          {canEdit ? (
-            <DropdownMenuItem
-              disabled={isPending}
+              disabled={isPending || !canEdit}
               onSelect={(event) => {
                 event.preventDefault();
                 router.push(`/student/fee/installments/${requestId}/edit`);
@@ -183,79 +130,29 @@ export function FeeSplitRequestActionsDropdown({
               <Pencil className="size-4" />
               Edit Request
             </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem disabled>
-              <Pencil className="size-4" />
-              Edit Request
-            </DropdownMenuItem>
           )}
 
-          {canDelete ? (
+          {canDelete && (
             <DropdownMenuItem
-              disabled={isPending}
+              disabled={isPending || !canDelete}
               onSelect={(event) => {
                 event.preventDefault();
                 setIsDeleteOpen(true);
               }}
             >
               <Trash2 className="size-4" />
-              Delete
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem disabled>
-              <Trash2 className="size-4" />
-              Delete
+              Cancel Request
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={isMarkPaidOpen} onOpenChange={setIsMarkPaidOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Mark Installment as Paid</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to mark this installment request as paid?
-              This will update your installment status.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsMarkPaidOpen(false)}
-              disabled={isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              disabled={isPending}
-              onClick={() => {
-                startTransition(() => {
-                  void handleMarkPaid();
-                });
-              }}
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="animate-spin size-4" />
-                  Updating...
-                </>
-              ) : (
-                "Confirm"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Installment Request</DialogTitle>
+            <DialogTitle>Cancel Installment Request</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this installment request? This
+              Are you sure you want to cancel this installment request? This
               action cannot be undone.
             </DialogDescription>
           </DialogHeader>
@@ -281,10 +178,10 @@ export function FeeSplitRequestActionsDropdown({
               {isPending ? (
                 <>
                   <Loader2 className="animate-spin size-4" />
-                  Deleting...
+                  Canceling...
                 </>
               ) : (
-                "Delete"
+                "Cancel Request"
               )}
             </Button>
           </DialogFooter>
