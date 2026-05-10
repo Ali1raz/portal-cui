@@ -41,7 +41,9 @@ async function authMiddleware(request: NextRequest) {
 
 // ✅ Exclude ALL /api/* routes (especially better-auth's /api/auth/*)
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/auth).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|api/auth|api/inngest).*)",
+  ],
 };
 
 const aj = arcjet({
