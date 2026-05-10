@@ -12,19 +12,8 @@ export default async function ReviewFeeSplitRequestPage(
   const { requestId } = await props.params;
   const details = await hodGetFeeSplitRequestDetails({ requestId });
 
-  const semester =
-    details.feeInstallment?.semesterFee.semester ??
-    details.studentFeeInstallment?.semesterFee.semester ??
-    details.feeContext?.semester;
-
-  const fullFeeAmount =
-    details.feeInstallment?.semesterFee.totalAmount ??
-    details.studentFeeInstallment?.semesterFee.totalAmount ??
-    details.feeContext?.totalAmount ??
-    0;
-
   return (
-    <div className="flex w-full max-w-5xl flex-col gap-6 px-4 py-6 md:px-6">
+    <div className="flex w-full max-w-7xl flex-col gap-6 px-4 py-6 md:px-6">
       <div>
         <h1 className="text-xl font-semibold">Review Fee Split Request</h1>
       </div>
@@ -34,7 +23,7 @@ export default async function ReviewFeeSplitRequestPage(
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-1">
               <CardTitle className="text-lg">
-                {details.student?.user.name || "Unknown"}
+                {details.student?.user.name}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 {details.student?.registrationNo}
@@ -49,7 +38,7 @@ export default async function ReviewFeeSplitRequestPage(
           <div className="grid gap-4 sm:grid-cols-2">
             <FeeInfoRow
               label="Total fee"
-              value={formatFeeAmount(fullFeeAmount)}
+              value={formatFeeAmount(details.totalFee)}
             />
             <FeeInfoRow
               label="Requested amount"
@@ -59,14 +48,6 @@ export default async function ReviewFeeSplitRequestPage(
             <FeeInfoRow
               label="Preferred due date"
               value={formatDate(details.preferredDueDate)}
-            />
-            <FeeInfoRow
-              label="Semester"
-              value={
-                semester
-                  ? `Sem ${semester.semester} ${semester.batch}${String(semester.year).slice(-2)}-${semester.program ?? ""}${semester.department}`
-                  : "-"
-              }
             />
           </div>
 

@@ -89,3 +89,117 @@ export async function deleteInstallmentSplitRequest(
     };
   }
 }
+
+export async function markInstallmentRequestAsPaid(
+  requestId: string
+): Promise<ApiResponseType> {
+  try {
+    const session = await requireSession();
+
+    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    if (deniedMessage) {
+      return { status: "error", message: deniedMessage };
+    }
+
+    const can = await requirePermission({ installments: ["mark:paid"] });
+    if (!can) {
+      return {
+        status: "error",
+        message: "You are not allowed to update installment status.",
+      };
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+
+    if (!student) {
+      return { status: "error", message: "Student profile not found." };
+    }
+
+    const splitRequest = await prisma.installmentSplitRequest.findFirst({
+      where: {
+        id: requestId,
+        studentId: student.id,
+      },
+      select: {
+        id: true,
+        status: true,
+        studentSemesterFeeId: true,
+        studentFeeInstallment: {
+          select: {
+            id: true,
+            studentSemesterFeeId: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    if (!splitRequest) {
+      return { status: "error", message: "Installment request not found." };
+    }
+
+    if (
+      splitRequest.status !== "HOD_APPROVED" &&
+      splitRequest.status !== "APPROVED"
+    ) {
+      return {
+        status: "error",
+        message: "Only approved requests can be marked as paid.",
+      };
+    }
+
+    const semesterFeeIdResolved =
+      splitRequest.studentSemesterFeeId ??
+      splitRequest.studentFeeInstallment?.studentSemesterFeeId;
+
+    if (!semesterFeeIdResolved) {
+      return {
+        status: "error",
+        message: "Missing semester fee details for this request.",
+      };
+    }
+
+    const now = new Date();
+
+    const updateResults = await prisma.$transaction(async (tx) => {
+      let updatedCount = 0;
+
+      if (
+        splitRequest.studentFeeInstallment?.id &&
+        splitRequest.studentFeeInstallment.status !== "PAID"
+      ) {
+        await tx.studentFeeInstallment.update({
+          where: { id: splitRequest.studentFeeInstallment.id },
+          data: {
+            status: "PAID",
+            paidAt: now,
+          },
+        });
+        updatedCount += 1;
+      }
+
+      return { updatedCount };
+    });
+
+    if (updateResults.updatedCount === 0) {
+      return {
+        status: "error",
+        message: "Installments are already marked as paid.",
+      };
+    }
+
+    return {
+      status: "success",
+      message: "Installment status updated to paid.",
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      message: errorMessage(error, "Failed to update installment status."),
+    };
+  }
+}

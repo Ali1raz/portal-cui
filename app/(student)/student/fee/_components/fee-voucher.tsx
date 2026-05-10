@@ -10,11 +10,14 @@ import {
 } from "@/components/ui/table";
 import { SITE_INFO } from "@/lib/data/SITE";
 import { formatFeeAmount, formatFeeDate } from "@/lib/utils/fee-format";
+import {
+  FeeStudentInfo,
+  FullFeeVoucherData,
+} from "@/app/data/student/st-get-fee";
 
-export interface FeeStudentInfo {
-  name: string;
-  image?: string | null;
-  registrationNo: string;
+interface FeeVoucherTemplateProps {
+  id: string;
+  data: VoucherData;
 }
 
 export interface VoucherData {
@@ -25,21 +28,6 @@ export interface VoucherData {
   printedAt?: string;
   institutionName?: string;
   student?: FeeStudentInfo;
-}
-
-export interface FullFeeVoucherData {
-  voucherId: string;
-  totalAmount: number;
-  printedAt?: string;
-  institutionName?: string;
-  installments: VoucherData[];
-  student?: FeeStudentInfo;
-  semesterLabel?: string;
-}
-
-interface FeeVoucherTemplateProps {
-  id: string;
-  data: VoucherData;
 }
 
 interface FullFeeVoucherTemplateProps {

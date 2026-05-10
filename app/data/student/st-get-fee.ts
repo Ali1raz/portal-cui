@@ -4,8 +4,36 @@ import { requirePermission } from "../permission/require-permission";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { requireSession } from "../session/require-session";
+import { FinePolicyType, calculateFine } from "@/lib/utils/fine-calculation";
+import { SITE_INFO } from "@/lib/data/SITE";
 
 export type InstallmentStatus = "paid" | "overdue" | "upcoming" | "near";
+
+export interface FeeStudentInfo {
+  name: string;
+  image?: string | null;
+  registrationNo: string;
+}
+
+export interface VoucherData {
+  voucherId: string;
+  installmentNo: number;
+  amount: number;
+  dueDate: string;
+  printedAt?: string;
+  institutionName?: string;
+  student?: FeeStudentInfo;
+}
+
+export interface FullFeeVoucherData {
+  voucherId: string;
+  totalAmount: number;
+  printedAt?: string;
+  institutionName?: string;
+  installments: VoucherData[];
+  student?: FeeStudentInfo;
+  semesterLabel?: string;
+}
 
 function getInstallmentStatus(
   dueDate: Date | string,
@@ -52,49 +80,52 @@ export async function studentGetFeeDetails() {
     return redirect("/unauthorized");
   }
 
-  const data = await prisma.semesterFee.findFirst({
+  const data = await prisma.studentSemesterFee.findFirst({
     where: {
-      status: "PUBLISHED",
-      semester: {
-        registrations: {
-          some: {
-            studentId: student.id,
+      studentId: student.id,
+    },
+    select: {
+      id: true,
+      totalDue: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      semesterFee: {
+        select: {
+          id: true,
+          totalAmount: true,
+          description: true,
+          status: true,
+          semester: {
+            select: {
+              semester: true,
+              year: true,
+              batch: true,
+              program: true,
+              department: true,
+            },
+          },
+          feeInstallments: {
+            select: {
+              id: true,
+              installmentNo: true,
+              amount: true,
+              dueDate: true,
+              description: true,
+              fineType: true,
+              fineAmount: true,
+              fineMaxDays: true,
+              fineCapAmount: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+            orderBy: {
+              installmentNo: "asc",
+            },
           },
         },
       },
-    },
-
-    select: {
-      id: true,
-      totalAmount: true,
-      semester: {
-        select: {
-          semester: true,
-          year: true,
-          batch: true,
-          program: true,
-          department: true,
-        },
-      },
-      feeInstallments: {
-        select: {
-          id: true,
-          installmentNo: true,
-          amount: true,
-          dueDate: true,
-          paidStatus: true,
-          paidAt: true,
-          updatedAt: true,
-          description: true,
-        },
-        orderBy: {
-          installmentNo: "asc",
-        },
-      },
-      studentFeeInstallments: {
-        where: {
-          studentId: student.id,
-        },
+      installments: {
         orderBy: {
           orderNo: "asc",
         },
@@ -103,12 +134,31 @@ export async function studentGetFeeDetails() {
           amount: true,
           dueDate: true,
           orderNo: true,
-          status: true,
+          paidAt: true,
+          createdAt: true,
           updatedAt: true,
+          status: true,
+          isBase: true,
+          feeInstallment: {
+            select: {
+              id: true,
+              installmentNo: true,
+              amount: true,
+              dueDate: true,
+              description: true,
+              fineType: true,
+              fineAmount: true,
+              fineMaxDays: true,
+              fineCapAmount: true,
+            },
+          },
           installmentSplitRequests: {
             select: {
               id: true,
               status: true,
+              requestedAmount: true,
+              preferredDueDate: true,
+              createdAt: true,
             },
             orderBy: {
               createdAt: "desc",
@@ -116,154 +166,173 @@ export async function studentGetFeeDetails() {
           },
         },
       },
+      splitRequests: {
+        select: {
+          id: true,
+          status: true,
+          requestedAmount: true,
+          preferredDueDate: true,
+          createdAt: true,
+          studentFeeInstallmentId: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
   });
 
   if (!data) {
-    return null;
+    return {
+      data: null,
+    };
   }
 
-  const installmentSplitRequests =
-    await prisma.installmentSplitRequest.findMany({
-      where: {
-        studentId: student.id,
-        OR: [
-          {
-            feeInstallment: {
-              semesterFeeId: data.id,
-            },
-          },
-          {
-            studentFeeInstallment: {
-              semesterFeeId: data.id,
-            },
-          },
-          {
-            feeInstallmentId: null,
-            studentFeeInstallmentId: null,
-          },
-        ],
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      select: {
-        id: true,
-        status: true,
-        requestedAmount: true,
-        preferredDueDate: true,
-        feeInstallmentId: true,
-        studentFeeInstallmentId: true,
-        createdAt: true,
-      },
-    });
+  // Calculate display-ready fields
+  const totalAmount = Number(data.semesterFee?.totalAmount || data.totalDue);
+  const hasInstallments = data.installments.length > 0;
+  const baseInstallments = data.semesterFee?.feeInstallments ?? [];
+  // Process installments with status calculation
+  const processedInstallments = data.installments.map((inst) => {
+    const statusType = getInstallmentStatus(inst.dueDate, inst.status);
 
-  // Pre-calculate everything for rendering
-  const totalAmount = Number(data.totalAmount);
-  const hasStudentInstallments = data.studentFeeInstallments.length > 0;
+    const orderMatchedBaseInstallment = baseInstallments.find(
+      (baseInstallment) => baseInstallment.installmentNo === inst.orderNo
+    );
 
-  const baseInstallments = data.feeInstallments
-    .slice()
-    .sort((a, b) => a.installmentNo - b.installmentNo)
-    .map((inst) => ({
-      id: inst.id,
-      installmentNo: inst.installmentNo,
+    // Fine policy comes from:
+    // 1. Direct feeInstallment relation (normal case)
+    // 2. OrderNo matching to base template (split-generated fallback)
+    const finePolicySource =
+      inst.feeInstallment ?? orderMatchedBaseInstallment ?? null;
+
+    // Get fine policy from base installment or fallback
+    const finePolicy = finePolicySource
+      ? {
+          fineType: finePolicySource.fineType as FinePolicyType | null,
+          fineAmount: finePolicySource.fineAmount
+            ? Number(finePolicySource.fineAmount)
+            : null,
+          fineMaxDays: finePolicySource.fineMaxDays
+            ? Number(finePolicySource.fineMaxDays)
+            : null,
+          fineCapAmount: finePolicySource.fineCapAmount
+            ? Number(finePolicySource.fineCapAmount)
+            : null,
+        }
+      : {
+          fineType: null,
+          fineAmount: null,
+          fineMaxDays: null,
+          fineCapAmount: null,
+        };
+
+    const fineCalculation = calculateFine(inst.dueDate, new Date(), finePolicy);
+
+    return {
+      ...inst,
       amount: Number(inst.amount),
-      dueDate: inst.dueDate,
-      updatedAt: inst.paidAt ?? inst.updatedAt,
-      status: inst.paidStatus,
-    }));
+      statusType,
+      finePolicy,
+      fineCalculation,
+      hasFinePolicy: !!finePolicy.fineType,
+      fineAmount: fineCalculation.fineAmount,
+      isOverdue: fineCalculation.isOverdue,
+    };
+  });
 
-  type DisplayedInstallment = {
-    id: string;
-    installmentNo: number;
-    amount: number;
-    dueDate: Date;
-    updatedAt: Date | null;
-    status: string | undefined;
-    installmentSplitRequests?: {
-      id: string;
-      status: string;
-    }[];
-  };
+  // Calculate totals
+  const paidAmount = processedInstallments.reduce((sum, inst) => {
+    return sum + (inst.status === "PAID" ? inst.amount : 0);
+  }, 0);
 
-  const displayedInstallments: DisplayedInstallment[] = hasStudentInstallments
-    ? data.studentFeeInstallments
-        .slice()
-        .sort((a, b) => a.orderNo - b.orderNo)
-        .map((inst) => ({
-          id: inst.id,
-          installmentNo: inst.orderNo,
-          amount: Number(inst.amount),
-          dueDate: inst.dueDate,
-          updatedAt: inst.updatedAt,
-          status: inst.status,
-          installmentSplitRequests: inst.installmentSplitRequests,
-        }))
-    : baseInstallments;
-
-  const unpaidAmount = displayedInstallments.reduce((sum, inst) => {
+  const unpaidAmount = processedInstallments.reduce((sum, inst) => {
     return sum + (inst.status === "UNPAID" ? inst.amount : 0);
   }, 0);
 
-  const remainingAmount = Math.max(unpaidAmount, 0);
+  const remainingAmount = unpaidAmount;
 
-  // If student installments exist and only 1, add remaining as second
-  if (
-    hasStudentInstallments &&
-    displayedInstallments.length === 1 &&
-    displayedInstallments[0].status === "PAID" &&
-    remainingAmount > 0
-  ) {
-    const firstInstallment = displayedInstallments[0];
-    const secondDueDate = new Date(
-      firstInstallment.dueDate.getTime() + 30 * 24 * 60 * 60 * 1000
+  // Count overdue installments
+  const overdueCount = processedInstallments.filter(
+    (inst) => inst.statusType === "overdue"
+  ).length;
+
+  // Create voucher data
+  const voucherDataList: VoucherData[] = processedInstallments.map((inst) => ({
+    voucherId: inst.id,
+    installmentNo: inst.orderNo,
+    amount: inst.amount,
+    dueDate: inst.dueDate.toISOString(),
+    printedAt: new Date().toISOString(),
+    institutionName: SITE_INFO.institution_name,
+    student: {
+      name: student.user.name,
+      image: student.user.image,
+      registrationNo: student.registrationNo,
+    },
+  }));
+
+  // Filter unpaid installments for full fee voucher
+  const unpaidInstallments = voucherDataList.filter((voucher) => {
+    const displayedInst = processedInstallments.find(
+      (d) => d.id === voucher.voucherId
     );
-    displayedInstallments.push({
-      id: "remaining",
-      installmentNo: 2,
-      amount: remainingAmount,
-      dueDate: secondDueDate,
-      updatedAt: null,
-      status: "UNPAID",
-    });
-  }
+    return displayedInst?.status === "UNPAID";
+  });
 
-  const semesterLabel =
-    data.semester &&
-    `Sem ${data.semester.semester} - ${data.semester.batch}${String(data.semester.year).slice(-2)} - ${data.semester.program} - ${data.semester.department}`;
+  const fullFeeVoucherData: FullFeeVoucherData = {
+    voucherId: data.id,
+    totalAmount: remainingAmount,
+    printedAt: new Date().toISOString(),
+    institutionName: SITE_INFO.institution_name,
+    installments: unpaidInstallments,
+    student: {
+      name: student.user.name,
+      image: student.user.image,
+      registrationNo: student.registrationNo,
+    },
+    semesterLabel: data.semesterFee?.semester
+      ? `Sem ${data.semesterFee.semester.semester} - ${data.semesterFee.semester.batch}${String(data.semesterFee.semester.year).slice(-2)} - ${data.semesterFee.semester.program}${data.semesterFee.semester.department}`
+      : undefined,
+  };
 
-  // Calculate installment rows with status
-  const installmentRows = displayedInstallments.map((inst) => ({
+  // Create installment rows for table display
+  const installmentRows = processedInstallments.map((inst) => ({
     id: inst.id,
-    installmentNo: inst.installmentNo,
+    installmentNo: inst.orderNo,
     amount: inst.amount,
     dueDate: inst.dueDate,
     updatedAt: inst.updatedAt,
     status: inst.status,
-    statusType: getInstallmentStatus(inst.dueDate, inst.status),
+    statusType: inst.statusType,
+    fineType: inst.finePolicy.fineType,
+    fineAmount: inst.finePolicy.fineAmount,
+    fineMaxDays: inst.finePolicy.fineMaxDays,
+    fineCapAmount: inst.finePolicy.fineCapAmount,
+    fineCalculation: inst.fineCalculation,
+    hasFinePolicy: inst.hasFinePolicy,
+    isOverdue: inst.isOverdue,
+    paidAt: inst.paidAt,
   }));
 
-  const overdueCount = installmentRows.filter(
-    (row) => row.statusType === "overdue"
-  ).length;
-
   return {
-    ...data,
-    totalAmount,
-    remainingAmount,
-    hasStudentInstallments,
-    displayedInstallments,
-    installmentSplitRequests,
-    installmentRows,
-    overdueCount,
-    installmentCount: displayedInstallments.length,
-    semesterLabel,
-    feeInstallments: baseInstallments,
-    studentFeeInstallments: data.studentFeeInstallments.map((inst) => ({
-      ...inst,
-      amount: Number(inst.amount),
-    })),
+    data: {
+      ...data,
+      totalAmount,
+      remainingAmount,
+      paidAmount,
+      hasInstallments,
+      processedInstallments,
+      installmentRows,
+      overdueCount,
+      installmentCount: processedInstallments.length,
+      voucherDataList,
+      fullFeeVoucherData,
+      semesterLabel: data.semesterFee?.semester
+        ? `Sem ${data.semesterFee.semester.semester} - ${data.semesterFee.semester.batch}${String(data.semesterFee.semester.year).slice(-2)} - ${data.semesterFee.semester.program}${data.semesterFee.semester.department}`
+        : undefined,
+      splitRequests: data.splitRequests,
+    },
     student: {
       name: student.user.name,
       image: student.user.image,
@@ -272,11 +341,6 @@ export async function studentGetFeeDetails() {
   };
 }
 
-export type StudentFeeDetails = NonNullable<
-  Awaited<ReturnType<typeof studentGetFeeDetails>>
+export type StudentFeeDetails = Awaited<
+  ReturnType<typeof studentGetFeeDetails>
 >;
-
-export type StudentInstallment =
-  StudentFeeDetails["studentFeeInstallments"][number] & {
-    statusType: InstallmentStatus;
-  };

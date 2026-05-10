@@ -21,3 +21,12 @@ export const SPLIT_REQUEST_DELETABLE_STATUSES: SplitRequestStatus[] = [
 export function studentCanDeleteSplitRequest(status: SplitRequestStatus) {
   return SPLIT_REQUEST_DELETABLE_STATUSES.includes(status);
 }
+
+export const SPLIT_REQUEST_MARK_PAID_STATUSES: SplitRequestStatus[] = [
+  "HOD_APPROVED",
+  "APPROVED",
+];
+
+export function studentCanMarkPaidSplitRequest(status: SplitRequestStatus) {
+  return SPLIT_REQUEST_MARK_PAID_STATUSES.includes(status);
+}
