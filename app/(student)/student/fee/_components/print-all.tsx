@@ -3,9 +3,10 @@
 import { useRef, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Printer, Loader2 } from "lucide-react";
-import { FullFeeVoucherData, FullFeeVoucherTemplate } from "./fee-voucher";
+import { FullFeeVoucherTemplate } from "./fee-voucher";
 import { saveAsPdf } from "./save-as-pdf";
 import { toast } from "sonner";
+import { FullFeeVoucherData } from "@/app/data/student/st-get-fee";
 
 interface PrintFullFeeVoucherButtonProps {
   data: FullFeeVoucherData;

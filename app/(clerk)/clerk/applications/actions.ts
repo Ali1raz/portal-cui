@@ -18,6 +18,7 @@ import { CLERK_APPLICATION_REVIEWABLE_STATUSES } from "@/lib/data/utils";
 import { SendEmail } from "@/app/actions/send-email";
 import { env } from "@/lib/env";
 import { headers } from "next/headers";
+import { inngest } from "@/lib/inngest/client";
 
 function generateRegNumber({
   batch,
@@ -158,6 +159,8 @@ export async function clerkUpdateApplicationStatus(
       });
     });
 
+    let createdStudentID: string | null = null;
+
     if (parsed.status === "APPROVED" && approvedRegistrationNo) {
       const registrationNo = approvedRegistrationNo as string;
 
@@ -193,6 +196,8 @@ export async function clerkUpdateApplicationStatus(
           select: { id: true },
         });
 
+        createdStudentID = student.id;
+
         await tx.registration.create({
           data: {
             userId: user.id,
@@ -202,6 +207,17 @@ export async function clerkUpdateApplicationStatus(
           },
         });
       });
+      // inngest
+
+      if (createdStudentID) {
+        await inngest.send({
+          name: "student/registration.approved",
+          data: {
+            studentId: createdStudentID,
+            semesterId: application.semesterId,
+          },
+        });
+      }
 
       // Send credentials to the applicant's original personal email address.
       await SendEmail({

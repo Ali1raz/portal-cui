@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "inngest:dev": "pnpm dlx inngest-cli@latest dev",
+    "inngest:dev": "pnpm dlx inngest-cli@latest dev -u http://localhost:3000/api/inngest",
     "build": "next build && pnpm db:generate",
     "start": "next start",
     "lint": "eslint",

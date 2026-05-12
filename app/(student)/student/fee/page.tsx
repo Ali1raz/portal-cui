@@ -1,10 +1,13 @@
 import { studentGetFeeDetails } from "@/app/data/student/st-get-fee";
+import { INSTALLMENT_STATUS_CONFIG } from "@/components/fee/installment-status-config";
+import { FineDisplay } from "@/components/fee/fine-display";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
-  CardContent,
   CardTitle,
 } from "@/components/ui/card";
 import { IconCreditCard } from "@tabler/icons-react";
@@ -16,20 +19,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Separator } from "@/components/ui/separator";
-
 import { CreditCard, CalendarClock } from "lucide-react";
 import Link from "next/link";
 import { PrintAllVouchersButton } from "./_components/print-all";
-import { FullFeeVoucherData, VoucherData } from "./_components/fee-voucher";
-import { Button } from "@/components/ui/button";
 import { formatFeeAmount, formatFeeDate } from "@/lib/utils/fee-format";
-import { SITE_INFO } from "@/lib/data/SITE";
-import { INSTALLMENT_STATUS_CONFIG } from "@/components/fee/installment-status-config";
 import { InstallmentActionsDropdown } from "./installments/_components/installment-actions-dropdown";
 
 export default async function FeePage() {
-  const data = await studentGetFeeDetails();
+  const { data } = await studentGetFeeDetails();
 
   if (!data) {
     return (
@@ -42,69 +39,37 @@ export default async function FeePage() {
     );
   }
 
-  const today = new Date();
-
-  const voucherDataList: VoucherData[] = data.displayedInstallments.map(
-    (inst) => ({
-      voucherId: inst.id,
-      installmentNo: inst.installmentNo,
-      amount: inst.amount,
-      dueDate: new Date(inst.dueDate).toISOString(),
-      printedAt: today.toISOString(),
-      institutionName: SITE_INFO.institution_name,
-      student: data.student,
-    })
+  const voucherByInstallmentId = new Map(
+    data.voucherDataList.map((voucher) => [voucher.voucherId, voucher])
   );
-
-  const installmentRows = data.installmentRows.map((row) => ({
-    voucher: voucherDataList.find((v) => v.voucherId === row.id)!,
-    rawInstallment: row,
-    status: row.statusType,
-    statusConfig: INSTALLMENT_STATUS_CONFIG[row.statusType],
-  }));
-
-  // Filter to only unpaid installments for the full fee voucher
-  const unpaidInstallments = voucherDataList.filter((voucher) => {
-    const displayedInst = data.displayedInstallments.find(
-      (d) => d.id === voucher.voucherId
-    );
-    return displayedInst?.status === "UNPAID";
-  });
-
-  const remainingAmount = unpaidInstallments.reduce(
-    (sum, inst) => sum + inst.amount,
-    0
-  );
-
-  const fullFeeVoucherData: FullFeeVoucherData = {
-    voucherId: data.id,
-    totalAmount: remainingAmount,
-    printedAt: today.toISOString(),
-    institutionName: SITE_INFO.institution_name,
-    installments: unpaidInstallments,
-    student: data.student,
-    semesterLabel: data.semesterLabel,
-  };
 
   return (
     <div className="@container/main p-4 md:p-6 space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Fee Details</h2>
+          {data.semesterLabel && (
+            <p className="text-muted-foreground text-sm mt-1">
+              {data.semesterLabel}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
-          <Button asChild size="sm" variant="outline">
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            disabled={data.remainingAmount <= 0}
+          >
             <Link href="/student/fee/installments/new">Request Split</Link>
           </Button>
           <PrintAllVouchersButton
-            data={fullFeeVoucherData}
+            data={data.fullFeeVoucherData}
             totalFeeId={data.id}
           />
         </div>
       </div>
-
-      <Separator />
 
       <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-3">
         <Card className="bg-linear-to-br from-primary/10 to-card shadow-xs">
@@ -173,59 +138,72 @@ export default async function FeePage() {
                 <TableHead>Due Date</TableHead>
                 <TableHead>Last Updated</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Fine Status</TableHead>
                 <TableHead className="pr-6 text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {installmentRows.map(
-                ({ voucher, rawInstallment, statusConfig }) => {
-                  const Icon = statusConfig.icon;
+              {data.installmentRows.map((installment) => {
+                const statusConfig =
+                  INSTALLMENT_STATUS_CONFIG[installment.statusType];
+                const Icon = statusConfig.icon;
+                const voucher = voucherByInstallmentId.get(installment.id);
 
-                  return (
-                    <TableRow key={voucher.voucherId}>
-                      <TableCell className="pl-6 font-mono text-muted-foreground">
-                        {String(voucher.installmentNo).padStart(2, "0")}
-                      </TableCell>
+                return (
+                  <TableRow key={installment.id}>
+                    <TableCell className="pl-6 font-mono text-muted-foreground">
+                      {String(installment.installmentNo).padStart(2, "0")}
+                    </TableCell>
 
-                      <TableCell className="font-semibold tabular-nums">
-                        {formatFeeAmount(voucher.amount)}
-                      </TableCell>
+                    <TableCell className="font-semibold tabular-nums">
+                      {formatFeeAmount(installment.amount)}
+                    </TableCell>
 
-                      <TableCell className="tabular-nums text-sm">
-                        {formatFeeDate(voucher.dueDate)}
-                      </TableCell>
+                    <TableCell className="tabular-nums text-sm">
+                      {formatFeeDate(installment.dueDate)}
+                    </TableCell>
 
-                      <TableCell className="text-muted-foreground text-sm">
-                        {rawInstallment.updatedAt
-                          ? formatFeeDate(rawInstallment.updatedAt)
-                          : "-"}
-                      </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {installment.updatedAt
+                        ? formatFeeDate(installment.updatedAt)
+                        : "-"}
+                    </TableCell>
 
-                      <TableCell>
-                        <Badge
-                          variant={statusConfig.variant}
-                          className="gap-1 capitalize"
-                        >
-                          <Icon className="size-3" />
-                          {statusConfig.label}
-                        </Badge>
-                      </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={statusConfig.variant}
+                        className="gap-1 capitalize"
+                      >
+                        <Icon className="size-3" />
+                        {statusConfig.label}
+                      </Badge>
+                    </TableCell>
 
-                      <TableCell className="pr-6 text-right">
-                        <div className="flex justify-end">
+                    <TableCell>
+                      <FineDisplay
+                        dueDate={installment.dueDate}
+                        status={installment.status}
+                        fineType={installment.fineType}
+                        fineAmount={installment.fineAmount}
+                        fineMaxDays={installment.fineMaxDays}
+                        fineCapAmount={installment.fineCapAmount}
+                      />
+                    </TableCell>
+
+                    <TableCell className="pr-6 text-right">
+                      <div className="flex justify-end">
+                        {voucher && (
                           <InstallmentActionsDropdown
-                            feeInstallmentId={voucher.voucherId}
-                            canMarkPaid={rawInstallment.status !== "PAID"}
-                            canPrintVoucher={rawInstallment.status !== "PAID"}
+                            canPrintVoucher={installment.status !== "PAID"}
                             voucherData={voucher}
                             filename={`fee-${data.id.slice(0, 6)}`}
                           />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                }
-              )}
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>

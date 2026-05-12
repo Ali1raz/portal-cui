@@ -110,7 +110,6 @@ export function HodFeeSplitRequestsTable({
     queryState.sortBy !== "createdAt" ||
     queryState.sortDir !== "desc" ||
     queryState.status !== "all" ||
-    queryState.semesterId.length > 0 ||
     queryState.query.length > 0;
 
   const columns = React.useMemo<ColumnDef<HodFeeSplitRequestRow>[]>(
@@ -123,7 +122,7 @@ export function HodFeeSplitRequestsTable({
           <div className="flex items-center gap-2">
             <UserImage
               image={row.original.student?.user.image}
-              name={row.original.student?.user.name ?? "Unknown Student"}
+              name={row.original.student?.user.name}
             />
             <div className="flex flex-col">
               <span className="font-medium">
@@ -135,18 +134,6 @@ export function HodFeeSplitRequestsTable({
             </div>
           </div>
         ),
-      },
-      {
-        id: "registrationNo",
-        header: "Reg No",
-        accessorFn: (row) => row.student?.registrationNo ?? "-",
-        cell: ({ row }) => row.original.student?.registrationNo ?? "-",
-      },
-      {
-        id: "semester",
-        header: "Semester",
-        accessorFn: (row) => row.semesterLabel ?? "",
-        cell: ({ row }) => row.original.semesterLabel ?? "-",
       },
       {
         id: "totalFee",

@@ -34,24 +34,6 @@ async function HodFeeSplitRequestDetailsContent({
 }) {
   const details = await hodGetFeeSplitRequestDetails({ requestId });
 
-  const semester =
-    details.feeInstallment?.semesterFee.semester ??
-    details.studentFeeInstallment?.semesterFee.semester ??
-    details.feeContext?.semester;
-  const sourceInstallmentNo =
-    details.feeInstallment?.installmentNo ??
-    details.studentFeeInstallment?.orderNo;
-  const sourceAmount =
-    details.feeInstallment?.amount ??
-    details.studentFeeInstallment?.amount ??
-    details.feeContext?.remainingAmount ??
-    0;
-  const fullFeeAmount =
-    details.feeInstallment?.semesterFee.totalAmount ??
-    details.studentFeeInstallment?.semesterFee.totalAmount ??
-    details.feeContext?.totalAmount ??
-    0;
-
   return (
     <div className="space-y-4 md:space-y-6">
       <div className="space-y-4">
@@ -133,32 +115,8 @@ async function HodFeeSplitRequestDetailsContent({
                   value={formatDate(details.preferredDueDate)}
                 />
                 <FeeInfoRow
-                  label={
-                    details.feeInstallment || details.studentFeeInstallment
-                      ? "Source installment no"
-                      : "Available amount"
-                  }
-                  value={
-                    details.feeInstallment || details.studentFeeInstallment
-                      ? String(sourceInstallmentNo ?? "-")
-                      : formatFeeAmount(sourceAmount)
-                  }
-                />
-                <FeeInfoRow
-                  label={
-                    details.feeInstallment || details.studentFeeInstallment
-                      ? "Source amount"
-                      : "Full fee amount"
-                  }
-                  value={formatFeeAmount(fullFeeAmount)}
-                />
-                <FeeInfoRow
-                  label="Semester"
-                  value={
-                    semester
-                      ? `Sem ${semester.semester} ${semester.batch}${String(semester.year).slice(-2)}-${semester.program ?? ""}${semester.department}`
-                      : "-"
-                  }
+                  label="Total semester fee"
+                  value={formatFeeAmount(details.totalFee)}
                 />
               </div>
 

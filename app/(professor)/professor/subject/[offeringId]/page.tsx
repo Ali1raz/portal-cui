@@ -59,7 +59,18 @@ export default async function SectionPage(
                   <Card className="border-2 border-dashed group rounded border-primary/50 hover:border-primary transition-colors duration-200 flex flex-col items-start gap-2 p-4">
                     <IconUser className="size-12" />
                     <span className="mt-4 group-hover:text-primary">
-                      Manage Attendance
+                      Mark Attendance
+                    </span>
+                  </Card>
+                </Link>
+                <Link
+                  href={`/professor/subject/${offeringId}/lectures`}
+                  className=""
+                >
+                  <Card className="border-2 border-dashed group rounded border-primary/50 hover:border-primary transition-colors duration-200 flex flex-col items-start gap-2 p-4">
+                    <IconUser className="size-12" />
+                    <span className="mt-4 group-hover:text-primary">
+                      View Attendances
                     </span>
                   </Card>
                 </Link>

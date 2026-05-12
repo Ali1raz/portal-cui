@@ -58,6 +58,18 @@ export async function getStudentAttendances({
     redirect("/unauthorized");
   }
 
+  const enrolledOffering = await prisma.subjectOffering.findFirst({
+    where: {
+      id: offeringId,
+      enrollments: { some: { studentId: student.id } },
+    },
+    select: { id: true },
+  });
+
+  if (!enrolledOffering) {
+    redirect("/unauthorized");
+  }
+
   const safePage = Math.max(page, 1);
   const safePageSize = Math.max(pageSize, 1);
   const direction: Prisma.SortOrder = sortDir;
@@ -67,7 +79,9 @@ export async function getStudentAttendances({
   const statusFilters = status
     .split(",")
     .map((value) => value.trim())
-    .filter((value) => statusValues.has(value as AttendanceStatus));
+    .filter((value) =>
+      statusValues.has(value as AttendanceStatus)
+    ) as AttendanceStatus[];
 
   const dateFromValue = parseDateValue(dateFrom);
   const dateToValue = parseDateValue(dateTo);
@@ -82,50 +96,65 @@ export async function getStudentAttendances({
         }
       : {};
 
-  const where: Prisma.StudentAttendanceWhereInput = {
-    studentId: student.id,
-    ...(statusFilters.length
-      ? { status: { in: statusFilters as AttendanceStatus[] } }
-      : {}),
-    record: {
+  const recordOrderBy: Prisma.AttendanceRecordOrderByWithRelationInput =
+    sortBy === "topic"
+      ? { topic: direction }
+      : sortBy === "createdAt"
+        ? { createdAt: direction }
+        : { date: direction };
+
+  const attendanceRecords = await prisma.attendanceRecord.findMany({
+    where: {
       offeringId,
       ...(trimmedTopic
         ? { topic: { contains: trimmedTopic, mode: "insensitive" } }
         : {}),
       ...dateFilter,
     },
-  };
-
-  const orderBy: Prisma.StudentAttendanceOrderByWithRelationInput =
-    sortBy === "date"
-      ? { record: { date: direction } }
-      : sortBy === "topic"
-        ? { record: { topic: direction } }
-        : sortBy === "status"
-          ? { status: direction }
-          : { createdAt: direction };
-
-  const [records, totalCount] = await Promise.all([
-    prisma.studentAttendance.findMany({
-      where,
-      skip: (safePage - 1) * safePageSize,
-      take: safePageSize,
-      orderBy,
-      select: {
-        id: true,
-        status: true,
-        record: {
-          select: {
-            date: true,
-            startTime: true,
-            endTime: true,
-            topic: true,
-          },
-        },
+    include: {
+      attendances: {
+        where: { studentId: student.id },
+        select: { status: true },
       },
-    }),
-    prisma.studentAttendance.count({ where }),
-  ]);
+    },
+    orderBy: sortBy === "status" ? [{ date: "desc" }] : recordOrderBy,
+  });
+
+  const normalizedRecords = attendanceRecords.map((record) => ({
+    id: record.id,
+    status: record.attendances[0]?.status ?? AttendanceStatus.ABSENT,
+    record: {
+      date: record.date,
+      startTime: record.startTime,
+      endTime: record.endTime,
+      topic: record.topic,
+    },
+  }));
+
+  const filteredRecords = statusFilters.length
+    ? normalizedRecords.filter((record) =>
+        statusFilters.includes(record.status)
+      )
+    : normalizedRecords;
+
+  const sortedRecords =
+    sortBy === "status"
+      ? filteredRecords.slice().sort((a, b) => {
+          const compare = a.status.localeCompare(b.status);
+          if (compare !== 0) {
+            return sortDir === "asc" ? compare : -compare;
+          }
+          return sortDir === "asc"
+            ? a.record.date.getTime() - b.record.date.getTime()
+            : b.record.date.getTime() - a.record.date.getTime();
+        })
+      : filteredRecords;
+
+  const totalCount = sortedRecords.length;
+  const records = sortedRecords.slice(
+    (safePage - 1) * safePageSize,
+    safePage * safePageSize
+  );
 
   return { records, totalCount };
 }

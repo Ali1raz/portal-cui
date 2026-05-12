@@ -5,6 +5,7 @@ import { requireSession } from "@/app/data/session/require-session";
 import { errorMessage } from "@/lib/error-message";
 import prisma from "@/lib/prisma";
 import type { ApiResponseType } from "@/lib/types";
+import { syncStudentFeeInstallmentsForUpdatedFeeTemplate } from "@/lib/fees/sync-fee-installments";
 import {
   hodEditInstallmentsSchema,
   type HodEditInstallmentsSchemaType,
@@ -94,47 +95,71 @@ export async function hodUpsertFeeInstallments(
         },
       });
 
-      await tx.feeInstallment.upsert({
-        where: {
-          semesterFeeId_installmentNo: {
+      const [templateInst1, templateInst2] = await Promise.all([
+        tx.feeInstallment.upsert({
+          where: {
+            semesterFeeId_installmentNo: {
+              semesterFeeId: fee.id,
+              installmentNo: 1,
+            },
+          },
+          create: {
             semesterFeeId: fee.id,
             installmentNo: 1,
+            amount: firstInstallmentAmount,
+            dueDate: firstInstallmentDueDate,
+            description: firstInstallmentDescription,
           },
-        },
-        create: {
-          semesterFeeId: fee.id,
-          installmentNo: 1,
-          amount: firstInstallmentAmount,
-          dueDate: firstInstallmentDueDate,
-          description: firstInstallmentDescription,
-        },
-        update: {
-          amount: firstInstallmentAmount,
-          dueDate: firstInstallmentDueDate,
-          description: firstInstallmentDescription,
-        },
-      });
+          update: {
+            amount: firstInstallmentAmount,
+            dueDate: firstInstallmentDueDate,
+            description: firstInstallmentDescription,
+          },
+          select: { id: true },
+        }),
 
-      await tx.feeInstallment.upsert({
-        where: {
-          semesterFeeId_installmentNo: {
+        tx.feeInstallment.upsert({
+          where: {
+            semesterFeeId_installmentNo: {
+              semesterFeeId: fee.id,
+              installmentNo: 2,
+            },
+          },
+          create: {
             semesterFeeId: fee.id,
             installmentNo: 2,
+            amount: secondInstallmentAmount,
+            dueDate: secondInstallmentDueDate,
+            description: secondInstallmentDescription,
           },
-        },
-        create: {
-          semesterFeeId: fee.id,
-          installmentNo: 2,
-          amount: secondInstallmentAmount,
-          dueDate: secondInstallmentDueDate,
-          description: secondInstallmentDescription,
-        },
-        update: {
-          amount: secondInstallmentAmount,
-          dueDate: secondInstallmentDueDate,
-          description: secondInstallmentDescription,
-        },
-      });
+          update: {
+            amount: secondInstallmentAmount,
+            dueDate: secondInstallmentDueDate,
+            description: secondInstallmentDescription,
+          },
+          select: { id: true },
+        }),
+      ]);
+
+      await syncStudentFeeInstallmentsForUpdatedFeeTemplate(
+        tx,
+        fee.id,
+        Number(validated.data.totalAmount),
+        [
+          {
+            installmentNo: 1,
+            feeInstallmentId: templateInst1.id,
+            amount: firstInstallmentAmount,
+            dueDate: firstInstallmentDueDate,
+          },
+          {
+            installmentNo: 2,
+            feeInstallmentId: templateInst2.id,
+            amount: secondInstallmentAmount,
+            dueDate: secondInstallmentDueDate,
+          },
+        ]
+      );
     });
 
     return {

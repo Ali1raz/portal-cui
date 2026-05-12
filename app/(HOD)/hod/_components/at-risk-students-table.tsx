@@ -143,7 +143,9 @@ export function AtRiskStudentsTable({
       {
         id: "effectivePct",
         header: () => (
-          <span title="(Present + Leave) / Total × 100">Effective %</span>
+          <span title="(Present + Leave) / Total × 100">
+            Total Attendance %
+          </span>
         ),
         accessorFn: (row) => row.effectivePct,
         cell: ({ row }) => {
@@ -152,9 +154,8 @@ export function AtRiskStudentsTable({
           return (
             <Badge
               variant={isAtRisk ? "destructive" : "secondary"}
-              appearance="light"
-              size="sm"
-              className="tabular-nums"
+              appearance="outline"
+              size="lg"
             >
               {pct}%
             </Badge>
@@ -162,18 +163,10 @@ export function AtRiskStudentsTable({
         },
         enableSorting: true,
       },
-      {
-        id: "rawPct",
-        header: () => <span title="Present / Total × 100">Raw %</span>,
-        accessorFn: (row) => row.rawPct,
-        cell: ({ row }) => (
-          <span className="tabular-nums">{row.original.rawPct}%</span>
-        ),
-        enableSorting: true,
-      },
+
       {
         id: "total",
-        header: "Total",
+        header: "Total Classes",
         accessorFn: (row) => row.total,
         cell: ({ row }) => (
           <span className="tabular-nums">{row.original.total}</span>
@@ -182,34 +175,20 @@ export function AtRiskStudentsTable({
       },
       {
         id: "present",
-        header: "P",
+        header: "Statistics",
         accessorFn: (row) => row.present,
         cell: ({ row }) => (
-          <span className="tabular-nums text-green-600 dark:text-green-400">
-            {row.original.present}
-          </span>
-        ),
-        enableSorting: true,
-      },
-      {
-        id: "leave",
-        header: "L",
-        accessorFn: (row) => row.leave,
-        cell: ({ row }) => (
-          <span className="tabular-nums text-amber-600 dark:text-amber-400">
-            {row.original.leave}
-          </span>
-        ),
-        enableSorting: true,
-      },
-      {
-        id: "absent",
-        header: "A",
-        accessorFn: (row) => row.absent,
-        cell: ({ row }) => (
-          <span className="tabular-nums text-red-600 dark:text-red-400">
-            {row.original.absent}
-          </span>
+          <div className="flex flex-col gap-2">
+            <span className="tabular-nums text-green-600 dark:text-green-400">
+              Present: {row.original.present}
+            </span>
+            <span className="tabular-nums text-amber-600 dark:text-amber-400">
+              Leave: {row.original.leave}
+            </span>
+            <span className="tabular-nums text-red-600 dark:text-red-400">
+              Absent: {row.original.absent}
+            </span>
+          </div>
         ),
         enableSorting: true,
       },
@@ -335,7 +314,7 @@ export function AtRiskStudentsTable({
               });
             }}
           >
-            <XIcon className="mr-2 h-4 w-4" />
+            <XIcon className="h-4 w-4" />
             Clear Filters
           </Button>
         </div>

@@ -1,4 +1,4 @@
-import { studentGetFeeDetails } from "@/app/data/student/st-get-fee";
+import { studentGetInstallmentsPageData } from "@/app/data/student/st-get-installments-page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -13,9 +13,8 @@ import { formatFeeAmount, formatFeeDate } from "@/lib/utils/fee-format";
 import { IconCreditCard } from "@tabler/icons-react";
 import { InstallmentActionsDropdown } from "./_components/installment-actions-dropdown";
 import { FeeSplitRequestActionsDropdown } from "./_components/fee-split-request-actions-dropdown";
-import type { VoucherData } from "../_components/fee-voucher";
+import type { VoucherData } from "@/app/data/student/st-get-fee";
 import { SITE_INFO } from "@/lib/data/SITE";
-
 import {
   studentCanEditSplitRequest,
   studentCanDeleteSplitRequest,
@@ -26,7 +25,7 @@ import {
   type InstallmentStatus,
 } from "@/components/fee/installment-status-config";
 import { SplitRequestStatusBadge } from "@/components/fee/split-request-status-badge";
-import { SplitRequestStatus } from "@/lib/generated/prisma/enums";
+import { FineDisplay } from "@/components/fee/fine-display";
 
 function getInstallmentStatus(
   dueDate: Date | string,
@@ -43,7 +42,7 @@ function getInstallmentStatus(
 }
 
 export default async function Installments() {
-  const data = await studentGetFeeDetails();
+  const data = await studentGetInstallmentsPageData();
   const today = new Date();
 
   if (!data) {
@@ -90,14 +89,10 @@ export default async function Installments() {
     updatedAt: inst.updatedAt,
     installmentSplitRequests: inst.installmentSplitRequests ?? [],
     statusType: getInstallmentStatus(inst.dueDate, inst.status),
-    canMarkPaid:
-      inst.id !== "remaining" &&
-      inst.status !== "PAID" &&
-      (inst.installmentSplitRequests?.[0]
-        ? studentCanMarkPaidSplitRequest(
-            inst.installmentSplitRequests[0].status as SplitRequestStatus
-          )
-        : true),
+    fineType: inst.fineType,
+    fineAmount: inst.fineAmount,
+    fineMaxDays: inst.fineMaxDays,
+    fineCapAmount: inst.fineCapAmount,
   }));
 
   const feeSplitRequests = data.installmentSplitRequests.map(
@@ -126,6 +121,7 @@ export default async function Installments() {
                   <TableHead>Due Date</TableHead>
                   <TableHead>Last Updated</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Fine Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -159,20 +155,18 @@ export default async function Installments() {
                         </Badge>
                       </TableCell>
                       <TableCell>
+                        <FineDisplay
+                          dueDate={inst.dueDate}
+                          status={inst.status}
+                          fineType={inst.fineType}
+                          fineAmount={inst.fineAmount}
+                          fineMaxDays={inst.fineMaxDays}
+                          fineCapAmount={inst.fineCapAmount}
+                        />
+                      </TableCell>
+                      <TableCell>
                         <InstallmentActionsDropdown
-                          studentFeeInstallmentId={
-                            inst.id !== "remaining" ? inst.id : undefined
-                          }
-                          canMarkPaid={inst.canMarkPaid}
-                          canPrintVoucher={
-                            inst.statusType !== "paid" &&
-                            (inst.installmentSplitRequests?.[0]
-                              ? studentCanMarkPaidSplitRequest(
-                                  inst.installmentSplitRequests[0]
-                                    .status as SplitRequestStatus
-                                )
-                              : true)
-                          }
+                          canPrintVoucher={inst.statusType !== "paid"}
                           voucherData={createVoucherData({
                             voucherId: inst.id,
                             installmentNo: inst.orderNo,
@@ -202,6 +196,7 @@ export default async function Installments() {
                   <TableHead>Amount</TableHead>
                   <TableHead>Due Date</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Fine Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -232,10 +227,18 @@ export default async function Installments() {
                         </Badge>
                       </TableCell>
                       <TableCell>
+                        <FineDisplay
+                          dueDate={inst.dueDate}
+                          status={inst.status}
+                          fineType={inst.fineType}
+                          fineAmount={inst.fineAmount}
+                          fineMaxDays={inst.fineMaxDays}
+                          fineCapAmount={inst.fineCapAmount}
+                        />
+                      </TableCell>
+                      <TableCell>
                         <InstallmentActionsDropdown
-                          feeInstallmentId={inst.id}
                           canPrintVoucher={inst.statusType !== "paid"}
-                          canMarkPaid={inst.statusType !== "paid"}
                           voucherData={createVoucherData({
                             voucherId: inst.id,
                             installmentNo: inst.installmentNo,
@@ -293,6 +296,9 @@ export default async function Installments() {
                       <TableCell>
                         <FeeSplitRequestActionsDropdown
                           requestId={request.id}
+                          canMarkPaid={studentCanMarkPaidSplitRequest(
+                            request.status
+                          )}
                           voucherData={createVoucherData({
                             voucherId: request.id,
                             installmentNo: 1,
@@ -300,14 +306,8 @@ export default async function Installments() {
                             dueDate: request.preferredDueDate,
                           })}
                           filename={`fee-split-${request.id.slice(0, 6)}`}
-                          canPrintVoucher={studentCanMarkPaidSplitRequest(
-                            request.status
-                          )}
                           canEdit={studentCanEditSplitRequest(request.status)}
                           canDelete={studentCanDeleteSplitRequest(
-                            request.status
-                          )}
-                          canMarkPaid={studentCanMarkPaidSplitRequest(
                             request.status
                           )}
                         />

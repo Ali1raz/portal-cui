@@ -31,7 +31,7 @@ import { Loader2 } from "lucide-react";
 import { SemesterFeeStatus } from "@/lib/generated/prisma/enums";
 import { formatEnumLabel } from "@/lib/utils";
 import { AccountantGetAllSemestersType } from "@/app/data/accountant/acc-get-all-semesters";
-import { FeeInstallmentsFormFields } from "@/app/(accountant)/accountant/_components/fee-installments-form-fields";
+import { FeeInstallmentsFormFields } from "../../_components/fee-installments-form-fields";
 import { accountantCreateSemesterFee } from "../../actions";
 import { useRouter } from "next/navigation";
 
@@ -51,7 +51,12 @@ export const AccountantCreateFeeForm = ({
       status: "DRAFT",
       totalAmount: 0,
       makeInstallments: false,
-      installments: undefined,
+      installments: {
+        fineType: null,
+        fineAmount: null,
+        fineMaxDays: null,
+        fineCapAmount: null,
+      },
     },
     mode: "onChange",
   });

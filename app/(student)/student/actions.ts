@@ -124,7 +124,9 @@ export async function enrollCourse(
     const studentInstallments = await prisma.studentFeeInstallment.findMany({
       where: {
         studentId: student.id,
-        semesterFeeId: publishedSemesterFee.id,
+        studentSemesterFee: {
+          semesterFeeId: publishedSemesterFee.id,
+        },
       },
       select: {
         status: true,
@@ -146,15 +148,12 @@ export async function enrollCourse(
     } else {
       const baseInstallments = await prisma.feeInstallment.findMany({
         where: { semesterFeeId: publishedSemesterFee.id },
-        select: { paidStatus: true, dueDate: true },
+        select: { dueDate: true },
       });
 
-      hasAnyPaidInstallment = baseInstallments.some(
-        (installment) => installment.paidStatus === "PAID"
-      );
+      hasAnyPaidInstallment = false;
       hasOverdueUnpaidInstallment = baseInstallments.some(
-        (installment) =>
-          installment.paidStatus === "UNPAID" && installment.dueDate < now
+        (installment) => installment.dueDate < now
       );
     }
 

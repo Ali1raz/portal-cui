@@ -5,6 +5,7 @@ import { requireSession } from "@/app/data/session/require-session";
 import { errorMessage } from "@/lib/error-message";
 import { SemesterFeeStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
+import { inngest } from "@/lib/inngest/client";
 import type { ApiResponseType } from "@/lib/types";
 import {
   accountantCreateFeeSchema,
@@ -207,6 +208,10 @@ export async function accountantCreateSemesterFee(
             amount: firstInstallmentAmount,
             dueDate: firstInstallmentDueDate,
             description: firstInstallmentDescription,
+            fineType: validated.data.installments.fineType ?? null,
+            fineAmount: validated.data.installments.fineAmount ?? null,
+            fineMaxDays: validated.data.installments.fineMaxDays ?? null,
+            fineCapAmount: validated.data.installments.fineCapAmount ?? null,
           },
         });
 
@@ -218,8 +223,28 @@ export async function accountantCreateSemesterFee(
             amount: secondInstallmentAmount,
             dueDate: secondDueDate,
             description: secondInstallmentDescription,
+            fineType: validated.data.installments.fineType ?? null,
+            fineAmount: validated.data.installments.fineAmount ?? null,
+            fineMaxDays: validated.data.installments.fineMaxDays ?? null,
+            fineCapAmount: validated.data.installments.fineCapAmount ?? null,
           },
         });
+      }
+      // Send Inngest event to fan-out student semester fee creation (non-blocking)
+      try {
+        await inngest.send({
+          id: `semester-fee-created-${createdFee.id}`,
+          name: "fee/semester.published",
+          data: {
+            semesterFeeId: createdFee.id,
+            semesterId: validated.data.semesterId,
+          },
+        });
+      } catch (error) {
+        console.error(
+          `Failed to send semester fee created event: ${error instanceof Error ? error.message : String(error)}`
+        );
+        // Don't fail the action if event emission fails; log and continue
       }
     });
 

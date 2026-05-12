@@ -5,7 +5,6 @@ import type { Prisma } from "@/lib/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "../permission/require-permission";
 import { requireSession } from "../session/require-session";
-import { getStudentFeeSplitContextByStudentId } from "../student/st-get-installment-split-options";
 import type { HodFeeSplitSearchParams } from "@/app/(HOD)/hod/fee/fee-split-requests-search-params";
 
 type HodFeeSplitRequestsParams = Pick<
@@ -26,7 +25,7 @@ export async function hodGetFeeSplitRequests({
   const session = await requireSession();
 
   const can = await requirePermission({
-    fee: ["view"],
+    installments: ["view", "list"],
   });
 
   if (!can) {
@@ -61,18 +60,11 @@ export async function hodGetFeeSplitRequests({
       : {}),
     ...(semesterId
       ? {
-          OR: [
-            {
-              feeInstallment: {
-                semesterFeeId: semesterId,
-              },
+          studentFeeInstallment: {
+            studentSemesterFee: {
+              semesterFeeId: semesterId,
             },
-            {
-              studentFeeInstallment: {
-                semesterFeeId: semesterId,
-              },
-            },
-          ],
+          },
         }
       : {}),
     ...(query.trim().length > 0
@@ -121,19 +113,12 @@ export async function hodGetFeeSplitRequests({
         : sortBy === "semester"
           ? [
               {
-                feeInstallment: {
-                  semesterFee: {
-                    semester: {
-                      semester: direction,
-                    },
-                  },
-                },
-              },
-              {
                 studentFeeInstallment: {
-                  semesterFee: {
-                    semester: {
-                      semester: direction,
+                  studentSemesterFee: {
+                    semesterFee: {
+                      semester: {
+                        semester: direction,
+                      },
                     },
                   },
                 },
@@ -157,176 +142,48 @@ export async function hodGetFeeSplitRequests({
         requestedAmount: true,
         preferredDueDate: true,
         status: true,
-        reason: true,
         createdAt: true,
-        updatedAt: true,
         student: {
           select: {
-            id: true,
             registrationNo: true,
             user: {
               select: {
                 name: true,
                 image: true,
-                email: true,
-              },
-            },
-          },
-        },
-        feeInstallment: {
-          select: {
-            installmentNo: true,
-            amount: true,
-            dueDate: true,
-            semesterFee: {
-              select: {
-                id: true,
-                totalAmount: true,
-                semester: {
-                  select: {
-                    semester: true,
-                    year: true,
-                    batch: true,
-                    program: true,
-                    department: true,
-                  },
-                },
               },
             },
           },
         },
         studentFeeInstallment: {
           select: {
-            orderNo: true,
-            amount: true,
-            dueDate: true,
-            status: true,
-            semesterFee: {
+            studentSemesterFee: {
               select: {
-                id: true,
-                totalAmount: true,
-                semester: {
-                  select: {
-                    semester: true,
-                    year: true,
-                    batch: true,
-                    program: true,
-                    department: true,
-                  },
-                },
+                totalDue: true,
               },
             },
           },
         },
-        reviews: {
-          orderBy: {
-            createdAt: "desc",
-          },
-          take: 1,
-          select: {
-            remarks: true,
-            actorRole: true,
-            action: true,
-            createdAt: true,
-          },
-        },
-        _count: {
-          select: {
-            reviews: true,
-          },
-        },
       },
     }),
-    prisma.installmentSplitRequest.count({ where }),
+    prisma.installmentSplitRequest.count({
+      where,
+    }),
   ]);
 
-  const feeContextByStudentId = new Map<
-    string,
-    Awaited<ReturnType<typeof getStudentFeeSplitContextByStudentId>>
-  >();
-
-  await Promise.all(
-    requests
-      .filter(
-        (request) => !request.feeInstallment && !request.studentFeeInstallment
-      )
-      .map(async (request) => {
-        const studentId = request.student?.id;
-
-        if (!studentId) {
-          return;
-        }
-
-        if (feeContextByStudentId.has(studentId)) {
-          return;
-        }
-
-        feeContextByStudentId.set(
-          studentId,
-          await getStudentFeeSplitContextByStudentId(studentId)
-        );
-      })
-  );
+  // Convert Decimal to string for client serialization
+  const requests_serialized = requests.map((req) => ({
+    id: req.id,
+    requestedAmount: req.requestedAmount.toString(),
+    preferredDueDate: req.preferredDueDate,
+    status: req.status,
+    createdAt: req.createdAt,
+    student: req.student,
+    totalAmount:
+      req.studentFeeInstallment?.studentSemesterFee?.totalDue.toString() ?? "0",
+  }));
 
   return {
-    requests: requests.map((request) => {
-      const studentId = request.student?.id;
-      const feeContext =
-        request.feeInstallment || request.studentFeeInstallment
-          ? null
-          : studentId
-            ? (feeContextByStudentId.get(studentId) ?? null)
-            : null;
-
-      const semester =
-        request.feeInstallment?.semesterFee.semester ??
-        request.studentFeeInstallment?.semesterFee.semester ??
-        feeContext?.semester ??
-        null;
-
-      const totalAmount = Number(
-        request.feeInstallment?.semesterFee.totalAmount ??
-          request.studentFeeInstallment?.semesterFee.totalAmount ??
-          feeContext?.totalAmount ??
-          0
-      );
-
-      return {
-        ...request,
-        requestedAmount: Number(request.requestedAmount),
-        semester,
-        semesterLabel: semester
-          ? `Sem ${semester.semester} (${semester.batch}${semester.year
-              .toString()
-              .slice(-2)}-${semester.program ?? ""}${semester.department})`
-          : null,
-        totalAmount,
-        feeInstallment: request.feeInstallment
-          ? {
-              ...request.feeInstallment,
-              amount: Number(request.feeInstallment.amount),
-              semesterFee: {
-                ...request.feeInstallment.semesterFee,
-                totalAmount: Number(
-                  request.feeInstallment.semesterFee.totalAmount
-                ),
-              },
-            }
-          : null,
-        studentFeeInstallment: request.studentFeeInstallment
-          ? {
-              ...request.studentFeeInstallment,
-              amount: Number(request.studentFeeInstallment.amount),
-              semesterFee: {
-                ...request.studentFeeInstallment.semesterFee,
-                totalAmount: Number(
-                  request.studentFeeInstallment.semesterFee.totalAmount
-                ),
-              },
-            }
-          : null,
-      };
-    }),
+    requests: requests_serialized,
     totalCount,
   };
 }
@@ -355,74 +212,25 @@ export async function hodGetFeeSplitSemesterOptions() {
   if (!hod) {
     return [];
   }
-
-  const semesterFees = await prisma.semesterFee.findMany({
+  const semesters = await prisma.semester.findMany({
     where: {
-      semester: {
-        department: hod.department,
-      },
-      OR: [
-        {
-          feeInstallments: {
-            some: {
-              installmentSplitRequests: {
-                some: {
-                  student: {
-                    department: hod.department,
-                  },
-                },
-              },
-            },
-          },
-        },
-        {
-          studentFeeInstallments: {
-            some: {
-              installmentSplitRequests: {
-                some: {
-                  student: {
-                    department: hod.department,
-                  },
-                },
-              },
-            },
-          },
-        },
-      ],
+      department: hod.department,
     },
-    orderBy: [
-      {
-        semester: {
-          year: "desc",
-        },
-      },
-      {
-        semester: {
-          semester: "desc",
-        },
-      },
-    ],
     select: {
       id: true,
-      semester: {
-        select: {
-          semester: true,
-          year: true,
-          batch: true,
-          program: true,
-          department: true,
-        },
-      },
+      semester: true,
+      year: true,
+      batch: true,
+      program: true,
+      department: true,
     },
   });
 
-  return semesterFees.map((semesterFee) => ({
-    id: semesterFee.id,
-    label: `Sem ${semesterFee.semester.semester} (${semesterFee.semester.batch}${semesterFee.semester.year
+  return semesters.map((semester) => ({
+    id: semester.id,
+    label: `Sem ${semester.semester} (${semester.batch}${semester.year
       .toString()
-      .slice(
-        -2
-      )}-${semesterFee.semester.program}${semesterFee.semester.department})`,
+      .slice(-2)}-${semester.program ?? ""}${semester.department})`,
   }));
 }
 

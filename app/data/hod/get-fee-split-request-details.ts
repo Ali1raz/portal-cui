@@ -1,10 +1,9 @@
 import "server-only";
 
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "../permission/require-permission";
 import { requireSession } from "../session/require-session";
-import { getStudentFeeSplitContextByStudentId } from "../student/st-get-installment-split-options";
 
 /// Fetch one fee split request detail for HOD review with department-level access guard.
 export async function hodGetFeeSplitRequestDetails({
@@ -15,7 +14,7 @@ export async function hodGetFeeSplitRequestDetails({
   const session = await requireSession();
 
   const can = await requirePermission({
-    fee: ["view"],
+    installments: ["view"],
   });
 
   if (!can) {
@@ -35,7 +34,7 @@ export async function hodGetFeeSplitRequestDetails({
     return redirect("/unauthorized");
   }
 
-  const request = await prisma.installmentSplitRequest.findFirst({
+  const req = await prisma.installmentSplitRequest.findFirst({
     where: {
       id: requestId,
       student: {
@@ -44,20 +43,32 @@ export async function hodGetFeeSplitRequestDetails({
     },
     select: {
       id: true,
-      requestedAmount: true,
-      preferredDueDate: true,
       reason: true,
       status: true,
       createdAt: true,
       updatedAt: true,
-      student: {
+      preferredDueDate: true,
+      requestedAmount: true,
+      reviews: {
+        orderBy: {
+          createdAt: "desc",
+        },
         select: {
           id: true,
+          remarks: true,
+          createdAt: true,
+          action: true,
+          actorRole: true,
+          fromStatus: true,
+          toStatus: true,
+        },
+      },
+      student: {
+        select: {
           registrationNo: true,
           department: true,
           user: {
             select: {
-              id: true,
               name: true,
               email: true,
               image: true,
@@ -65,114 +76,26 @@ export async function hodGetFeeSplitRequestDetails({
           },
         },
       },
-      feeInstallment: {
-        select: {
-          id: true,
-          installmentNo: true,
-          amount: true,
-          dueDate: true,
-          description: true,
-          semesterFee: {
-            select: {
-              id: true,
-              totalAmount: true,
-              description: true,
-              semester: {
-                select: {
-                  semester: true,
-                  year: true,
-                  batch: true,
-                  program: true,
-                  department: true,
-                },
-              },
-            },
-          },
-        },
-      },
       studentFeeInstallment: {
         select: {
-          id: true,
-          orderNo: true,
-          amount: true,
-          dueDate: true,
-          status: true,
-          semesterFee: {
+          studentSemesterFee: {
             select: {
-              id: true,
-              totalAmount: true,
-              semester: {
-                select: {
-                  semester: true,
-                  year: true,
-                  batch: true,
-                  program: true,
-                  department: true,
-                },
-              },
+              totalDue: true,
+              status: true,
             },
           },
-        },
-      },
-      reviews: {
-        orderBy: {
-          createdAt: "desc",
-        },
-        select: {
-          id: true,
-          actorRole: true,
-          actorId: true,
-          action: true,
-          remarks: true,
-          fromStatus: true,
-          toStatus: true,
-          createdAt: true,
-        },
-      },
-      _count: {
-        select: {
-          reviews: true,
         },
       },
     },
   });
 
-  if (!request) {
-    return redirect("/unauthorized");
+  if (!req) {
+    return notFound();
   }
 
-  const feeContext =
-    request.feeInstallment || request.studentFeeInstallment
-      ? null
-      : request.student
-        ? await getStudentFeeSplitContextByStudentId(request.student.id)
-        : null;
-
   return {
-    ...request,
-    requestedAmount: Number(request.requestedAmount),
-    feeInstallment: request.feeInstallment
-      ? {
-          ...request.feeInstallment,
-          amount: Number(request.feeInstallment.amount),
-          semesterFee: {
-            ...request.feeInstallment.semesterFee,
-            totalAmount: Number(request.feeInstallment.semesterFee.totalAmount),
-          },
-        }
-      : null,
-    feeContext,
-    studentFeeInstallment: request.studentFeeInstallment
-      ? {
-          ...request.studentFeeInstallment,
-          amount: Number(request.studentFeeInstallment.amount),
-          semesterFee: {
-            ...request.studentFeeInstallment.semesterFee,
-            totalAmount: Number(
-              request.studentFeeInstallment.semesterFee.totalAmount
-            ),
-          },
-        }
-      : null,
+    ...req,
+    totalFee: Number(req.studentFeeInstallment?.studentSemesterFee?.totalDue),
+    requestedAmount: Number(req.requestedAmount),
   };
 }
