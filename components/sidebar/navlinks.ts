@@ -17,6 +17,7 @@ import {
   IconMessage2,
   IconCreditCard,
   IconCreditCardFilled,
+  IconCheckupList,
 } from "@tabler/icons-react";
 import { Route } from "next";
 
@@ -310,6 +311,11 @@ export function getNavLinks({
         title: "New Announcement",
         href: "/admin/announcements/new",
         icon: IconMessagePlus,
+      },
+      {
+        title: "Approved Leave Requests",
+        href: "/admin/leave-requests/approved",
+        icon: IconCheckupList,
       },
     ],
     USER: [],

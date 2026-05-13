@@ -5,7 +5,7 @@ import { Role } from "./generated/prisma/enums";
 export const statements = {
   ...defaultStatements,
   userProfiles: ["create", "update", "delete", "view"] as const,
-  attendance: ["mark", "view", "list"] as const,
+  attendance: ["mark", "view", "list", "update"] as const,
   leaveRequest: [
     "create",
     "list",
@@ -97,7 +97,7 @@ export const roles = {
     ...defaultStatements,
     ...adminAc.statements,
     userProfiles: ["create", "update", "delete", "view"],
-    attendance: ["view"],
+    attendance: ["view", "update"],
     leaveRequest: ["get", "list", "update", "list:past"],
     subject: ["create", "get", "list", "update", "delete"],
     semesters: ["create", "list", "get", "update", "delete"],
