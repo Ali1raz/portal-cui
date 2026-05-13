@@ -24,7 +24,9 @@ export async function baGetComplaintDetails({ id }: { id: string }) {
   const details = await prisma.complaint.findFirst({
     where: {
       id,
-      targetDepartment: ba.department,
+      student: {
+        department: ba.department,
+      },
     },
     select: {
       id: true,
@@ -83,7 +85,6 @@ export async function baGetComplaintDetails({ id }: { id: string }) {
         orderBy: { assignedAt: "desc" },
         select: {
           id: true,
-          fromDepartment: true,
           toDepartment: true,
           reason: true,
           assignedAt: true,

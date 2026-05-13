@@ -54,7 +54,9 @@ export async function baUpdateComplaintStatus(
     const complaint = await prisma.complaint.findUnique({
       where: {
         id: parsed.complaintId,
-        targetDepartment: ba.department,
+        student: {
+          department: ba.department,
+        },
         status: {
           notIn: ALREADY_REVIEWED_COMPLAINT_STATUS,
         },

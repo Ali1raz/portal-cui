@@ -69,7 +69,9 @@ export async function baGetComplaints({
   const to = parseDateValue(dateTo);
 
   const where: Prisma.ComplaintWhereInput = {
-    targetDepartment: ba.department,
+    student: {
+      department: ba.department,
+    },
     ...(statusFilters.length > 0 && {
       status: { in: statusFilters as ComplaintStatus[] },
     }),

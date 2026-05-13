@@ -40,7 +40,7 @@ export default async function BaComplaintDetailsPage(
   const canReview = details.status === "BA_PENDING";
 
   return (
-    <div className="max-w-5xl w-full px-4 md:px-8 py-4 space-y-4 md:space-y-6">
+    <div className="w-full px-4 md:px-8 py-4 space-y-4 md:space-y-6">
       {/* ── Header ── */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-2">
@@ -103,7 +103,7 @@ export default async function BaComplaintDetailsPage(
                   {statusCfg.label}
                 </Badge>
                 <Badge>{details.category}</Badge>
-                <Badge>{details.targetDepartment}</Badge>
+                <Badge>{details.student.department}</Badge>
               </div>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {details.details}
@@ -214,9 +214,6 @@ export default async function BaComplaintDetailsPage(
                 {details.assignments.map((a) => (
                   <div key={a.id} className="space-y-1">
                     <div className="flex items-center gap-1.5 text-xs font-medium">
-                      <span className="rounded bg-muted px-1.5 py-0.5 font-mono">
-                        {a.fromDepartment}
-                      </span>
                       <span className="text-muted-foreground">→</span>
                       <span className="rounded bg-muted px-1.5 py-0.5 font-mono">
                         {a.toDepartment}

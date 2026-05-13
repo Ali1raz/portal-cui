@@ -76,7 +76,6 @@ export async function CreateComplaint(
     await prisma.complaint.create({
       data: {
         studentId: student.id,
-        targetDepartment: student.department,
         ...validated.data,
       },
     });
@@ -271,7 +270,7 @@ export async function DeleteComplaint(id: string): Promise<ApiResponseType> {
     ) {
       return {
         status: "error",
-        message: "Only pending or returned complaints can be deleted",
+        message: "Only pending complaints can be deleted",
       };
     }
 

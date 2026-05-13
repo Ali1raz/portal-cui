@@ -643,7 +643,7 @@ model Complaint {
   studentId String
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  targetDepartment Department // 
+  targetDepartment DepartmentToAssignComplaintTo?
 
   category ComplaintCategory // UC-9 Business Rule: must have valid category
   title    String
@@ -718,14 +718,22 @@ model ComplaintAssignment {
   complaintId String
   complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
 
-  fromDepartment Department
-  toDepartment   Department
-  reason         String? // UC-10: reason for assignment / reassignment
+  toDepartment DepartmentToAssignComplaintTo
+  reason       String? // UC-10: reason for assignment / reassignment
 
   assignedAt DateTime @default(now())
 
   @@index([complaintId])
   @@map("complaint_assignment")
+}
+
+enum DepartmentToAssignComplaintTo {
+  ACADEMIC_AFFAIRS // ACADEMIC complaints
+  REGISTRAR // ADMINISTRATIVE complaints  
+  FACILITIES // FACILITY complaints
+  STUDENT_AFFAIRS // HARASSMENT complaints
+  DEAN_OF_STUDENTS // OTHER / escalations
+  // HOD is dynamic per faculty, handle as a relation not enum
 }
 
 // Immutable log of every action taken on a complaint

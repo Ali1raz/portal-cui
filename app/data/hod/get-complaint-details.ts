@@ -28,7 +28,9 @@ export async function hodGetComplaintDetails({ id }: { id: string }) {
   const details = await prisma.complaint.findFirst({
     where: {
       id,
-      targetDepartment: hod.department, // Only allow HOD to access complaints from their department
+      student: {
+        department: hod.department,
+      },
       status: {
         notIn: ["BA_PENDING", "BA_REJECTED"], // HOD only sees BA-accepted complaints
       },

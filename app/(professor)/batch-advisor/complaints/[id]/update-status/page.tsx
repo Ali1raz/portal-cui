@@ -34,7 +34,7 @@ export default async function BaUpdateComplaintStatusPage(
   }
 
   return (
-    <div className="flex w-full max-w-5xl flex-col gap-6 px-4 md:px-8 my-6">
+    <div className="flex w-full max-w-7xl flex-col gap-6 px-4 md:px-8 my-6">
       <div className="space-y-4">
         <Button
           variant="ghost"

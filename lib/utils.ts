@@ -1,7 +1,11 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format } from "date-fns";
-import { Role } from "./generated/prisma/enums";
+import {
+  ComplaintCategory,
+  DepartmentToAssignComplaintTo,
+  Role,
+} from "./generated/prisma/enums";
 
 /**
  * Merges Tailwind class names, resolving any conflicts.
@@ -91,4 +95,23 @@ export function getJoinedAtLabel(
   }
 
   return "All time";
+}
+
+export function categoryToDepartment(
+  category: ComplaintCategory
+): DepartmentToAssignComplaintTo {
+  switch (category) {
+    case "ACADEMIC":
+      return "ACADEMIC_AFFAIRS";
+    case "ADMINISTRATIVE":
+      return "REGISTRAR";
+    case "FACULTY":
+      return "ACADEMIC_AFFAIRS"; // fallback
+    case "FACILITY":
+      return "FACILITIES";
+    case "HARASSMENT":
+      return "STUDENT_AFFAIRS";
+    case "OTHER":
+      return "DEAN_OF_STUDENTS";
+  }
 }

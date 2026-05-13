@@ -95,7 +95,9 @@ export async function hodGetComplaints({
   ];
 
   const where: Prisma.ComplaintWhereInput = {
-    targetDepartment: hod.department,
+    student: {
+      department: hod.department, // Only show complaints from the HOD's department
+    },
     // Base constraint: only show BA-accepted complaints
     status:
       statusFilters.length > 0

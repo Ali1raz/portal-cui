@@ -7,6 +7,7 @@ import { errorMessage } from "@/lib/error-message";
 import { ComplaintStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
+import { categoryToDepartment } from "@/lib/utils";
 
 const HOD_VALID_ACTIONS: ComplaintStatus[] = [
   "HOD_ACCEPTED",
@@ -63,9 +64,11 @@ export async function updateComplaintStatus(
     const complaint = await prisma.complaint.findFirst({
       where: {
         id: complaintId,
-        targetDepartment: hod.department,
+        student: {
+          department: hod.department,
+        },
       },
-      select: { id: true, status: true },
+      select: { id: true, status: true, category: true },
     });
 
     if (!complaint) {
@@ -80,6 +83,12 @@ export async function updateComplaintStatus(
         where: { id: complaintId },
         data: {
           status,
+        },
+      }),
+      prisma.complaintAssignment.create({
+        data: {
+          complaintId,
+          toDepartment: categoryToDepartment(complaint.category),
         },
       }),
       prisma.complaintReview.create({
