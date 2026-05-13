@@ -40,9 +40,7 @@ export default async function ProfessorLayout({
         <AppSidebar variant="inset" user={session.user} />
         <SidebarInset>
           <SiteHeader user={session.user} />
-          <main className="max-w-6xl w-full px-4 sm:px-6 py-4 sm:py-6">
-            {children}
-          </main>
+          <main className="w-full px-4 sm:px-6 py-4 sm:py-6">{children}</main>
         </SidebarInset>
       </SidebarProvider>
     </main>

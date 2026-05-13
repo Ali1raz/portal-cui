@@ -6,7 +6,11 @@ import {
   AdminDashboardSummaryCardsSkeleton,
 } from "./_components/admin-dashboard-summary-cards";
 
-import { getAdminUsersJoinedByDays } from "@/app/data/admin/get-admin-dashboard";
+import {
+  getAdminComplaintsByDays,
+  getAdminLeaveRequestsByDays,
+  getAdminUsersJoinedByDays,
+} from "@/app/data/admin/get-admin-dashboard";
 
 import {
   Card,
@@ -15,6 +19,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { AdminComplaintsChartClient } from "./_components/admin-complaints-chart-client";
+import { AdminLeaveRequestsChartClient } from "./_components/admin-leave-requests-chart-client";
 import { AdminTotalUsersJoinedChartClient } from "./_components/admin-total-users-joined-chart-client";
 
 export const metadata: Metadata = {
@@ -29,9 +35,20 @@ export default function Page() {
         <AdminDashboardSummaryCards />
       </Suspense>
 
-      <Suspense fallback={<AdminTotalUsersJoinedChartWrapperSkeleton />}>
-        <AdminTotalUsersJoinedChartWrapper />
-      </Suspense>
+      <div className="grid gap-4">
+        <Suspense fallback={<AdminTotalUsersJoinedChartWrapperSkeleton />}>
+          <AdminTotalUsersJoinedChartWrapper />
+        </Suspense>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Suspense fallback={<AdminLeaveRequestsChartWrapperSkeleton />}>
+            <AdminLeaveRequestsChartWrapper />
+          </Suspense>
+          <Suspense fallback={<AdminComplaintsChartWrapperSkeleton />}>
+            <AdminComplaintsChartWrapper />
+          </Suspense>
+        </div>
+      </div>
     </main>
   );
 }
@@ -43,6 +60,52 @@ export async function AdminTotalUsersJoinedChartWrapper() {
 }
 
 export function AdminTotalUsersJoinedChartWrapperSkeleton() {
+  return (
+    <Card className="pt-0">
+      <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+        <div className="grid flex-1 gap-1">
+          <CardTitle className="h-6 w-56 animate-pulse rounded bg-muted" />
+          <CardDescription className="h-4 w-64 animate-pulse rounded bg-muted" />
+        </div>
+        <div className="h-8 w-44 animate-pulse rounded bg-muted" />
+      </CardHeader>
+      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+        <div className="h-80 w-full animate-pulse rounded-md bg-muted" />
+      </CardContent>
+    </Card>
+  );
+}
+
+export async function AdminLeaveRequestsChartWrapper() {
+  const data = await getAdminLeaveRequestsByDays();
+
+  return <AdminLeaveRequestsChartClient data={data} />;
+}
+
+export function AdminLeaveRequestsChartWrapperSkeleton() {
+  return (
+    <Card className="pt-0">
+      <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+        <div className="grid flex-1 gap-1">
+          <CardTitle className="h-6 w-56 animate-pulse rounded bg-muted" />
+          <CardDescription className="h-4 w-64 animate-pulse rounded bg-muted" />
+        </div>
+        <div className="h-8 w-44 animate-pulse rounded bg-muted" />
+      </CardHeader>
+      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+        <div className="h-80 w-full animate-pulse rounded-md bg-muted" />
+      </CardContent>
+    </Card>
+  );
+}
+
+export async function AdminComplaintsChartWrapper() {
+  const data = await getAdminComplaintsByDays();
+
+  return <AdminComplaintsChartClient data={data} />;
+}
+
+export function AdminComplaintsChartWrapperSkeleton() {
   return (
     <Card className="pt-0">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">

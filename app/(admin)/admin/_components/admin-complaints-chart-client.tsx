@@ -4,9 +4,17 @@ import * as React from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ChartColumnIncreasing, ChevronDownIcon } from "lucide-react";
 
-import type { AdminUsersJoinedChartPoint } from "@/app/data/admin/get-admin-dashboard";
+import type { AdminComplaintsChartPoint } from "@/app/data/admin/get-admin-dashboard";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Card,
   CardContent,
@@ -22,23 +30,11 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-type AdminTotalUsersJoinedChartClientProps = {
-  data: AdminUsersJoinedChartPoint[];
-};
 
 const chartConfig = {
-  usersJoined: {
-    label: "Users joined",
-    color: "var(--chart-1)",
+  complaints: {
+    label: "Complaints",
+    color: "var(--chart-2)",
   },
 } satisfies ChartConfig;
 
@@ -51,25 +47,30 @@ function chartRangeLabel(days: ChartRange) {
 }
 
 function normalizeChartRange(value: number): ChartRange {
-  if (value === 7 || value === 30 || value === 60) {
-    return value;
+  if (chartRangeValues.includes(value as ChartRange)) {
+    return value as ChartRange;
   }
 
   return 30;
 }
 
-export function AdminTotalUsersJoinedChartClient({
+type AdminComplaintsChartClientProps = {
+  data: AdminComplaintsChartPoint[];
+};
+
+export function AdminComplaintsChartClient({
   data,
-}: AdminTotalUsersJoinedChartClientProps) {
+}: AdminComplaintsChartClientProps) {
   const [chartRange, setChartRange] = React.useState<ChartRange>(30);
   const selectedRange = normalizeChartRange(chartRange);
 
-  const filteredData = React.useMemo(() => {
-    return data.slice(data.length - selectedRange);
-  }, [data, selectedRange]);
+  const filteredData = React.useMemo(
+    () => data.slice(data.length - selectedRange),
+    [data, selectedRange]
+  );
 
-  const totalUsersJoined = React.useMemo(
-    () => filteredData.reduce((total, item) => total + item.usersJoined, 0),
+  const totalComplaints = React.useMemo(
+    () => filteredData.reduce((total, item) => total + item.complaints, 0),
     [filteredData]
   );
 
@@ -77,11 +78,9 @@ export function AdminTotalUsersJoinedChartClient({
     <Card className="pt-0">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1">
-          <CardTitle>
-            Total Users Joined - {chartRangeLabel(selectedRange)}
-          </CardTitle>
+          <CardTitle>Complaints - {chartRangeLabel(selectedRange)}</CardTitle>
           <CardDescription>
-            Showing {totalUsersJoined} users joined in the selected period
+            Showing {totalComplaints} complaints
           </CardDescription>
         </div>
 
@@ -143,7 +142,6 @@ export function AdminTotalUsersJoinedChartClient({
                 });
               }}
             />
-
             <YAxis
               tickLine={false}
               axisLine={false}
@@ -152,7 +150,6 @@ export function AdminTotalUsersJoinedChartClient({
               allowDecimals={false}
               domain={[0, "auto"]}
             />
-
             <ChartTooltip
               cursor={false}
               content={
@@ -168,12 +165,12 @@ export function AdminTotalUsersJoinedChartClient({
                 />
               }
             />
+            <ChartLegend content={<ChartLegendContent />} />
             <Bar
-              dataKey="usersJoined"
-              fill="var(--color-usersJoined)"
+              dataKey="complaints"
+              fill="var(--color-complaints)"
               radius={[8, 8, 0, 0]}
             />
-            <ChartLegend content={<ChartLegendContent />} />
           </BarChart>
         </ChartContainer>
       </CardContent>
