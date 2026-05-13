@@ -6,7 +6,7 @@ import {
   Inngest,
   Neon,
   PostgreSQL,
-  PostHog,
+  // PostHog,
   Vercel,
 } from "./companies";
 import Image from "next/image";
@@ -63,12 +63,12 @@ const data: Integration[] = [
       "Security layer for applications. Protection against bots, rate limiting, and email validation out of the box.",
     icon: <DecorIcon position="bottom-left" />,
   },
-  {
-    logo: <PostHog />,
-    name: "PostHog",
-    description:
-      "Product analytics and feature management. Understand user behavior with session replays and feature flags.",
-  },
+  // {
+  //   logo: <PostHog />,
+  //   name: "PostHog",
+  //   description:
+  //     "Product analytics and feature management. Understand user behavior with session replays and feature flags.",
+  // },
   {
     logo: <Neon />,
     name: "Neon",

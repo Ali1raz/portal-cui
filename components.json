@@ -11,6 +11,9 @@
     "prefix": ""
   },
   "iconLibrary": "lucide",
+  "rtl": false,
+  "menuColor": "inverted-translucent",
+  "menuAccent": "subtle",
   "aliases": {
     "components": "@/components",
     "utils": "@/lib/utils",
@@ -18,9 +21,6 @@
     "lib": "@/lib",
     "hooks": "@/hooks"
   },
-  "rtl": false,
-  "menuColor": "inverted-translucent",
-  "menuAccent": "subtle",
   "registries": {
     "@aceternity": "https://ui.aceternity.com/registry/{name}.json",
     "@tailark": "https://tailark.com/r/{name}.json",
@@ -29,6 +29,7 @@
     "@magicui": "https://magicui.design/r/{name}.json",
     "@manifest": "https://ui.manifest.build/r/{name}.json",
     "@kibo-ui": "https://www.kibo-ui.com/r/{name}.json",
-    "@efferd": "https://efferd.com/r/{name}.json"
+    "@efferd": "https://efferd.com/r/{name}.json",
+    "@shadcnblocks": "https://shadcnblocks.com/r/{name}.json"
   }
 }

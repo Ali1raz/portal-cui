@@ -313,7 +313,7 @@ export function getNavLinks({
         icon: IconMessagePlus,
       },
       {
-        title: "Approved Leave Requests",
+        title: "Update Attendance",
         href: "/admin/leave-requests/approved",
         icon: IconCheckupList,
       },

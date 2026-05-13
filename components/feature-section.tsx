@@ -138,7 +138,6 @@ function ReportsVisual() {
           <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
             <ClipboardCheckIcon className="size-4" aria-hidden="true" />
           </div>
-          <div className="font-medium text-muted-foreground">95%</div>
         </div>
         <ReportsChartsSvg className="translate-x-[5%] -rotate-2 scale-150" />
       </div>
