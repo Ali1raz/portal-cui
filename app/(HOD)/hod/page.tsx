@@ -7,6 +7,7 @@ import { AtRiskStudentsTable } from "./_components/at-risk-students-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { atRiskStudentsSearchParamsCache } from "./at-risk-students-search-params";
 import { getHodDetails } from "@/app/data/hod/get-hod-details";
+import { APP } from "@/lib/data/utils";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -44,9 +45,9 @@ export default async function HODPage(props: {
                 At-Risk Students
               </h2>
               <p className="text-muted-foreground text-sm max-w-2xl">
-                Students below 80% effective attendance (Present + Leave) /
-                Total — at risk of being debarred from exams. Intervene before
-                it is too late.
+                Students below {APP.EFFECTIVE_THRESHOLD_PCT}% effective
+                attendance (Present + Leave) / Total — at risk of being debarred
+                from exams.
               </p>
             </div>
             <Suspense fallback={<AtRiskStudentsTableSkeleton />}>

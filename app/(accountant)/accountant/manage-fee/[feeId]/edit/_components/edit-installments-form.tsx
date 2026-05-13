@@ -123,6 +123,7 @@ export function EditInstallmentsForm({
           form={form}
           showToggle={false}
           forceVisible
+          showFinePolicy={false}
         />
 
         <div className="flex flex-row gap-2 sm:gap-4 justify-end">

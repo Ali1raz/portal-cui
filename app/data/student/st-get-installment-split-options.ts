@@ -8,6 +8,7 @@ import { requireSession } from "../session/require-session";
 export type StudentFeeSplitContext = {
   studentId: string;
   semesterFeeId: string;
+  studentSemesterFeeId: string;
   semesterLabel: string;
   totalAmount: number;
   remainingAmount: number;
@@ -23,15 +24,11 @@ export type StudentFeeSplitContext = {
 export async function getStudentFeeSplitContextByStudentId(
   studentId: string
 ): Promise<StudentFeeSplitContext | null> {
-  const data = await prisma.semesterFee.findFirst({
+  const data = await prisma.studentSemesterFee.findFirst({
     where: {
-      status: "PUBLISHED",
-      semester: {
-        registrations: {
-          some: {
-            studentId,
-          },
-        },
+      studentId,
+      semesterFee: {
+        status: "PUBLISHED",
       },
     },
     orderBy: {
@@ -39,22 +36,25 @@ export async function getStudentFeeSplitContextByStudentId(
     },
     select: {
       id: true,
-      totalAmount: true,
-      semester: {
+      semesterFeeId: true,
+      totalDue: true,
+      semesterFee: {
         select: {
-          semester: true,
-          year: true,
-          batch: true,
-          program: true,
-          department: true,
+          totalAmount: true,
+          semester: {
+            select: {
+              semester: true,
+              year: true,
+              batch: true,
+              program: true,
+              department: true,
+            },
+          },
         },
       },
-      studentFeeInstallments: {
+      installments: {
         where: {
-          studentId,
-        },
-        orderBy: {
-          orderNo: "asc",
+          status: "UNPAID",
         },
         select: {
           amount: true,
@@ -69,27 +69,25 @@ export async function getStudentFeeSplitContextByStudentId(
     return null;
   }
 
-  const totalAmount = Number(data.totalAmount);
-  const unpaidAmount = data.studentFeeInstallments.reduce(
-    (sum, installment) => {
-      return (
-        sum + (installment.status === "UNPAID" ? Number(installment.amount) : 0)
-      );
-    },
+  const totalAmount = Number(data.semesterFee.totalAmount ?? data.totalDue);
+  const unpaidAmount = data.installments.reduce(
+    (sum, installment) => sum + Number(installment.amount),
     0
   );
 
-  const remainingAmount = data.studentFeeInstallments.length
+  const remainingAmount = data.installments.length
     ? Math.max(unpaidAmount, 0)
     : totalAmount;
-  const semester = data.semester;
+
+  const semester = data.semesterFee.semester;
   const semesterLabel = `Sem ${semester.semester} (${semester.batch}${semester.year
     .toString()
-    .slice(-2)}-${semester.program}${semester.department})`;
+    .slice(-2)}-${semester.program ?? ""}${semester.department})`;
 
   return {
     studentId,
-    semesterFeeId: data.id,
+    semesterFeeId: data.semesterFeeId,
+    studentSemesterFeeId: data.id,
     semesterLabel,
     totalAmount,
     remainingAmount,

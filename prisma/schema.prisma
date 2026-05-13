@@ -143,6 +143,7 @@ model Student {
   complaints               Complaint[]
   studentFeeInstallments   StudentFeeInstallment[]
   installmentSplitRequests InstallmentSplitRequest[]
+  studentSemesterFees      StudentSemesterFee[]
 
   @@map("student")
 }
@@ -799,6 +800,7 @@ model Announcement {
 // ----------------
 // FEE INSTALLMENTS
 
+// 1. accountant creates
 model SemesterFee {
   id String @id @default(uuid())
 
@@ -813,8 +815,8 @@ model SemesterFee {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
-  feeInstallments        FeeInstallment[]
-  studentFeeInstallments StudentFeeInstallment[]
+  feeInstallments     FeeInstallment[]
+  studentSemesterFees StudentSemesterFee[]
 
   @@index([semesterId, status])
   @@map("semester_fee")
@@ -823,6 +825,11 @@ model SemesterFee {
 enum SemesterFeeStatus {
   DRAFT
   PUBLISHED
+}
+
+enum FinePolicyType {
+  FIXED // flat charge applied once past due date
+  PER_DAY // dailyRate × daysOverdue
 }
 
 model FeeInstallment {
@@ -834,33 +841,63 @@ model FeeInstallment {
   dueDate       DateTime
   description   String?
 
-  paidStatus FeeInstallmentPaidStatus @default(UNPAID)
-  paidAt     DateTime?
+  // Fine policy configuration (applied at read time)
+  fineType      FinePolicyType? // null = no fine
+  fineAmount    Decimal?        @db.Decimal(10, 2) // flat amount or per-day rate
+  fineMaxDays   Int? // PER_DAY only — stop charging after N days
+  fineCapAmount Decimal?        @db.Decimal(10, 2) // PER_DAY only — max total fine in PKR
 
   studentFeeInstallments StudentFeeInstallment[]
 
-  createdAt                DateTime                  @default(now())
-  updatedAt                DateTime                  @updatedAt
-  installmentSplitRequests InstallmentSplitRequest[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([semesterFeeId, installmentNo])
   @@map("fee_installment")
 }
 
-enum FeeInstallmentPaidStatus {
-  UNPAID
+// =============================
+// 2. student specific 
+
+model StudentSemesterFee {
+  id            String      @id @default(uuid())
+  studentId     String
+  student       Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  semesterFeeId String
+  semesterFee   SemesterFee @relation(fields: [semesterFeeId], references: [id], onDelete: Cascade)
+
+  totalDue Decimal                  @db.Decimal(10, 2) // Can be adjusted (scholarship, etc.)
+  status   StudentSemesterFeeStatus @default(PENDING)
+
+  installments  StudentFeeInstallment[]
+  splitRequests InstallmentSplitRequest[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@unique([studentId, semesterFeeId])
+  @@index([studentId, status])
+  @@map("student_semester_fees")
+}
+
+enum StudentSemesterFeeStatus {
+  PENDING
   PAID
 }
 
+enum FineStatus {
+  PENDING
+  APPLIED
+  WAIVED
+  PAID
+}
+
+// created when hod accepted InstallmentSplitRequest
+// which is created by student
 model StudentFeeInstallment {
   id        String  @id @default(uuid())
   studentId String
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  installmentId String?
-  installment   FeeInstallment? @relation(fields: [installmentId], references: [id], onDelete: Cascade)
-  semesterFeeId String
-  semesterFee   SemesterFee     @relation(fields: [semesterFeeId], references: [id], onDelete: Cascade)
 
   amount  Decimal                     @db.Decimal(10, 2) // may differ from base if split approved
   status  StudentFeeInstallmentStatus @default(UNPAID)
@@ -874,8 +911,14 @@ model StudentFeeInstallment {
   updatedAt                DateTime                  @updatedAt
   installmentSplitRequests InstallmentSplitRequest[]
 
-  @@unique([studentId, semesterFeeId, orderNo])
-  @@index([studentId, semesterFeeId]) // student's fee page
+  feeInstallment   FeeInstallment? @relation(fields: [feeInstallmentId], references: [id], onDelete: Cascade)
+  feeInstallmentId String? // null for split-generated chunks
+
+  studentSemesterFee   StudentSemesterFee? @relation(fields: [studentSemesterFeeId], references: [id], onDelete: Cascade)
+  studentSemesterFeeId String?
+
+  @@unique([studentSemesterFeeId, orderNo])
+  @@index([studentId]) // student's fee page
   @@index([studentId, status])
   @@map("student_fee_installment")
 }
@@ -888,9 +931,6 @@ enum StudentFeeInstallmentStatus {
 
 model InstallmentSplitRequest {
   id String @id @default(uuid())
-
-  feeInstallmentId String?
-  feeInstallment   FeeInstallment? @relation(fields: [feeInstallmentId], references: [id], onDelete: Cascade)
 
   studentId String?
   student   Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -907,8 +947,10 @@ model InstallmentSplitRequest {
   updatedAt               DateTime               @updatedAt
   studentFeeInstallment   StudentFeeInstallment? @relation(fields: [studentFeeInstallmentId], references: [id])
   studentFeeInstallmentId String?
+  studentSemesterFee      StudentSemesterFee?    @relation(fields: [studentSemesterFeeId], references: [id])
+  studentSemesterFeeId    String?
 
-  @@index([feeInstallmentId, status])
+  @@index([status])
   @@map("installment_split_request")
 }
 

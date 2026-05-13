@@ -89,9 +89,7 @@ export function ReviewFeeSplitRequestForm({
                   <SelectValue placeholder="Select a decision" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="HOD_APPROVED">
-                    Approve and forward
-                  </SelectItem>
+                  <SelectItem value="HOD_APPROVED">Approve</SelectItem>
                   <SelectItem value="HOD_REVIEW_REQUESTED">
                     Request update
                   </SelectItem>

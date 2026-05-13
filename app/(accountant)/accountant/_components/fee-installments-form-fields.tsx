@@ -17,11 +17,21 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormDateField } from "@/components/general/form-calendar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import type { FeeInstallmentSchemaType } from "@/app/(accountant)/accountant/create-fee/schema";
 
-type FeeInstallmentsFormFieldsProps<TFormValues extends FieldValues> = {
+type FeeInstallmentsFormFieldsProps<
+  TFormValues extends {
+    makeInstallments?: boolean;
+    totalAmount?: number;
+    installments?: FeeInstallmentSchemaType;
+  },
+> = {
   form: UseFormReturn<TFormValues>;
   showToggle?: boolean;
   forceVisible?: boolean;
+  showFinePolicy?: boolean;
 };
 
 /// Reusable installments fields shared by create-fee and edit-installments forms.
@@ -29,6 +39,7 @@ export function FeeInstallmentsFormFields<TFormValues extends FieldValues>({
   form,
   showToggle = true,
   forceVisible = false,
+  showFinePolicy = true,
 }: FeeInstallmentsFormFieldsProps<TFormValues>) {
   const internalForm = form as unknown as UseFormReturn<FieldValues>;
 
@@ -46,6 +57,11 @@ export function FeeInstallmentsFormFields<TFormValues extends FieldValues>({
     control: internalForm.control,
     name: "installments.firstInstallmentAmount",
   }) as number | undefined;
+
+  const firstInstallmentDueDate = useWatch({
+    control: internalForm.control,
+    name: "installments.firstInstallmentDueDate",
+  }) as Date | undefined;
 
   const showInstallmentsSection =
     forceVisible || makeInstallmentsEnabled === true;
@@ -146,6 +162,154 @@ export function FeeInstallmentsFormFields<TFormValues extends FieldValues>({
             hint="Select due date"
             calendarProps={{}}
           />
+
+          {showFinePolicy && !!firstInstallmentDueDate && (
+            <div className="border rounded-lg p-4">
+              <h3 className="font-semibold mb-4">Late Fee Policy (Optional)</h3>
+
+              <FormField
+                control={internalForm.control}
+                name="installments.fineType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fine Type</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={(value) =>
+                          field.onChange(value === "null" ? null : value)
+                        }
+                        value={field.value ?? "null"}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="null" id="fine-none" />
+                          <Label htmlFor="fine-none">No Fine</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="FIXED" id="fine-fixed" />
+                          <Label htmlFor="fine-fixed">
+                            Fixed (one-time charge)
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="PER_DAY" id="fine-per-day" />
+                          <Label htmlFor="fine-per-day">
+                            Per Day (daily rate)
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {internalForm.watch("installments.fineType") && (
+                <>
+                  <FormField
+                    control={internalForm.control}
+                    name="installments.fineAmount"
+                    render={({ field }) => (
+                      <FormItem className="mt-4">
+                        <FormLabel htmlFor="fine-amount">
+                          {internalForm.watch("installments.fineType") ===
+                          "FIXED"
+                            ? "Flat Charge (PKR)"
+                            : "Daily Rate (PKR)"}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            id="fine-amount"
+                            type="number"
+                            placeholder="500"
+                            value={field.value ?? ""}
+                            step={10}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value ? parseInt(e.target.value) : null
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {(internalForm.watch("installments.fineType") as string) ===
+                    "PER_DAY" && (
+                    <>
+                      <FormField
+                        control={internalForm.control}
+                        name="installments.fineMaxDays"
+                        render={({ field }) => (
+                          <FormItem className="mt-4">
+                            <FormLabel htmlFor="fine-max-days">
+                              Max Days Charged (Optional)
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                id="fine-max-days"
+                                type="number"
+                                placeholder="30"
+                                value={field.value ?? ""}
+                                min={1}
+                                onChange={(e) =>
+                                  field.onChange(
+                                    e.target.value
+                                      ? parseInt(e.target.value)
+                                      : null
+                                  )
+                                }
+                              />
+                            </FormControl>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                              Leave empty for unlimited
+                            </p>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={internalForm.control}
+                        name="installments.fineCapAmount"
+                        render={({ field }) => (
+                          <FormItem className="mt-4">
+                            <FormLabel htmlFor="fine-cap-amount">
+                              Fine Cap (PKR) (Optional)
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                id="fine-cap-amount"
+                                type="number"
+                                placeholder="e.g. 5000"
+                                value={field.value ?? ""}
+                                step={10}
+                                onChange={(e) =>
+                                  field.onChange(
+                                    e.target.value
+                                      ? parseInt(e.target.value)
+                                      : null
+                                  )
+                                }
+                              />
+                            </FormControl>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                              Maximum total fine amount
+                            </p>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          )}
 
           <FormField
             control={internalForm.control}

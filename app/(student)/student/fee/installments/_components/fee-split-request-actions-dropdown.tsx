@@ -1,18 +1,15 @@
 "use client";
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   MoreHorizontal,
   Trash2,
-  CircleDollarSign,
   Loader2,
-  Check,
   Printer,
   Pencil,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
-
 import { tryCatch } from "@/hooks/tryCatch";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,11 +32,9 @@ import {
   deleteInstallmentSplitRequest,
   markInstallmentRequestAsPaid,
 } from "../actions";
-import {
-  FeeVoucherTemplate,
-  type VoucherData,
-} from "../../_components/fee-voucher";
+import { FeeVoucherTemplate, VoucherData } from "../../_components/fee-voucher";
 import { saveAsPdf } from "../../_components/save-as-pdf";
+import { useState, useRef, useTransition } from "react";
 
 export function FeeSplitRequestActionsDropdown({
   requestId,
@@ -59,10 +54,10 @@ export function FeeSplitRequestActionsDropdown({
   filename?: string;
 }) {
   const router = useRouter();
-  const [isPending, startTransition] = React.useTransition();
-  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
-  const [isMarkPaidOpen, setIsMarkPaidOpen] = React.useState(false);
-  const voucherRef = React.useRef<HTMLDivElement>(null);
+  const [isPending, startTransition] = useTransition();
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isMarkPaidOpen, setIsMarkPaidOpen] = useState(false);
+  const voucherRef = useRef<HTMLDivElement>(null);
 
   async function handlePrintVoucher() {
     if (!voucherRef.current) {
@@ -86,9 +81,9 @@ export function FeeSplitRequestActionsDropdown({
     }
   }
 
-  async function handleMarkPaid() {
+  async function handleDelete() {
     const { data: result, error } = await tryCatch(
-      markInstallmentRequestAsPaid(requestId)
+      deleteInstallmentSplitRequest(requestId)
     );
 
     if (error) {
@@ -102,13 +97,13 @@ export function FeeSplitRequestActionsDropdown({
     }
 
     toast.success(result.message);
-    setIsMarkPaidOpen(false);
+    setIsDeleteOpen(false);
     router.refresh();
   }
 
-  async function handleDelete() {
+  async function handleMarkAsPaid() {
     const { data: result, error } = await tryCatch(
-      deleteInstallmentSplitRequest(requestId)
+      markInstallmentRequestAsPaid(requestId)
     );
 
     if (error) {
@@ -154,59 +149,39 @@ export function FeeSplitRequestActionsDropdown({
             </DropdownMenuItem>
           ) : null}
 
-          {canMarkPaid ? (
-            <DropdownMenuItem
-              disabled={isPending}
-              onSelect={(event) => {
-                event.preventDefault();
-                setIsMarkPaidOpen(true);
-              }}
-            >
-              <CircleDollarSign className="size-4" />
-              Mark as Paid
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem disabled>
-              <Check className="size-4" />
-              Mark as Paid
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem
+            disabled={isPending || !canMarkPaid}
+            onSelect={(event) => {
+              event.preventDefault();
+              setIsMarkPaidOpen(true);
+            }}
+          >
+            <Check className="size-4" />
+            Mark as Paid
+          </DropdownMenuItem>
 
-          {canEdit ? (
-            <DropdownMenuItem
-              disabled={isPending}
-              onSelect={(event) => {
-                event.preventDefault();
-                router.push(`/student/fee/installments/${requestId}/edit`);
-              }}
-            >
-              <Pencil className="size-4" />
-              Edit Request
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem disabled>
-              <Pencil className="size-4" />
-              Edit Request
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem
+            disabled={isPending || !canEdit}
+            onSelect={(event) => {
+              event.preventDefault();
+              router.push(`/student/fee/installments/${requestId}/edit`);
+            }}
+          >
+            <Pencil className="size-4" />
+            Edit Request
+          </DropdownMenuItem>
 
-          {canDelete ? (
-            <DropdownMenuItem
-              disabled={isPending}
-              onSelect={(event) => {
-                event.preventDefault();
-                setIsDeleteOpen(true);
-              }}
-            >
-              <Trash2 className="size-4" />
-              Delete
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem disabled>
-              <Trash2 className="size-4" />
-              Delete
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem
+            disabled={isPending || !canDelete}
+            variant="destructive"
+            onSelect={(event) => {
+              event.preventDefault();
+              setIsDeleteOpen(true);
+            }}
+          >
+            <Trash2 className="size-4" />
+            Cancel Request
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -233,7 +208,7 @@ export function FeeSplitRequestActionsDropdown({
               disabled={isPending}
               onClick={() => {
                 startTransition(() => {
-                  void handleMarkPaid();
+                  void handleMarkAsPaid();
                 });
               }}
             >
@@ -253,9 +228,9 @@ export function FeeSplitRequestActionsDropdown({
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Installment Request</DialogTitle>
+            <DialogTitle>Cancel Installment Request</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this installment request? This
+              Are you sure you want to cancel this installment request? This
               action cannot be undone.
             </DialogDescription>
           </DialogHeader>
@@ -281,10 +256,10 @@ export function FeeSplitRequestActionsDropdown({
               {isPending ? (
                 <>
                   <Loader2 className="animate-spin size-4" />
-                  Deleting...
+                  Canceling...
                 </>
               ) : (
-                "Delete"
+                "Cancel Request"
               )}
             </Button>
           </DialogFooter>

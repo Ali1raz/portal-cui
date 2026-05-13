@@ -18,7 +18,7 @@ export async function createInstallmentSplitRequest(
     const session = await requireSession();
 
     const can = await requirePermission({
-      fee: ["view"],
+      installments: ["request"],
     });
 
     if (!can) {
@@ -91,13 +91,30 @@ export async function createInstallmentSplitRequest(
       };
     }
 
+    // Check total installments limit
+    const totalInstallments = await prisma.studentFeeInstallment.count({
+      where: { studentSemesterFeeId: feeSplitContext.studentSemesterFeeId },
+    });
+
+    console.log("Total installments for this semester fee:", totalInstallments);
+
+    if (totalInstallments >= 3) {
+      return {
+        status: "error",
+        message:
+          "Maximum of 3 installments allowed. Cannot request further splits.",
+      };
+    }
+
     const [currentStudentInstallment, currentFeeInstallment] =
       await Promise.all([
         prisma.studentFeeInstallment.findFirst({
           where: {
             studentId: student.id,
-            semesterFeeId: feeSplitContext.semesterFeeId,
             status: "UNPAID",
+            studentSemesterFee: {
+              semesterFeeId: feeSplitContext.semesterFeeId,
+            },
           },
           orderBy: {
             orderNo: "asc",
@@ -133,7 +150,6 @@ export async function createInstallmentSplitRequest(
       await prisma.installmentSplitRequest.findFirst({
         where: {
           studentId: student.id,
-
           status: {
             in: ["PENDING", "HOD_REVIEW_REQUESTED"],
           },
@@ -182,6 +198,7 @@ export async function createInstallmentSplitRequest(
       message: `Split request submitted. Remaining installment will be PKR ${secondInstallmentAmount.toLocaleString("en-US")}.`,
     };
   } catch (error) {
+    console.log("Error in createInstallmentSplitRequest:", error);
     return {
       status: "error",
       message: errorMessage(

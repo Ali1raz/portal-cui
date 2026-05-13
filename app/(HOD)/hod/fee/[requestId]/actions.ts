@@ -2,22 +2,32 @@
 
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireSession } from "@/app/data/session/require-session";
-import { getStudentFeeSplitContextByStudentId } from "@/app/data/student/st-get-installment-split-options";
 import { errorMessage } from "@/lib/error-message";
 import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
 import { SplitRequestStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
+import {
+  calculateFine,
+  type FinePolicyType,
+} from "@/lib/utils/fine-calculation";
 import type { ApiResponseType } from "@/lib/types";
 import {
   hodReviewSplitRequestSchema,
   type HodReviewSplitRequestSchemaType,
 } from "./review/schema";
+import { Decimal } from "@/lib/generated/prisma/internal/prismaNamespace";
 
 const HOD_ALLOWED_TARGET_STATUSES: SplitRequestStatus[] = [
   "HOD_APPROVED",
   "HOD_REJECTED",
   "HOD_REVIEW_REQUESTED",
 ];
+
+const statusToAction = {
+  HOD_APPROVED: "HOD_APPROVED",
+  HOD_REJECTED: "HOD_REJECTED",
+  HOD_REVIEW_REQUESTED: "HOD_REVIEW_REQUESTED",
+} as const;
 
 export async function hodReviewSplitRequest(
   requestId: string,
@@ -70,6 +80,7 @@ export async function hodReviewSplitRequest(
       };
     }
 
+    // ===== FETCH SPLIT REQUEST WITH ALL REQUIRED DATA =====
     const splitRequest = await prisma.installmentSplitRequest.findFirst({
       where: {
         id: requestId,
@@ -82,25 +93,25 @@ export async function hodReviewSplitRequest(
         status: true,
         requestedAmount: true,
         preferredDueDate: true,
+        studentSemesterFeeId: true,
         studentId: true,
-        feeInstallmentId: true,
-        studentFeeInstallmentId: true,
-        feeInstallment: {
-          select: {
-            semesterFeeId: true,
-            amount: true,
-            dueDate: true,
-          },
-        },
         studentFeeInstallment: {
           select: {
             id: true,
-            studentId: true,
-            semesterFeeId: true,
-            installmentId: true,
+            orderNo: true,
             amount: true,
             dueDate: true,
-            orderNo: true,
+            studentSemesterFeeId: true,
+            studentId: true,
+            feeInstallmentId: true,
+            feeInstallment: {
+              select: {
+                fineType: true,
+                fineAmount: true,
+                fineMaxDays: true,
+                fineCapAmount: true,
+              },
+            },
           },
         },
       },
@@ -136,154 +147,186 @@ export async function hodReviewSplitRequest(
       };
     }
 
+    // ===== VALIDATE BASE INSTALLMENT EXISTS =====
+    if (!splitRequest.studentFeeInstallment) {
+      return {
+        status: "error",
+        message: "Base installment not found for this split request.",
+      };
+    }
+
+    const baseInstallment = splitRequest.studentFeeInstallment;
+    const sourceOrderNo = baseInstallment.orderNo ?? 1;
+
+    const existingInstallments = await prisma.studentFeeInstallment.count({
+      where: {
+        studentId: splitRequest.studentId!,
+        studentSemesterFeeId: splitRequest.studentSemesterFeeId,
+      },
+    });
+
+    console.log("Existing installments:", existingInstallments);
+
     if (!splitRequest.studentId) {
       return {
         status: "error",
-        message: "Request is missing student details.",
+        message: "Student ID not found for split request.",
       };
     }
 
-    const feeContext = await getStudentFeeSplitContextByStudentId(
-      splitRequest.studentId
-    );
+    const studentSemesterFeeId =
+      splitRequest.studentSemesterFeeId || baseInstallment.studentSemesterFeeId;
 
-    if (!feeContext) {
+    if (!studentSemesterFeeId) {
       return {
         status: "error",
-        message: "Could not resolve the student's current fee balance.",
+        message: "Student semester fee not found.",
       };
     }
 
-    const studentIdForInstallments =
-      splitRequest.studentFeeInstallment?.studentId ?? splitRequest.studentId;
-    const semesterFeeIdForInstallments =
-      splitRequest.studentFeeInstallment?.semesterFeeId ??
-      splitRequest.feeInstallment?.semesterFeeId ??
-      feeContext.semesterFeeId;
-    const installmentIdForInstallments =
-      splitRequest.feeInstallmentId ??
-      splitRequest.studentFeeInstallment?.installmentId ??
-      null;
+    // Pre-calculate amounts and fines outside
+    const sourceAmount = Number(baseInstallment.amount);
+    const remainingAmount = sourceAmount - requestedAmount;
+    let accruedFine = 0;
 
-    if (!studentIdForInstallments || !semesterFeeIdForInstallments) {
-      return {
-        status: "error",
-        message: "Request is missing student or semester fee details.",
-      };
-    }
-
-    if (requestedAmount >= feeContext.remainingAmount) {
-      return {
-        status: "error",
-        message: "Requested amount must be less than the remaining fee amount.",
-      };
-    }
-
-    const remainingAmount = feeContext.remainingAmount - requestedAmount;
-
-    if (remainingAmount <= 0) {
-      return {
-        status: "error",
-        message: "Remaining amount must be greater than zero.",
-      };
-    }
-
-    await prisma.$transaction(async (tx) => {
-      let sourceStudentInstallmentId = splitRequest.studentFeeInstallmentId;
-
-      if (validated.data.status === "HOD_APPROVED") {
-        const createdSourceInstallment = await tx.studentFeeInstallment.upsert({
-          where: {
-            studentId_semesterFeeId_orderNo: {
-              studentId: studentIdForInstallments,
-              semesterFeeId: semesterFeeIdForInstallments,
-              orderNo: 1,
-            },
-          },
-          update: {
-            installmentId: installmentIdForInstallments,
-            amount: requestedAmount,
-            dueDate: splitRequest.preferredDueDate,
-            status: "UNPAID",
-            isBase: false,
-          },
-          create: {
-            studentId: studentIdForInstallments,
-            semesterFeeId: semesterFeeIdForInstallments,
-            installmentId: installmentIdForInstallments,
-            amount: requestedAmount,
-            dueDate: splitRequest.preferredDueDate,
-            orderNo: 1,
-            status: "UNPAID",
-            isBase: false,
-          },
-          select: {
-            id: true,
-          },
-        });
-
-        sourceStudentInstallmentId = createdSourceInstallment.id;
-
-        // Calculate due date 30 days after order 1
-        const order2DueDate = new Date(splitRequest.preferredDueDate);
-        order2DueDate.setDate(order2DueDate.getDate() + 30);
-
-        const remainingInstallmentData = {
-          studentId: studentIdForInstallments,
-          semesterFeeId: semesterFeeIdForInstallments,
-          installmentId: installmentIdForInstallments,
-          amount: remainingAmount,
-          dueDate: order2DueDate,
-          orderNo: 2,
-          status: "UNPAID" as const,
-          isBase: false,
+    if (validated.data.status === "HOD_APPROVED") {
+      if (remainingAmount <= 0) {
+        return {
+          status: "error",
+          message: "Requested amount cannot exceed installment amount.",
         };
-
-        await tx.studentFeeInstallment.upsert({
-          where: {
-            studentId_semesterFeeId_orderNo: {
-              studentId: studentIdForInstallments,
-              semesterFeeId: semesterFeeIdForInstallments,
-              orderNo: 2,
-            },
-          },
-          update: {
-            installmentId: installmentIdForInstallments,
-            amount: remainingAmount,
-            dueDate: order2DueDate,
-            status: "UNPAID",
-            isBase: false,
-          },
-          create: {
-            ...remainingInstallmentData,
-            orderNo: 2,
-          },
-        });
       }
 
+      // Calculate accrued fine (if any) using the student's installment due date
+      if (baseInstallment.feeInstallment) {
+        const fineResult = calculateFine(baseInstallment.dueDate, new Date(), {
+          fineType: baseInstallment.feeInstallment
+            .fineType as FinePolicyType | null,
+          fineAmount: baseInstallment.feeInstallment.fineAmount
+            ? Number(baseInstallment.feeInstallment.fineAmount)
+            : null,
+          fineMaxDays: baseInstallment.feeInstallment.fineMaxDays,
+          fineCapAmount: baseInstallment.feeInstallment.fineCapAmount
+            ? Number(baseInstallment.feeInstallment.fineCapAmount)
+            : null,
+        });
+
+        accruedFine = fineResult.fineAmount;
+        console.log("Fine calculated for overdue installment:", accruedFine);
+      }
+    }
+
+    // ===== EXECUTE TRANSACTION =====
+    await prisma.$transaction(async (tx) => {
+      const sourceStudentInstallmentId = baseInstallment.id;
+
+      if (validated.data.status === "HOD_APPROVED") {
+        if (sourceOrderNo === 1) {
+          // Splitting installment 1 — merge remainder+fine into existing 2nd
+
+          // Update source installment 1 with just requestedAmount
+          await tx.studentFeeInstallment.update({
+            where: { id: baseInstallment.id },
+            data: {
+              amount: new Decimal(requestedAmount),
+              dueDate: splitRequest.preferredDueDate,
+              isBase: false,
+            },
+          });
+
+          // Fetch existing 2nd installment and absorb remainder + fine into it
+          const secondInstallment = await tx.studentFeeInstallment.findFirst({
+            where: { studentSemesterFeeId, orderNo: 2 },
+          });
+
+          if (!secondInstallment) {
+            throw new Error("Second installment not found.");
+          }
+
+          await tx.studentFeeInstallment.update({
+            where: { id: secondInstallment.id },
+            data: {
+              amount: new Decimal(
+                remainingAmount + accruedFine + Number(secondInstallment.amount)
+              ),
+            },
+          });
+
+          console.log(
+            `Split inst 1: merged remainder=${remainingAmount} + fine=${accruedFine} into inst 2`
+          );
+        } else if (sourceOrderNo === 2) {
+          // Splitting installment 2 — create new 3rd with remainder+fine
+
+          // Block if already at 3 installments
+          if (existingInstallments >= 3) {
+            throw new Error("Maximum of 3 installments already exist.");
+          }
+
+          // Update source installment 2 with just requestedAmount
+          await tx.studentFeeInstallment.update({
+            where: { id: baseInstallment.id },
+            data: {
+              amount: new Decimal(requestedAmount),
+              dueDate: splitRequest.preferredDueDate,
+              isBase: false,
+            },
+          });
+
+          // Create installment 3 with remainder + fine
+          const remainingDueDate = new Date(splitRequest.preferredDueDate);
+          remainingDueDate.setDate(remainingDueDate.getDate() + 30);
+
+          await tx.studentFeeInstallment.create({
+            data: {
+              studentId: splitRequest.studentId!,
+              studentSemesterFeeId,
+              feeInstallmentId: baseInstallment.feeInstallmentId ?? undefined,
+              amount: new Decimal(remainingAmount + accruedFine),
+              dueDate: remainingDueDate,
+              orderNo: 3,
+              isBase: false,
+              status: "UNPAID",
+            },
+          });
+
+          console.log(
+            `Split inst 2: created inst 3 with remainder=${remainingAmount} + fine=${accruedFine}`
+          );
+        } else {
+          throw new Error("Cannot split installment beyond the second.");
+        }
+      }
+
+      // ===== UPDATE SPLIT REQUEST STATUS =====
       await tx.installmentSplitRequest.update({
         where: {
           id: splitRequest.id,
         },
         data: {
           status: validated.data.status,
-          ...(sourceStudentInstallmentId
+          ...(validated.data.status === "HOD_APPROVED"
             ? { studentFeeInstallmentId: sourceStudentInstallmentId }
             : {}),
         },
       });
 
+      // ===== CREATE REVIEW RECORD =====
       await tx.installmentSplitRequestReview.create({
         data: {
           splitRequestId: splitRequest.id,
           actorRole: "HOD",
           actorId: session.user.id,
-          action: validated.data.status,
+          action: statusToAction[validated.data.status],
           remarks: validated.data.remarks.trim() || null,
           fromStatus: splitRequest.status,
           toStatus: validated.data.status,
         },
       });
+
+      console.log(
+        `Split request ${splitRequest.id} reviewed by HOD: ${validated.data.status}`
+      );
     });
 
     if (validated.data.status === "HOD_APPROVED") {
