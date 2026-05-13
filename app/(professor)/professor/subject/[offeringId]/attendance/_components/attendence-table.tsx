@@ -130,11 +130,9 @@ export function AttendanceTable({
                 {leaveRequest && (
                   <Dialog>
                     <DialogTrigger asChild>
-                      {leaveRequest.status === "PENDING" && (
-                        <AlertCircle className="size-4 text-destructive animate-caret-blink duration-75" />
-                      )}
+                      <AlertCircle className="size-4 text-destructive animate-caret-blink duration-75" />
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
+                    <DialogContent>
                       <DialogHeader>
                         <DialogTitle>Leave Request</DialogTitle>
                         <DialogDescription>
