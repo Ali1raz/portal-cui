@@ -57,6 +57,9 @@ export async function sendLeaveRequest(
         studentId: studentId,
         offeringId: offering.id,
         date: new Date(validated.data.date),
+        status: {
+          notIn: ["REJECTED"],
+        },
       },
     });
 
