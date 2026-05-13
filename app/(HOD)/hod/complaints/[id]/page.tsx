@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { hodGetComplaintDetails } from "@/app/data/hod/get-complaint-details";
+import type { HodComplaintDetails } from "@/app/data/hod/get-complaint-details";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { STATUS_CONFIG } from "@/components/complaints/complaint-constants";
 import { ComplaintStatusBanner } from "@/components/complaints/complaint-status-banner";
 import { ComplaintTimelineItem } from "@/components/complaints/complaint-timeline-item";
+import { ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Complaint Details",
@@ -33,13 +35,14 @@ export default async function HodComplaintDetailsPage(
   props: PageProps<"/hod/complaints/[id]">
 ) {
   const { id } = await props.params;
-  const details = await hodGetComplaintDetails({ id });
+  const details: HodComplaintDetails = await hodGetComplaintDetails({ id });
+  const reviewCount = details.reviews.length;
 
   const statusCfg = STATUS_CONFIG[details.status];
   const canReview = details.status === "HOD_PENDING";
 
   return (
-    <div className="max-w-5xl w-full p-4 md:px-8 space-y-4">
+    <div className="w-full p-4 md:px-8 space-y-4">
       {/* ── Header ── */}
       <div className="space-y-4">
         <Button
@@ -100,7 +103,6 @@ export default async function HodComplaintDetailsPage(
                   {statusCfg.label}
                 </Badge>
                 <Badge>{details.category}</Badge>
-                <Badge>{details.targetDepartment}</Badge>
               </div>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {details.details}
@@ -131,10 +133,9 @@ export default async function HodComplaintDetailsPage(
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Activity Timeline
-                {details._count.reviews > 0 && (
+                {reviewCount > 0 && (
                   <Badge size="md">
-                    {details._count.reviews}{" "}
-                    {details._count.reviews === 1 ? "event" : "events"}
+                    {reviewCount} {reviewCount === 1 ? "event" : "events"}
                   </Badge>
                 )}
               </CardTitle>
@@ -208,10 +209,7 @@ export default async function HodComplaintDetailsPage(
                 {details.assignments.map((a) => (
                   <div key={a.id} className="space-y-1">
                     <div className="flex items-center gap-1.5 text-xs font-medium">
-                      <span className="rounded bg-muted px-1.5 py-0.5 font-mono">
-                        {a.fromDepartment}
-                      </span>
-                      <span className="text-muted-foreground">→</span>
+                      <ArrowRight />
                       <span className="rounded bg-muted px-1.5 py-0.5 font-mono">
                         {a.toDepartment}
                       </span>

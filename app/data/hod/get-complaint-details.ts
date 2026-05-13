@@ -44,8 +44,6 @@ export async function hodGetComplaintDetails({ id }: { id: string }) {
       targetDepartment: true,
       createdAt: true,
       imageKey: true,
-
-      _count: { select: { reviews: true } },
       student: {
         select: {
           registrationNo: true,
@@ -94,7 +92,6 @@ export async function hodGetComplaintDetails({ id }: { id: string }) {
         orderBy: { assignedAt: "desc" },
         select: {
           id: true,
-          fromDepartment: true,
           toDepartment: true,
           reason: true,
           assignedAt: true,
