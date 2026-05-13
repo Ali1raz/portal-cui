@@ -7,6 +7,13 @@ import { AtRiskStudentsTable } from "./_components/at-risk-students-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { atRiskStudentsSearchParamsCache } from "./at-risk-students-search-params";
 import { getHodDetails } from "@/app/data/hod/get-hod-details";
+import {
+  getHodComplaintsByDays,
+  getHodLeaveRequestsByDays,
+} from "@/app/data/hod/get-hod-dashboard";
+import { Department } from "@/lib/generated/prisma/enums";
+import { HodComplaintsChartClient } from "./_components/hod-complaints-chart-client";
+import { HodLeaveRequestsChartClient } from "./_components/hod-leave-requests-chart-client";
 import { APP } from "@/lib/data/utils";
 
 export const metadata: Metadata = {
@@ -54,6 +61,28 @@ export default async function HODPage(props: {
               <AtRiskStudentsList params={parsedParams} />
             </Suspense>
           </section>
+
+          <section className="space-y-3" aria-labelledby="hod-charts-heading">
+            <div className="flex flex-col gap-2">
+              <h2
+                id="hod-charts-heading"
+                className="text-xl font-semibold tracking-tight"
+              >
+                Department Requests
+              </h2>
+              <p className="text-muted-foreground text-sm max-w-2xl">
+                Leave and complaint trends for your department.
+              </p>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <Suspense fallback={<HodLeaveRequestsChartWrapperSkeleton />}>
+                <HodLeaveRequestsChartWrapper department={hod.department} />
+              </Suspense>
+              <Suspense fallback={<HodComplaintsChartWrapperSkeleton />}>
+                <HodComplaintsChartWrapper department={hod.department} />
+              </Suspense>
+            </div>
+          </section>
         </div>
       </div>
     </div>
@@ -69,12 +98,60 @@ async function AtRiskStudentsList({
   return <AtRiskStudentsTable students={students} totalCount={totalCount} />;
 }
 
+export async function HodLeaveRequestsChartWrapper({
+  department,
+}: {
+  department: string;
+}) {
+  const data = await getHodLeaveRequestsByDays(department as Department);
+  return <HodLeaveRequestsChartClient data={data} />;
+}
+
+export function HodLeaveRequestsChartWrapperSkeleton() {
+  return (
+    <div className="rounded-md border bg-background p-4">
+      <div className="flex items-center justify-between gap-4 border-b pb-4">
+        <div className="space-y-2">
+          <div className="h-6 w-40 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-64 animate-pulse rounded bg-muted" />
+        </div>
+        <div className="h-10 w-32 animate-pulse rounded bg-muted" />
+      </div>
+      <div className="mt-4 h-80 w-full animate-pulse rounded-md bg-muted" />
+    </div>
+  );
+}
+
+export async function HodComplaintsChartWrapper({
+  department,
+}: {
+  department: string;
+}) {
+  const data = await getHodComplaintsByDays(department as Department);
+  return <HodComplaintsChartClient data={data} />;
+}
+
+export function HodComplaintsChartWrapperSkeleton() {
+  return (
+    <div className="rounded-md border bg-background p-4">
+      <div className="flex items-center justify-between gap-4 border-b pb-4">
+        <div className="space-y-2">
+          <div className="h-6 w-40 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-64 animate-pulse rounded bg-muted" />
+        </div>
+        <div className="h-10 w-32 animate-pulse rounded bg-muted" />
+      </div>
+      <div className="mt-4 h-80 w-full animate-pulse rounded-md bg-muted" />
+    </div>
+  );
+}
+
 /// Loading skeleton for at-risk students table.
 function AtRiskStudentsTableSkeleton() {
   return (
     <div className="w-full space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <Skeleton className="h-10 flex-1 min-w-[220px]" />
+        <Skeleton className="h-10 flex-1 min-w-55" />
       </div>
 
       <div className="rounded-md border">
