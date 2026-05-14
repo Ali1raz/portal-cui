@@ -222,45 +222,59 @@ export async function hodReviewSplitRequest(
 
       if (validated.data.status === "HOD_APPROVED") {
         if (sourceOrderNo === 1) {
-          // Splitting installment 1 — merge remainder+fine into existing 2nd
+          // Splitting installment 1 — move remainder+fine into the next unpaid installment.
+          const nextUnpaidInstallment =
+            await tx.studentFeeInstallment.findFirst({
+              where: {
+                studentSemesterFeeId,
+                status: "UNPAID",
+                orderNo: { gt: sourceOrderNo },
+              },
+              orderBy: {
+                orderNo: "asc",
+              },
+            });
 
-          // Update source installment 1 with just requestedAmount
-          await tx.studentFeeInstallment.update({
-            where: { id: baseInstallment.id },
-            data: {
-              amount: new Decimal(requestedAmount),
-              dueDate: splitRequest.preferredDueDate,
-              isBase: false,
-            },
-          });
+          if (!nextUnpaidInstallment) {
+            console.log(
+              "Split inst 1: no next unpaid installment found, leaving installment as-is"
+            );
+          } else {
+            // Update source installment 1 with just requestedAmount
+            await tx.studentFeeInstallment.update({
+              where: { id: baseInstallment.id },
+              data: {
+                amount: new Decimal(requestedAmount),
+                dueDate: splitRequest.preferredDueDate,
+                isBase: false,
+              },
+            });
 
-          // Fetch existing 2nd installment and absorb remainder + fine into it
-          const secondInstallment = await tx.studentFeeInstallment.findFirst({
-            where: { studentSemesterFeeId, orderNo: 2 },
-          });
+            await tx.studentFeeInstallment.update({
+              where: { id: nextUnpaidInstallment.id },
+              data: {
+                amount: new Decimal(
+                  remainingAmount +
+                    accruedFine +
+                    Number(nextUnpaidInstallment.amount)
+                ),
+              },
+            });
 
-          if (!secondInstallment) {
-            throw new Error("Second installment not found.");
+            console.log(
+              `Split inst 1: merged remainder=${remainingAmount} + fine=${accruedFine} into inst ${nextUnpaidInstallment.orderNo}`
+            );
           }
-
-          await tx.studentFeeInstallment.update({
-            where: { id: secondInstallment.id },
-            data: {
-              amount: new Decimal(
-                remainingAmount + accruedFine + Number(secondInstallment.amount)
-              ),
-            },
-          });
-
-          console.log(
-            `Split inst 1: merged remainder=${remainingAmount} + fine=${accruedFine} into inst 2`
-          );
         } else if (sourceOrderNo === 2) {
           // Splitting installment 2 — create new 3rd with remainder+fine
 
           // Block if already at 3 installments
           if (existingInstallments >= 3) {
-            throw new Error("Maximum of 3 installments already exist.");
+            return {
+              status: "error",
+              message:
+                "Cannot split installment: maximum of 3 installments already exist.",
+            };
           }
 
           // Update source installment 2 with just requestedAmount
@@ -294,7 +308,10 @@ export async function hodReviewSplitRequest(
             `Split inst 2: created inst 3 with remainder=${remainingAmount} + fine=${accruedFine}`
           );
         } else {
-          throw new Error("Cannot split installment beyond the second.");
+          return {
+            status: "error",
+            message: "Cannot split installment beyond the second.",
+          };
         }
       }
 
