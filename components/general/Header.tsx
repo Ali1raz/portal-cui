@@ -36,6 +36,7 @@ export const HeroHeader = () => {
     { name: "Professor", href: "/professor", role: "PROFESSOR" },
     { name: "Student", href: "/student", role: "STUDENT" },
     { name: "Director", href: "/director", role: "DIRECTOR" },
+    { name: "Team", href: "#team", role: undefined },
   ];
 
   //   const handleScroll = () => {
@@ -48,7 +49,7 @@ export const HeroHeader = () => {
     <header className="fixed top-0 left-0 w-full z-50">
       <nav
         data-state={menuState && "active"}
-        className="max-w-5xl mx-auto w-full px-2"
+        className="max-w-7xl mx-auto w-full px-2"
       >
         <div
           className={cn(

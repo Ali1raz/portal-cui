@@ -46,7 +46,7 @@ const Team = ({
   className,
 }: Team1Props) => {
   return (
-    <section className={cn("py-32", className)}>
+    <section className={cn("py-32", className)} id="team">
       <div className="container flex flex-col items-center text-center">
         <h2 className="my-6 text-2xl font-bold text-pretty lg:text-4xl">
           {heading}
