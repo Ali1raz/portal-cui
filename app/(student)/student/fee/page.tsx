@@ -195,6 +195,8 @@ export default async function FeePage() {
                         {voucher && (
                           <InstallmentActionsDropdown
                             canPrintVoucher={installment.status !== "PAID"}
+                            canMarkPaid={installment.status !== "PAID"}
+                            installmentId={installment.id}
                             voucherData={voucher}
                             filename={`fee-${data.id.slice(0, 6)}`}
                           />
