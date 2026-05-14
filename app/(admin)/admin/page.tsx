@@ -10,6 +10,7 @@ import {
   getAdminComplaintsByDays,
   getAdminLeaveRequestsByDays,
   getAdminUsersJoinedByDays,
+  getAdminPaymentsByDays,
 } from "@/app/data/admin/get-admin-dashboard";
 
 import {
@@ -22,6 +23,7 @@ import {
 import { AdminComplaintsChartClient } from "./_components/admin-complaints-chart-client";
 import { AdminLeaveRequestsChartClient } from "./_components/admin-leave-requests-chart-client";
 import { AdminTotalUsersJoinedChartClient } from "./_components/admin-total-users-joined-chart-client";
+import AdminPaymentsChartClient from "./_components/admin-payments-chart-client";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -48,6 +50,9 @@ export default function Page() {
             <AdminComplaintsChartWrapper />
           </Suspense>
         </div>
+        <Suspense fallback={<AdminPaymentsChartWrapperSkeleton />}>
+          <AdminPaymentsChartWrapper />
+        </Suspense>
       </div>
     </main>
   );
@@ -103,6 +108,29 @@ export async function AdminComplaintsChartWrapper() {
   const data = await getAdminComplaintsByDays();
 
   return <AdminComplaintsChartClient data={data} />;
+}
+
+export async function AdminPaymentsChartWrapper() {
+  const data = await getAdminPaymentsByDays();
+
+  return <AdminPaymentsChartClient data={data} />;
+}
+
+export function AdminPaymentsChartWrapperSkeleton() {
+  return (
+    <Card className="pt-0">
+      <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+        <div className="grid flex-1 gap-1">
+          <CardTitle className="h-6 w-56 animate-pulse rounded bg-muted" />
+          <CardDescription className="h-4 w-64 animate-pulse rounded bg-muted" />
+        </div>
+        <div className="h-8 w-44 animate-pulse rounded bg-muted" />
+      </CardHeader>
+      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+        <div className="h-80 w-full animate-pulse rounded-md bg-muted" />
+      </CardContent>
+    </Card>
+  );
 }
 
 export function AdminComplaintsChartWrapperSkeleton() {

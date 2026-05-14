@@ -2,7 +2,11 @@ import "server-only";
 
 import { subDays } from "date-fns";
 
-import { ComplaintStatus, LeaveStatus } from "@/lib/generated/prisma/enums";
+import {
+  ComplaintStatus,
+  LeaveStatus,
+  StudentFeeInstallmentStatus,
+} from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 
 export type AdminUsersJoinedChartPoint = {
@@ -249,6 +253,57 @@ export async function getAdminRequestsStatusData(): Promise<
       unresolved: unresolvedComplaints,
     },
   ];
+}
+
+export type AdminPaymentsChartPoint = {
+  date: string;
+  amount: number;
+};
+
+export async function getAdminPaymentsByDays() {
+  const lookbackDays = 60;
+  const endDate = new Date();
+  endDate.setHours(23, 59, 59, 999);
+
+  const startDate = subDays(new Date(), lookbackDays - 1);
+  startDate.setHours(0, 0, 0, 0);
+
+  const paidInstallments = await prisma.studentFeeInstallment.findMany({
+    where: {
+      status: StudentFeeInstallmentStatus.PAID,
+      paidAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+    select: {
+      paidAt: true,
+      amount: true,
+    },
+  });
+
+  const paymentsByDate = new Map<string, number>();
+
+  for (let dayOffset = 0; dayOffset < lookbackDays; dayOffset += 1) {
+    const date = subDays(endDate, lookbackDays - 1 - dayOffset);
+    const isoDate = date.toISOString().split("T")[0];
+    paymentsByDate.set(isoDate, 0);
+  }
+
+  for (const p of paidInstallments) {
+    const isoDate = p.paidAt!.toISOString().split("T")[0];
+    paymentsByDate.set(
+      isoDate,
+      (paymentsByDate.get(isoDate) ?? 0) + Number(p.amount)
+    );
+  }
+
+  return Array.from(paymentsByDate.entries())
+    .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+    .map(([date, amount]) => ({
+      date,
+      amount: Math.round(amount * 100) / 100,
+    }));
 }
 
 function calculateRate(numerator: number, denominator: number) {

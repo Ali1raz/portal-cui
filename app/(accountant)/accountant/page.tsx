@@ -1,5 +1,15 @@
 import { Metadata } from "next";
 import { requireSession } from "@/app/data/session/require-session";
+import { Suspense } from "react";
+import { AdminPaymentsChartClient } from "@/app/(admin)/admin/_components/admin-payments-chart-client";
+import { getAdminPaymentsByDays } from "@/app/data/admin/get-admin-dashboard";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -24,7 +34,33 @@ export default async function AccountantDashboardPage() {
         </p>
       </div>
 
-      <div>dashboard</div>
+      <div>
+        <Suspense fallback={<PaymentsChartSkeleton />}>
+          <AccountantPaymentsChartWrapper />
+        </Suspense>
+      </div>
     </div>
   );
+
+  async function AccountantPaymentsChartWrapper() {
+    const data = await getAdminPaymentsByDays();
+    return <AdminPaymentsChartClient data={data} />;
+  }
+
+  function PaymentsChartSkeleton() {
+    return (
+      <Card className="pt-0">
+        <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+          <div className="grid flex-1 gap-1">
+            <CardTitle className="h-6 w-56 animate-pulse rounded bg-muted" />
+            <CardDescription className="h-4 w-64 animate-pulse rounded bg-muted" />
+          </div>
+          <div className="h-8 w-44 animate-pulse rounded bg-muted" />
+        </CardHeader>
+        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+          <div className="h-80 w-full animate-pulse rounded-md bg-muted" />
+        </CardContent>
+      </Card>
+    );
+  }
 }
