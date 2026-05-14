@@ -25,7 +25,7 @@ export default async function StudentAttendancePage(
   const { offeringId } = await props.params;
 
   return (
-    <div className="max-w-5xl w-full px-2 sm:px-4 my-4">
+    <div className="max-w-7xl w-full px-2 sm:px-4 my-4">
       <h1 className="text-lg font-semibold mb-4">My Attendance</h1>
       <div className="my-6">
         <Suspense fallback={<SubjectOverviewSkeleton />}>

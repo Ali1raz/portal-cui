@@ -2,6 +2,7 @@ import { studentGetSubjectOverview } from "@/app/data/student/get-subject-overvi
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AttendancePieChart } from "./attendance-pie-chart";
 
 export async function SubjectOverview({ offeringId }: { offeringId: string }) {
   const { subject, _count, totalLectures, attendanceStats } =
@@ -10,8 +11,8 @@ export async function SubjectOverview({ offeringId }: { offeringId: string }) {
     });
 
   return (
-    <div className="flex items-start flex-wrap gap-2">
-      <section className="w-full sm:max-w-[250px]">
+    <div className="flex items-start flex-wrap gap-3">
+      <section className="w-full sm:max-w-62.5">
         <h1>Subject</h1>
         <Card>
           <CardHeader>
@@ -26,7 +27,7 @@ export async function SubjectOverview({ offeringId }: { offeringId: string }) {
         </Card>
       </section>
 
-      <section className="w-full sm:max-w-[250px]">
+      <section className="w-full sm:max-w-62.5">
         <h1>More Details</h1>
         <Card>
           <CardContent className="space-y-2">
@@ -42,10 +43,10 @@ export async function SubjectOverview({ offeringId }: { offeringId: string }) {
         </Card>
       </section>
 
-      <section className="w-full sm:max-w-[250px]">
+      <section className="w-full sm:max-w-62.5">
         <h1>Attendance Stats</h1>
         <Card>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-3">
             <div className="flex justify-between items-center">
               <p>Total records</p>
               <p className="text-muted-foreground">
@@ -64,6 +65,18 @@ export async function SubjectOverview({ offeringId }: { offeringId: string }) {
                 {attendanceStats.absentCount}
               </p>
             </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="w-full">
+        <Card>
+          <CardContent>
+            <AttendancePieChart
+              presentCount={attendanceStats.presentCount}
+              absentCount={attendanceStats.absentCount}
+              leaveCount={attendanceStats.leaveCount}
+            />
           </CardContent>
         </Card>
       </section>
@@ -98,6 +111,16 @@ export function SubjectOverviewSkeleton() {
           <div className="flex items-center mt-4 gap-1.5">
             <Skeleton className="w-16 h-6 mt-2" />
             <Skeleton className="w-16 h-6 mt-1" />
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="w-full ">
+        <CardContent>
+          <Skeleton className="h-60 w-full" />
+          <div className="grid grid-cols-3 gap-2 mt-3">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
           </div>
         </CardContent>
       </Card>

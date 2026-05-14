@@ -70,14 +70,30 @@ export async function studentGetSubjectOverview({
   });
 
   const totalRecords = attendanceRecords.length;
-  const presentCount = attendanceRecords.filter(
-    (record) => record.attendances[0]?.status === "PRESENT"
-  ).length;
-  const absentCount = attendanceRecords.filter(
-    (record) =>
-      record.attendances.length === 0 ||
-      record.attendances[0]?.status === "ABSENT"
-  ).length;
+  const { presentCount, absentCount, leaveCount } = attendanceRecords.reduce(
+    (counts, record) => {
+      const status = record.attendances[0]?.status;
+
+      if (status === "PRESENT") {
+        counts.presentCount += 1;
+        return counts;
+      }
+
+      if (status === "LEAVE") {
+        counts.leaveCount += 1;
+        return counts;
+      }
+
+      // Missing attendance entries are treated as absent.
+      counts.absentCount += 1;
+      return counts;
+    },
+    {
+      presentCount: 0,
+      absentCount: 0,
+      leaveCount: 0,
+    }
+  );
 
   return {
     ...subj,
@@ -85,6 +101,7 @@ export async function studentGetSubjectOverview({
       totalRecords,
       presentCount,
       absentCount,
+      leaveCount,
     },
   };
 }
