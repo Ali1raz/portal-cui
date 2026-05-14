@@ -33,7 +33,7 @@ export function AppSidebar({
               className="data-[slot=sidebar-menu-button]:p-1!"
             >
               <Link href="/">
-                <Image src="/image.png" alt="CUI" height={44} width={44} />
+                <Image src="/image.png" alt="CUI" height={36} width={36} />
                 <span className="text-base font-semibold">CUI Portal</span>
               </Link>
             </SidebarMenuButton>
