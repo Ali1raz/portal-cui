@@ -36,7 +36,7 @@ export async function studentGetComplaintDetails({ id }: { id: string }) {
       details: true,
       category: true,
       status: true,
-      targetDepartment: true,
+      // targetDepartment: true,
       createdAt: true,
       imageKey: true,
     },

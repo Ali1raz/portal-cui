@@ -99,9 +99,6 @@ export default async function ComplaintDetailsPage(
                   {statusCfg.label}
                 </Badge>
                 <Badge>{details.category}</Badge>
-                <Badge variant="outline">
-                  {details.targetDepartment ?? "Unassigned"}
-                </Badge>
               </div>
               <p className="text-sm text-muted-foreground">{details.details}</p>
             </CardContent>
