@@ -9,8 +9,9 @@ export default function Page() {
   return (
     <>
       <HeroHeader />
-
-      <Features />
+      <section className="mt-18">
+        <Features />
+      </section>
       <section className="place-content-center p-4">
         <FeatureSection />
       </section>
