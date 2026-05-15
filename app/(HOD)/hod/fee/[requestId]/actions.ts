@@ -3,7 +3,7 @@
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireSession } from "@/app/data/session/require-session";
 import { errorMessage } from "@/lib/error-message";
-import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { protect } from "@/lib/arcjet-protect";
 import { SplitRequestStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import {
@@ -37,7 +37,7 @@ export async function hodReviewSplitRequest(
     const session = await requireSession();
 
     const [deniedMessage, can] = await Promise.all([
-      getArcjetDeniedMessage(session.user.id),
+      protect(session.user.id),
       requirePermission({ fee: ["update"] }),
     ]);
 

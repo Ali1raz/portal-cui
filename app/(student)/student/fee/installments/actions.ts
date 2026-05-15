@@ -2,7 +2,7 @@
 
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireSession } from "@/app/data/session/require-session";
-import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { protect } from "@/lib/arcjet-protect";
 import { errorMessage } from "@/lib/error-message";
 import prisma from "@/lib/prisma";
 import type { ApiResponseType } from "@/lib/types";
@@ -13,7 +13,7 @@ export async function markStudentInstallmentAsPaid(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return { status: "error", message: deniedMessage };
     }
@@ -117,7 +117,7 @@ export async function deleteInstallmentSplitRequest(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return { status: "error", message: deniedMessage };
     }
@@ -200,7 +200,7 @@ export async function markInstallmentRequestAsPaid(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return { status: "error", message: deniedMessage };
     }

@@ -10,9 +10,7 @@ const aj = arcjet.withRule(
   })
 );
 
-export async function getArcjetDeniedMessage(
-  fingerprint: string
-): Promise<string | null> {
+export async function protect(fingerprint: string): Promise<string | null> {
   const req = await request();
   const decision = await aj.protect(req, { fingerprint });
 

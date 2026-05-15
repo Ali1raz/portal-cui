@@ -2,7 +2,7 @@
 
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireProfessorSession } from "@/app/data/professor/require-professor-session";
-import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { protect } from "@/lib/arcjet-protect";
 import { errorMessage } from "@/lib/error-message";
 import type { AttendanceStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
@@ -42,7 +42,7 @@ export async function markAttendance({
     }
     const session = await requireProfessorSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",
@@ -100,7 +100,7 @@ export async function markAttendance({
     const validAttendances = attendances
       .map((a) => ({
         status: a.status,
-        studentId: regNoToId.get(a.registrationNo) ?? null,
+        studentId: regNoToId.get(a.registrationNo) ?? null, // Map registration number to student ID, null if not enrolled
       }))
       .filter((a) => !!a.studentId);
 
@@ -197,7 +197,7 @@ export async function updateAttendance({
     }
     const session = await requireProfessorSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",

@@ -7,7 +7,7 @@ import { ApiResponseType } from "@/lib/types";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { Prisma } from "@/lib/generated/prisma/client";
-import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { protect } from "@/lib/arcjet-protect";
 import {
   changeUserRoleSchema,
   type ChangeUserRolePayload,
@@ -26,7 +26,7 @@ export async function setUserRole(
 ): Promise<ApiResponseType> {
   const session = await requireSession();
 
-  const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+  const deniedMessage = await protect(session.user.id);
   if (deniedMessage) {
     return {
       status: "error",
@@ -259,7 +259,7 @@ export async function setProfessorDepartment(
 ): Promise<ApiResponseType> {
   const session = await requireSession();
 
-  const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+  const deniedMessage = await protect(session.user.id);
   if (deniedMessage) {
     return {
       status: "error",
@@ -318,7 +318,7 @@ export async function makeProfessorBatchAdvisor(
 ): Promise<ApiResponseType> {
   const session = await requireSession();
 
-  const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+  const deniedMessage = await protect(session.user.id);
   if (deniedMessage) {
     return {
       status: "error",

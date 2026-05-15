@@ -2,7 +2,7 @@
 
 import { requireSession } from "@/app/data/session/require-session";
 import { requirePermission } from "@/app/data/permission/require-permission";
-import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { protect } from "@/lib/arcjet-protect";
 import { errorMessage } from "@/lib/error-message";
 import {
   ApplicationAction,
@@ -36,7 +36,7 @@ export async function updateMyApplication(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",

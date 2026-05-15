@@ -11,7 +11,7 @@ import {
   accountantCreateFeeSchema,
   AccountantCreateFeeSchemaType,
 } from "./create-fee/schema";
-import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { protect } from "@/lib/arcjet-protect";
 
 export async function accountantUpdateFeeStatus(
   feeId: string,
@@ -21,7 +21,7 @@ export async function accountantUpdateFeeStatus(
     const session = await requireSession();
 
     const [deniedMessage, can] = await Promise.all([
-      getArcjetDeniedMessage(session.user.id),
+      protect(session.user.id),
       requirePermission({
         fee: ["update"],
       }),
@@ -114,7 +114,7 @@ export async function accountantCreateSemesterFee(
       return { status: "error", message: "Invalid form data!" };
     }
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",

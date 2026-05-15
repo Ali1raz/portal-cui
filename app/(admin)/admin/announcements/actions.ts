@@ -5,7 +5,7 @@ import { requireSession } from "@/app/data/session/require-session";
 import { errorMessage } from "@/lib/error-message";
 import { AnnouncementStatus } from "@/lib/generated/prisma/enums";
 import { inngest } from "@/lib/inngest/client";
-import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { protect } from "@/lib/arcjet-protect";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
 import { adminAnnouncementSchema, AdminAnnouncementSchemaType } from "./schema";
@@ -17,7 +17,7 @@ export async function adminCreateAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",
@@ -128,7 +128,7 @@ export async function adminUpdateAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",
@@ -240,7 +240,7 @@ export async function adminDeleteAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",
@@ -293,7 +293,7 @@ export async function adminBulkDeleteAnnouncements(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",

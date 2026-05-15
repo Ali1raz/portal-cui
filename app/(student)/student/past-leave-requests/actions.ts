@@ -4,7 +4,7 @@ import { ApiResponseType } from "@/lib/types";
 import { requirePermission } from "@/app/data/permission/require-permission";
 import prisma from "@/lib/prisma";
 import { requireSession } from "@/app/data/session/require-session";
-import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { protect } from "@/lib/arcjet-protect";
 import { EDITABLE_LEAVE_REQUEST_STATUS } from "@/lib/data/utils";
 import {
   leaveRequestSchema,
@@ -17,7 +17,7 @@ export async function DeleteLeaveRequest(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",
@@ -94,7 +94,7 @@ export async function updateLeaveRequest(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",

@@ -8,7 +8,7 @@ import { errorMessage } from "@/lib/error-message";
 import { applyFormSchema, ApplyFormSchemaType } from "../schema";
 import { StudentApplicationStatus } from "@/lib/generated/prisma/enums";
 import { SendEmail } from "@/app/actions/send-email";
-import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { protect } from "@/lib/arcjet-protect";
 import { env } from "@/lib/env";
 
 function getApplicationTrackingLink(applicationId: string) {
@@ -26,7 +26,7 @@ export async function submitApplication(
 ): Promise<ApiResponseType> {
   const session = await requireSession();
 
-  const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+  const deniedMessage = await protect(session.user.id);
   if (deniedMessage) {
     return {
       status: "error",

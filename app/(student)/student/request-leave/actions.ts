@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
 import { LeaveRequestFormType, leaveRequestSchema } from "./schema";
 import { requireSession } from "@/app/data/session/require-session";
-import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { protect } from "@/lib/arcjet-protect";
 
 export async function sendLeaveRequest(
   data: LeaveRequestFormType,
@@ -13,7 +13,7 @@ export async function sendLeaveRequest(
 ): Promise<ApiResponseType> {
   const session = await requireSession();
 
-  const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+  const deniedMessage = await protect(session.user.id);
   if (deniedMessage) {
     return {
       status: "error",

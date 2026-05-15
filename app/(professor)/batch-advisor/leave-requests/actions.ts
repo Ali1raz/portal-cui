@@ -2,7 +2,7 @@
 
 import { requirePermission } from "@/app/data/permission/require-permission";
 import { requireSession } from "@/app/data/session/require-session";
-import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { protect } from "@/lib/arcjet-protect";
 import { errorMessage } from "@/lib/error-message";
 import { LRAction, LeaveStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
@@ -30,7 +30,7 @@ export async function baUpdateLeaveRequestStatus(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",

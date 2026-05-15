@@ -6,7 +6,7 @@ import { errorMessage } from "@/lib/error-message";
 import { ApiResponseType } from "@/lib/types";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/app/data/permission/require-permission";
-import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { protect } from "@/lib/arcjet-protect";
 
 export async function setUserRole(
   userId: string,
@@ -14,7 +14,7 @@ export async function setUserRole(
 ): Promise<ApiResponseType> {
   const session = await requireSession();
 
-  const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+  const deniedMessage = await protect(session.user.id);
   if (deniedMessage) {
     return {
       status: "error",

@@ -11,7 +11,7 @@ import {
   accountantAnnouncementSchema,
   AccountantAnnouncementSchemaType,
 } from "./schema";
-import { getArcjetDeniedMessage } from "@/lib/arcjet-protect";
+import { protect } from "@/lib/arcjet-protect";
 
 export async function accountantCreateAnnouncement(
   values: AccountantAnnouncementSchemaType
@@ -19,7 +19,7 @@ export async function accountantCreateAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",
@@ -130,7 +130,7 @@ export async function accountantUpdateAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",
@@ -236,7 +236,7 @@ export async function accountantDeleteAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",
@@ -301,7 +301,7 @@ export async function accountantBulkDeleteAnnouncements(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",
@@ -378,7 +378,7 @@ export async function accountantBulkUpdateAnnouncementStatus(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await getArcjetDeniedMessage(session.user.id);
+    const deniedMessage = await protect(session.user.id);
     if (deniedMessage) {
       return {
         status: "error",

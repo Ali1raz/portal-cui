@@ -19,7 +19,7 @@ export default async function UpdateComplaintStatusPage(
   const statusCfg = STATUS_CONFIG[details.status];
 
   return (
-    <div className="flex w-full max-w-5xl flex-col gap-6 px-4 md:px-6 my-6">
+    <div className="flex w-full max-w-7xl flex-col gap-6 px-4 md:px-6 my-6">
       <div>
         <h1 className="text-xl font-semibold">Update Complaint</h1>
         <p className="text-sm text-muted-foreground">
