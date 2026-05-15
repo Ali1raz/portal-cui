@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 import { SITE_INFO } from "@/lib/data/SITE";
+import Providers from "@/components/provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -77,7 +78,7 @@ export default function RootLayout({
               limitUrlUpdates: { method: "throttle", timeMs: 1000 },
             }}
           >
-            {children}
+            <Providers>{children}</Providers>
           </NuqsAdapter>
           <Toaster
             richColors
