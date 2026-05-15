@@ -144,12 +144,12 @@ export function getNavLinks({
         icon: IconLayoutDashboard,
       },
       {
-        title: "Manage Fee",
+        title: "Split Requests",
         href: "/hod/fee",
         icon: IconCreditCard,
       },
       {
-        title: "Manage Installments",
+        title: "Manage Fee Installments",
         href: "/hod/fee/edit",
         icon: IconCreditCard,
       },
