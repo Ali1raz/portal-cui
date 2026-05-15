@@ -31,7 +31,7 @@ export default async function RegistrationPage() {
   }
 
   return (
-    <div className="@container/main p-4 space-y-4">
+    <div className="@container/main p-4 space-y-4 max-w-7xl">
       <h2 className="text-2xl font-bold">Registration Details</h2>
       <p className="text-muted-foreground">
         Hi{" "}
