@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { GitHub } from "./companies";
 
 interface TeamMember {
   id: string;
@@ -46,32 +47,37 @@ const Team = ({
   className,
 }: Team1Props) => {
   return (
-    <section className={cn("py-32", className)} id="team">
-      <div className="container flex flex-col items-center text-center">
+    <section
+      className={cn("py-32 mx-auto select-none max-w-6xl", className)}
+      id="team"
+    >
+      <div className="flex flex-col items-center text-center">
         <h2 className="my-6 text-2xl font-bold text-pretty lg:text-4xl">
           {heading}
         </h2>
-        <p className="mb-8 max-w-3xl text-muted-foreground lg:text-xl">
+        <p className="mb-8 max-w-3xl text-muted-foreground lg:text-xl select-none">
           {description}
         </p>
       </div>
-      <div className="container mt-16 grid gap-x-8 gap-y-16 md:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-16 grid gap-8 sm:grid-cols-2 md:grid-cols-3">
         {members.map((member) => (
           <div key={member.id} className="flex flex-col items-center">
-            <Avatar className="mb-4 size-28 md:mb-5 lg:size-36">
+            <Avatar className="mb-4 size-28 md:mb-5 lg:size-36 select-none">
               <AvatarImage src={member.avatar} />
               <AvatarFallback>{member.name}</AvatarFallback>
             </Avatar>
             <p className="text-center font-medium">{member.name}</p>
             <p className="text-center text-muted-foreground">{member.role}</p>
-            <a
-              href={member.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 hover:underline"
-            >
-              View Profile
-            </a>
+            <div className="flex items-center gap-2">
+              <a
+                href={member.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 hover:underline bg-accent/90 p-2 size-8 rounded hover:bg-accent cursor-pointer"
+              >
+                <GitHub className="size-4 dark:invert-0 invert" />
+              </a>
+            </div>
           </div>
         ))}
       </div>
