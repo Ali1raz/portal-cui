@@ -14,6 +14,7 @@ export async function studentGetEnrollemntLastDate() {
           },
         },
       },
+      enrollmentEnd: { gt: new Date() },
     },
     select: {
       enrollmentEnd: true,
