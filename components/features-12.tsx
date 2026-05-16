@@ -131,7 +131,7 @@ export function Features() {
   );
 
   return (
-    <section className="py-12 md:py-20 lg:py-32">
+    <section className="py-12 md:py-20 lg:py-32" id="features">
       <div className="mx-auto max-w-5xl space-y-8 px-6 md:space-y-16 lg:space-y-20 dark:[--color-border:color-mix(in_oklab,var(--color-white)_10%,transparent)]">
         {/* Header */}
         <div className="relative z-10 mx-auto max-w-2xl space-y-4 text-center">

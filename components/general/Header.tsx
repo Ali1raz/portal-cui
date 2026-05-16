@@ -32,19 +32,11 @@ export const HeroHeader = () => {
     ...(dashboardLink
       ? [{ name: "Dashboard", href: dashboardLink.href, role: userRole }]
       : []),
-    { name: "HOD", href: "/hod", role: "HOD" },
-    { name: "Professor", href: "/professor", role: "PROFESSOR" },
-    { name: "Student", href: "/student", role: "STUDENT" },
-    { name: "Director", href: "/director", role: "DIRECTOR" },
+    { name: "Features", href: "#features", role: undefined },
     { name: "Team", href: "#team", role: undefined },
+    { name: "About", href: "/about", role: undefined },
   ];
 
-  //   const handleScroll = () => {
-  //     setIsScrolled(window.scrollY > 350);
-  //   };
-  //   window.addEventListener("scroll", handleScroll);
-  //   return () => window.removeEventListener("scroll", handleScroll);
-  // }, []);
   return (
     <header className="fixed top-0 left-0 w-full z-50">
       <nav
@@ -137,14 +129,10 @@ export const HeroHeader = () => {
                     </Button>
                   </>
                 ) : (
-                  <SignOutButton className={cn(scrolled && "lg:hidden")} />
+                  <SignOutButton className={cn()} />
                 )}
                 {session.data ? (
-                  <Button
-                    asChild
-                    size="sm"
-                    className={cn(scrolled ? "lg:inline-flex" : "hidden")}
-                  >
+                  <Button asChild variant="outline" size="sm">
                     <Link href="/profile">
                       <span>Profile</span>
                     </Link>
