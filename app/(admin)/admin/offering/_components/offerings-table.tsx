@@ -126,12 +126,21 @@ export function OfferingsTable({
       id: "semester",
       header: "Semester",
       accessorFn: (row) => row.semester?.semester,
-      cell: ({ row }) => (
-        <div className="flex flex-col gap-2">
-          <span>Semester: {row.original.semester?.semester}</span>
-          <span>Year: {row.original.semester?.year}</span>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const sem = row.original.semester;
+        if (!sem) return <span className="text-muted-foreground">-</span>;
+        const yearSuffix = sem.year.toString().slice(-2);
+        return (
+          <Link
+            href={`/admin/semester/${sem.id}`}
+            className="font-medium hover:underline"
+          >
+            Sem {sem.semester}-{sem.batch}
+            {yearSuffix}-{sem.program}
+            {sem.department}
+          </Link>
+        );
+      },
       sortUndefined: "last",
       sortDescFirst: false,
     },

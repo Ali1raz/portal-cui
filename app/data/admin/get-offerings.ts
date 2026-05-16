@@ -119,8 +119,12 @@ export async function getAdminOfferings({
         id: true,
         semester: {
           select: {
+            id: true,
             semester: true,
             year: true,
+            batch: true,
+            program: true,
+            department: true,
           },
         },
         createdAt: true,
