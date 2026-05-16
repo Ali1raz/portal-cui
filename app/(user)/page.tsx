@@ -26,13 +26,15 @@ export default function Page() {
         </div>
       </section>
 
-      <div className="relative aspect-video overflow-hidden select-none h-auto w-full mt-8">
+      <div className="relative aspect-video overflow-hidden rounded-lg select-none mt-8">
         <Image
           src="/images/student-dashboard.png"
           alt="Student Dashboard"
-          width={800}
-          height={600}
-          className="w-full h-auto object-cover rounded-lg"
+          fill
+          className="object-contain"
+          quality={100}
+          priority
+          sizes="(max-width: 768px) 100vw, 1200px"
         />
       </div>
 
