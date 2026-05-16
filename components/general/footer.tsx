@@ -116,15 +116,15 @@ export default function FooterSection() {
         <div className="mt-12 flex items-center justify-around w-full border-t py-6">
           <small className="text-muted-foreground block text-center text-sm">
             © {new Date().getFullYear()} Copyright COMSATS University Islamabad.
-            All Rights Reserved.
             <br /> Designed & developed by{" "}
             <a
               href="https://github.com/ali1raz"
               target="_blank"
               className="text-primary hover:underline"
             >
-              Ali Raza
-            </a>
+              Ali Raza.
+            </a>{" "}
+            All Rights Reserved.
           </small>
         </div>
       </div>
