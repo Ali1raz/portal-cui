@@ -16,7 +16,9 @@ import { requirePermission } from "@/app/data/permission/require-permission";
 import { ChangeUserRoleDialog } from "../_components/change-role";
 import { SetDepartmentDialog } from "../_components/set-department-dialog";
 import { MakeBatchAdvisorDialog } from "../_components/make-batchadvisor-dialog";
+import { BanActions } from "./_components/ban-actions";
 import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
 
 export const metadata: Metadata = {
   title: "User Details",
@@ -54,10 +56,16 @@ export default async function AdminUserDetailsPage(
               {user.role === "PROFESSOR" && !user.professor?.department && (
                 <Badge>Department not specified</Badge>
               )}
+              {user.banned && <Badge variant="destructive">Banned</Badge>}
             </div>
           </CardDescription>
           <div className="flex items-center flex-wrap w-full gap-2 mt-4">
             <ChangeUserRoleDialog user={user} />
+            <BanActions
+              userId={user.id}
+              userName={user.name}
+              banned={user.banned}
+            />
             {user.role === "PROFESSOR" || user.role === "HOD" ? (
               <SetDepartmentDialog userId={userId} name={user.name}>
                 <Button size="sm" variant="outline">
@@ -72,10 +80,37 @@ export default async function AdminUserDetailsPage(
             ) : null}
           </div>
         </CardHeader>
-        <Separator className="bg-primary/50 max-w-[80%] mx-auto" />
+        <Separator />
         <CardContent>
           <div>
             <h3 className="font-bold text-2xl mb-4">Additional Info</h3>
+            <InfoGrid
+              fields={[
+                ...(user.banned
+                  ? [
+                      {
+                        label: "Ban Reason",
+                        value: user.banReason ?? "No reason provided",
+                      },
+                      {
+                        label: "Ban Expires",
+                        value: user.banExpires
+                          ? format(user.banExpires, "MMMM dd - hh:mm a")
+                          : "Permanent",
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+
+            <InfoGrid
+              fields={[
+                {
+                  label: "Joined Since",
+                  value: format(user.createdAt, "uuuu MMMM dd"),
+                },
+              ]}
+            />
             {/* ── Student ── */}
             {user.student && (
               <InfoGrid
@@ -103,7 +138,6 @@ export default async function AdminUserDetailsPage(
                         ? user.professor.programs.join(", ")
                         : "Not specified",
                   },
-
                   {
                     label: "Since",
                     value: formatDate(user.professor.createdAt),

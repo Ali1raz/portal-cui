@@ -75,6 +75,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 import { CopyButton } from "@/components/ui/copy-button";
 import { APP } from "@/lib/data/utils";
 import { getJoinedAtLabel } from "@/lib/utils";
@@ -108,7 +109,8 @@ export function UsersTable({
     queryState.query.length > 0 ||
     queryState.role !== null ||
     queryState.department !== null ||
-    queryState.joinedAt !== null;
+    queryState.joinedAt !== null ||
+    queryState.banned !== null;
 
   const shouldShowDepartmentFilter =
     queryState.role === "PROFESSOR" ||
@@ -130,24 +132,24 @@ export function UsersTable({
         <div>{pagination.pageIndex * pagination.pageSize + row.index + 1}</div>
       ),
     },
-    {
-      id: "id",
-      header: "Id",
-      accessorFn: (row) => row.id,
-      cell: ({ row }) => (
-        <Tooltip>
-          <TooltipTrigger>
-            <div className="font-medium max-w-[20ch] text-ellipsis overflow-hidden">
-              {row.original.id}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent align="center" side="right">
-            <div>{row.original.id}</div>
-          </TooltipContent>
-        </Tooltip>
-      ),
-      enableSorting: false,
-    },
+    // {
+    //   id: "id",
+    //   header: "Id",
+    //   accessorFn: (row) => row.id,
+    //   cell: ({ row }) => (
+    //     <Tooltip>
+    //       <TooltipTrigger>
+    //         <div className="font-medium max-w-[20ch] text-ellipsis overflow-hidden">
+    //           {row.original.id}
+    //         </div>
+    //       </TooltipTrigger>
+    //       <TooltipContent align="center" side="right">
+    //         <div>{row.original.id}</div>
+    //       </TooltipContent>
+    //     </Tooltip>
+    //   ),
+    //   enableSorting: false,
+    // },
     {
       id: "name",
       header: "User",
@@ -237,6 +239,20 @@ export function UsersTable({
           <span className="text-xs text-primary/80">
             {row.original.professor?.batchAdvisor && "Batch Advisor"}
           </span>
+          {row.original.banned ? (
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge variant="destructive" shape="circle">
+                  Banned
+                </Badge>
+              </TooltipTrigger>
+              {row.original.banReason && (
+                <TooltipContent>
+                  <p>{row.original.banReason}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          ) : null}
         </div>
       ),
     },
@@ -438,6 +454,26 @@ export function UsersTable({
                 {getJoinedAtLabel(days)}
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={queryState.banned ?? "all"}
+          onValueChange={(value) => {
+            startTransition(() => {
+              void setQueryState({
+                banned: value === "all" ? null : (value as "yes" | "no"),
+                page: 1,
+              });
+            });
+          }}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Users</SelectItem>
+            <SelectItem value="yes">Banned</SelectItem>
+            <SelectItem value="no">Not Banned</SelectItem>
           </SelectContent>
         </Select>
       </div>

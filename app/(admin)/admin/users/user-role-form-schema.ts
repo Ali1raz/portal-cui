@@ -56,6 +56,7 @@ export type ChangeUserRoleTarget = {
   id: string;
   name: string | null;
   role: Role;
+  banned: boolean | null;
   professor?: {
     department: Department | null;
     programs: Program[];

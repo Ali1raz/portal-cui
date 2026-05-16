@@ -54,6 +54,9 @@ export const usersSearchParamsParsers = {
   joinedAt: parseAsInteger.withOptions({
     clearOnDefault: true,
   }),
+  banned: parseAsStringEnum(["yes", "no"] as const).withOptions({
+    clearOnDefault: true,
+  }),
 };
 
 export const usersSearchParamsCache = createSearchParamsCache(

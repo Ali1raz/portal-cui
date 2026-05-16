@@ -20,6 +20,9 @@ export async function adminGetUserData(userId: string) {
       email: true,
       image: true,
       role: true,
+      banned: true,
+      banReason: true,
+      banExpires: true,
       createdAt: true,
       student: {
         select: {

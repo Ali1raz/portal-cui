@@ -18,6 +18,7 @@ type AdminGetUsersParams = Pick<
   | "role"
   | "department"
   | "joinedAt"
+  | "banned"
 >;
 
 /// Fetch paginated admin users with filters.
@@ -30,6 +31,7 @@ export async function getAdminUsers({
   role,
   department,
   joinedAt,
+  banned,
 }: AdminGetUsersParams) {
   const session = await requireSession();
   const can = await requirePermission({
@@ -124,6 +126,8 @@ export async function getAdminUsers({
         }
       : {}),
     ...(departmentFilter ?? {}),
+    ...(banned === "yes" ? { banned: true } : {}),
+    ...(banned === "no" ? { banned: { not: true } } : {}),
   };
 
   const orderBy: Prisma.UserOrderByWithRelationInput =
@@ -149,6 +153,9 @@ export async function getAdminUsers({
         email: true,
         image: true,
         role: true,
+        banned: true,
+        banReason: true,
+        banExpires: true,
         createdAt: true,
         professor: {
           select: {
