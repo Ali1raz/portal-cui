@@ -1,11 +1,11 @@
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
-import { SiteHeader } from "@/components/sidebar/site-header";
 import {
   SidebarInset,
   SidebarProvider as LeftSidebarProvider,
 } from "@/components/ui/sidebar";
 import { User } from "@/lib/auth";
 import { RightSidebar } from "./sidebar-right";
+import { StudentSiteHeader } from "./studnet-site-header";
 
 export function StudentLayoutProvider({
   children,
@@ -25,10 +25,10 @@ export function StudentLayoutProvider({
     >
       <AppSidebar variant="inset" user={user} />
       <SidebarInset>
-        <SiteHeader user={user} />
+        <StudentSiteHeader user={user} />
         {children}
       </SidebarInset>
-      <RightSidebar variant="sidebar" />
+      <RightSidebar variant="inset" side="right" />
     </LeftSidebarProvider>
   );
 }
