@@ -14,16 +14,16 @@ const ProfileTabs = async () => {
   return (
     <div className="w-full max-w-5xl mb-8">
       <Tabs defaultValue={"update-profile"} className="gap-8">
-        <TabsList className="rounded flex **:px-8">
+        <TabsList className="rounded flex sm:**:px-8 **:px-4">
           <TabsTrigger
             value={"update-profile"}
-            className="cursor-pointer  relative z-10 rounded "
+            className="cursor-pointer relative z-10 rounded"
           >
-            Update Profile
+            Profile
           </TabsTrigger>
           <TabsTrigger
             value={"sessions"}
-            className=" cursor-pointer relative z-10 rounded "
+            className=" cursor-pointer relative z-10 rounded"
           >
             Sessions
           </TabsTrigger>
