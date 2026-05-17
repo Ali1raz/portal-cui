@@ -1,13 +1,14 @@
 "use client";
 
-import { LabelList, Pie, PieChart, Cell } from "recharts";
-
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
+import { useState } from "react";
+import { PieChart } from "@/components/charts/pie-chart";
+import { PieSlice } from "@/components/charts/pie-slice";
+import { PieCenter } from "@/components/charts/pie-center";
+import { Legend } from "@/components/charts/legend/legend";
+import { LegendItem } from "@/components/charts/legend/legend-item";
+import { LegendMarker } from "@/components/charts/legend/legend-marker";
+import { LegendLabel } from "@/components/charts/legend/legend-label";
+import { LegendValue } from "@/components/charts/legend/legend-value";
 
 type AttendancePieChartProps = {
   presentCount: number;
@@ -15,99 +16,61 @@ type AttendancePieChartProps = {
   leaveCount: number;
 };
 
-const chartConfig = {
-  count: {
-    label: "Count",
-  },
-  present: {
-    label: "Present",
-    color: "var(--chart-1)",
-  },
-  absent: {
-    label: "Absent",
-    color: "var(--chart-2)",
-  },
-  leave: {
-    label: "Leave",
-    color: "var(--chart-3)",
-  },
-} satisfies ChartConfig;
+const COLORS = {
+  present: "var(--chart-1)",
+  absent: "var(--destructive)",
+  leave: "var(--secondary)",
+} as const;
 
 export function AttendancePieChart({
   presentCount,
   absentCount,
   leaveCount,
 }: AttendancePieChartProps) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const total = presentCount + absentCount + leaveCount;
+
   const chartData = [
-    {
-      status: "present",
-      count: presentCount,
-      fill:
-        (chartConfig.present as { color?: string })?.color ?? "var(--chart-1)",
-    },
-    {
-      status: "absent",
-      count: absentCount,
-      fill:
-        (chartConfig.absent as { color?: string })?.color ?? "var(--chart-2)",
-    },
-    {
-      status: "leave",
-      count: leaveCount,
-      fill:
-        (chartConfig.leave as { color?: string })?.color ?? "var(--chart-3)",
-    },
+    { label: "Present", value: presentCount, color: COLORS.present },
+    { label: "Absent", value: absentCount, color: COLORS.absent },
+    { label: "Leave Requests", value: leaveCount, color: COLORS.leave },
   ];
 
-  return (
-    <div className="flex flex-col sm:flex-row gap-6">
-      <ChartContainer
-        config={chartConfig}
-        className="mx-auto aspect-square max-h-72 [&_.recharts-text]:fill-background"
-      >
-        <PieChart>
-          <ChartTooltip
-            content={<ChartTooltipContent nameKey="count" hideLabel />}
-          />
-          <Pie
-            data={chartData}
-            dataKey="count"
-            nameKey="status"
-            outerRadius={80}
-            innerRadius={28}
-            paddingAngle={2}
-          >
-            {chartData.map((entry) => (
-              <Cell key={entry.status} fill={entry.fill} />
-            ))}
-            <LabelList
-              dataKey="status"
-              className="fill-background"
-              stroke="none"
-              fontSize={12}
-              formatter={(value: string | number) => {
-                const key = String(value) as keyof typeof chartConfig;
-                return chartConfig[key]?.label ?? String(value);
-              }}
-            />
-          </Pie>
-        </PieChart>
-      </ChartContainer>
+  const legendItems = chartData.map((d) => ({
+    label: d.label,
+    value: d.value,
+    maxValue: total,
+    color: d.color,
+  }));
 
-      <div className="flex flex-row sm:flex-col gap-2 text-center text-sm *:sm:min-w-36">
-        <div className="rounded-md border bg-muted/40 px-2 py-1.5">
-          <p className="text-muted-foreground">Present</p>
-          <p className="font-semibold tabular-nums">{presentCount}</p>
-        </div>
-        <div className="rounded-md border bg-muted/40 px-2 py-1.5">
-          <p className="text-muted-foreground">Absent</p>
-          <p className="font-semibold tabular-nums">{absentCount}</p>
-        </div>
-        <div className="rounded-md border bg-muted/40 px-2 py-1.5">
-          <p className="text-muted-foreground">Leave</p>
-          <p className="font-semibold tabular-nums">{leaveCount}</p>
-        </div>
-      </div>
+  return (
+    <div className="flex flex-col sm:flex-row sm:justify-center items-center gap-8 sm:gap-12">
+      <PieChart
+        data={chartData}
+        size={220}
+        innerRadius={50}
+        hoveredIndex={hoveredIndex}
+        onHoverChange={setHoveredIndex}
+      >
+        {chartData.map((_, index) => (
+          <PieSlice key={index} index={index} showGlow hoverEffect="grow" />
+        ))}
+        <PieCenter defaultLabel="Total Records" />
+      </PieChart>
+
+      <Legend
+        items={legendItems}
+        hoveredIndex={hoveredIndex}
+        onHoverChange={setHoveredIndex}
+        title="Attendance Breakdown"
+      >
+        <LegendItem className="flex items-center gap-3">
+          <LegendMarker />
+          <LegendLabel className="flex-1" />
+          <LegendValue showPercentage />
+        </LegendItem>
+      </Legend>
     </div>
   );
 }

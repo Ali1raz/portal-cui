@@ -5,16 +5,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AttendancePieChart } from "./attendance-pie-chart";
 
 export async function SubjectOverview({ offeringId }: { offeringId: string }) {
-  const { subject, _count, totalLectures, attendanceStats } =
-    await studentGetSubjectOverview({
-      offeringId,
-    });
+  const { subject, attendanceStats } = await studentGetSubjectOverview({
+    offeringId,
+  });
 
   return (
     <div className="flex items-start flex-wrap gap-3">
       <section className="w-full sm:max-w-62.5">
-        <h1>Subject</h1>
-        <Card>
+        <Card className="gap-3">
           <CardHeader>
             <CardTitle>{subject.name}</CardTitle>
           </CardHeader>
@@ -28,23 +26,6 @@ export async function SubjectOverview({ offeringId }: { offeringId: string }) {
       </section>
 
       <section className="w-full sm:max-w-62.5">
-        <h1>More Details</h1>
-        <Card>
-          <CardContent className="space-y-2">
-            <div className="flex justify-between items-center">
-              <p>Total Lectures</p>
-              <p className="text-muted-foreground">{totalLectures}</p>
-            </div>
-            <div className="flex justify-between items-center">
-              <p>Leave requests</p>
-              <p className="text-muted-foreground">{_count.leaveRequests}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-
-      <section className="w-full sm:max-w-62.5">
-        <h1>Attendance Stats</h1>
         <Card>
           <CardContent className="space-y-3">
             <div className="flex justify-between items-center">

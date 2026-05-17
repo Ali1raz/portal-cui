@@ -35,11 +35,6 @@ export async function studentGetSubjectOverview({
       },
     },
     select: {
-      _count: {
-        select: {
-          leaveRequests: true,
-        },
-      },
       totalLectures: true,
       subject: {
         select: {
