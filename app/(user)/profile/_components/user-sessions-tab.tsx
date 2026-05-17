@@ -1,6 +1,12 @@
 "use client";
 
-import { Android, Chrome, Edge, Windows } from "@/components/companies";
+import {
+  Android,
+  Chrome,
+  Edge,
+  Firefox,
+  Windows,
+} from "@/components/companies";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,16 +19,16 @@ import {
 } from "@/components/ui/dialog";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { UserGetAllSessions } from "@/app/data/user/user-get-all-sessions";
@@ -38,8 +44,8 @@ import {
   LogOut,
   ShieldAlert,
   Apple,
-  Flame,
 } from "lucide-react";
+import { errorMessage } from "@/lib/error-message";
 
 export function UserSessionsCard({
   sessions,
@@ -50,26 +56,34 @@ export function UserSessionsCard({
 }) {
   const [isPending, startTransition] = useTransition();
   const [isAllPending, startAllTransition] = useTransition();
+  const [open, setOpen] = useState(false);
   const router = useRouter();
 
   async function revokeSessionByToken(token: string): Promise<ApiResponseType> {
     try {
       await authClient.revokeSession({ token });
       return { status: "success", message: "Successfully revoked session." };
-    } catch {
-      return { status: "error", message: "Something went wrong." };
+    } catch (e) {
+      return {
+        status: "error",
+        message: errorMessage(e, "Something went wrong."),
+      };
     }
   }
 
   async function revokeOtherSessions(): Promise<ApiResponseType> {
     try {
       await authClient.revokeOtherSessions();
+      setOpen(false);
       return {
         status: "success",
         message: "Successfully revoked all other sessions.",
       };
-    } catch {
-      return { status: "error", message: "Something went wrong." };
+    } catch (e) {
+      return {
+        status: "error",
+        message: errorMessage(e, "Something went wrong."),
+      };
     }
   }
 
@@ -118,8 +132,9 @@ export function UserSessionsCard({
       <div className="space-y-3">
         {sessions.map((session) => {
           const isCurrent = currentToken === session.token;
-          const { browserIcon, browserName, osIcon, osName, deviceIcon } =
-            getDeviceInfo(session.userAgent ?? null);
+          const { browserIcon, browserName, osIcon, osName } = getDeviceInfo(
+            session.userAgent ?? null
+          );
 
           return (
             <Card
@@ -131,69 +146,8 @@ export function UserSessionsCard({
                   : "hover:border-muted-foreground/20"
               )}
             >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  {/* Left: icon + info */}
-                  <div className="flex items-start gap-3 min-w-0">
-                    {/* Device icon */}
-                    <div
-                      className={cn(
-                        "flex items-center justify-center rounded-lg size-14 shrink-0 border",
-                        isCurrent
-                          ? "bg-primary/10 border-primary/20 text-primary"
-                          : "bg-muted text-muted-foreground"
-                      )}
-                    >
-                      {deviceIcon}
-                    </div>
-
-                    {/* Info */}
-                    <div className="min-w-0 space-y-4">
-                      {/* Browser + OS row */}
-                      <div className="flex items-center flex-wrap gap-2">
-                        <div className="flex items-center gap-2 font-medium">
-                          <span className="size-4">{browserIcon}</span>
-                          <span>{browserName}</span>
-                        </div>
-                        <span>on</span>
-                        <div className="flex items-center gap-2 font-medium">
-                          <span className="size-4 shrink-0">{osIcon}</span>
-                          <span>{osName}</span>
-                        </div>
-                        {isCurrent && (
-                          <Badge
-                            variant="secondary"
-                            className="rounded bg-primary/10 text-primary border-primary/20"
-                          >
-                            CURRENT
-                          </Badge>
-                        )}
-                      </div>
-
-                      {/* Meta info */}
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 overflow-hidden text-ellipsis">
-                        {session.ipAddress && (
-                          <span className="flex items-center gap-2 text-muted-foreground">
-                            <MapPin className="size-4" />
-                            <code className="font-mono">
-                              {session.ipAddress}
-                            </code>
-                          </span>
-                        )}
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <Clock className="size-4" />
-                          Active{" "}
-                          {format(session.updatedAt, "MMM d, yyyy 'at' h:mm a")}
-                        </span>
-                        <span className="flex items-center gap-1 text-muted-foreground">
-                          <Calendar className="size-4" />
-                          Expires {format(session.expiresAt, "MMM d, yyyy")}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: revoke button */}
+              <CardHeader>
+                <CardAction>
                   <Button
                     disabled={isPending}
                     onClick={() => handleRevokeSession(session.token)}
@@ -207,6 +161,42 @@ export function UserSessionsCard({
                     <LogOut className="size-3.5" />
                     {isCurrent ? "Sign out" : "Revoke"}
                   </Button>
+                </CardAction>
+                <CardTitle>
+                  <div className="sm:text-2xl text-xl flex items-center flex-wrap gap-2">
+                    <div className="flex items-center gap-2 font-medium">
+                      <span className="size-4">{browserIcon}</span>
+                      <span>{browserName}</span>
+                    </div>
+                    <span>on</span>
+                    <div className="flex items-center gap-2 font-medium">
+                      <span className="size-4 shrink-0">{osIcon}</span>
+                      <span>{osName}</span>
+                    </div>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-start gap-3">
+                  {/* Meta info */}
+                  <div className="flex flex-col gap-x-4 gap-y-1 overflow-hidden text-ellipsis">
+                    {session.ipAddress && (
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <MapPin className="size-4" />
+                        <code className="font-mono">{session.ipAddress}</code>
+                      </span>
+                    )}
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <Clock className="size-4" />
+                      Active{" "}
+                      {format(session.updatedAt, "MMM d, yyyy 'at' h:mm a")}
+                    </span>
+                    <span className="flex items-center gap-1 text-muted-foreground">
+                      <Calendar className="size-4" />
+                      Expires{" "}
+                      {format(session.expiresAt, "MMM d, yyyy 'at' h:mm a")}
+                    </span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -229,7 +219,7 @@ export function UserSessionsCard({
           </CardDescription>
         </CardHeader>
         <CardContent className="py-4">
-          <Dialog>
+          <Dialog defaultOpen={open} onOpenChange={(o) => !o}>
             <DialogTrigger asChild>
               <Button
                 variant="destructive"
@@ -237,7 +227,7 @@ export function UserSessionsCard({
                 className="gap-2"
               >
                 <LogOut className="size-4" />
-                Sign out all other devices
+                Sign out from all other devices
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -316,7 +306,7 @@ function getDeviceInfo(userAgent: string | null): DeviceInfo {
       <Chrome className="size-4" />
     ) : browserName === "Firefox" ? (
       // Use Flame as stand-in if <Firefox /> isn't in companies
-      <Flame className="size-4 text-orange-500" />
+      <Firefox className="size-4" />
     ) : (
       <Globe className="size-4" />
     );
