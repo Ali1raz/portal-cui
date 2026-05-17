@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { UserImage } from "@/components/user/user-image";
+import { ProfAttendanceChart } from "../_components/prof-attendance-chart";
 
 export const metadata: Metadata = {
   title: "Lecture Details",
@@ -51,6 +52,7 @@ function LectureDetailsSkeleton() {
         <Skeleton className="h-5 w-48" />
         <Skeleton className="h-5 w-32" />
       </div>
+      <Skeleton className="h-48 w-full" />
       <Table>
         <TableHeader>
           <TableRow>
@@ -124,6 +126,20 @@ async function LectureDetailsInSuspense({
           </Link>
         </Button>
       </div>
+
+      {/*  */}
+
+      <ProfAttendanceChart
+        absentCount={
+          lecture.attendances.filter((a) => a.status === "ABSENT").length
+        }
+        leaveCount={
+          lecture.attendances.filter((a) => a.status === "LEAVE").length
+        }
+        presentCount={
+          lecture.attendances.filter((a) => a.status === "PRESENT").length
+        }
+      />
 
       <div className="rounded-md border">
         <Table>
