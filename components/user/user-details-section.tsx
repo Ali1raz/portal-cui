@@ -13,7 +13,7 @@ interface iAppProps {
 export function UserDetailsSection({ user, details }: iAppProps) {
   return (
     <div className="flex flex-col">
-      <div className="flex sm:items-start gap-4 sm:flex-row">
+      <div className="flex flex-col sm:items-start gap-4 sm:flex-row w-full overflow-hidden text-ellipsis">
         <div className="size-32">
           <UserImage
             className="rounded-full object-cover w-full h-full size-30"
@@ -24,7 +24,7 @@ export function UserDetailsSection({ user, details }: iAppProps) {
 
         <div className="flex flex-col">
           <h1 className="text-2xl font-bold">{user.name}</h1>
-          <h2 className="flex items-center gap-2">{user.email}</h2>
+          <h2>{user.email}</h2>
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-4 border-y p-2 my-6">
