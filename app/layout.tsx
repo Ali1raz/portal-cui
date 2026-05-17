@@ -6,6 +6,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 import { SITE_INFO } from "@/lib/data/SITE";
 import Providers from "@/components/provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -78,7 +79,9 @@ export default function RootLayout({
               limitUrlUpdates: { method: "throttle", timeMs: 1000 },
             }}
           >
-            <Providers>{children}</Providers>
+            <Providers>
+              <TooltipProvider>{children}</TooltipProvider>
+            </Providers>
           </NuqsAdapter>
           <Toaster
             richColors
