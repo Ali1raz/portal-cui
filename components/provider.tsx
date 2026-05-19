@@ -9,6 +9,7 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
       options={{ showSpinner: false, trickleSpeed: 300 }}
       height="4px"
       shallowRouting
+      color="var(--primary)"
     >
       <Peg />
       {children}

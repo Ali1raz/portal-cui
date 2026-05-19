@@ -196,6 +196,24 @@
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+
+  --bprogress-color: var(--foreground);
+  --bprogress-height: 4px;
+  --bprogress-spinner-size: 18px;
+  --bprogress-spinner-animation-duration: 400ms;
+  --bprogress-spinner-border-size: 2px;
+  --bprogress-box-shadow:
+    0 0 10px var(--bprogress-color), 0 0 5px var(--bprogress-color);
+  --bprogress-z-index: 99999;
+  --bprogress-spinner-top: 15px;
+  --bprogress-spinner-bottom: auto;
+  --bprogress-spinner-right: 15px;
+  --bprogress-spinner-left: auto;
+  --legend: oklch(1 0 0);
+  --legend-foreground: oklch(0.141 0.005 285.823);
+  --legend-muted: oklch(0.967 0.001 286.375);
+  --legend-muted-foreground: oklch(0.552 0.016 285.938);
+  --legend-track: oklch(0.92 0.004 286.32);
 }
 
 [data-theme="claude"].dark {
