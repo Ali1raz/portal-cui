@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UpdateProfileForm } from "./update-profile-form";
 import { UserSessionsCard } from "./user-sessions-tab";
 import { SecurityTab } from "./security-tab";
+import { ThemesTab } from "./themes-tab";
 import { userGetAllSessions } from "@/app/data/user/user-get-all-sessions";
 import { requireSession } from "@/app/data/session/require-session";
 
@@ -33,6 +34,12 @@ const ProfileTabs = async () => {
           >
             Security
           </TabsTrigger>
+          <TabsTrigger
+            value={"preferences"}
+            className="cursor-pointer relative z-10 rounded"
+          >
+            Preferences
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="update-profile">
@@ -48,6 +55,10 @@ const ProfileTabs = async () => {
 
         <TabsContent value="security">
           <SecurityTab />
+        </TabsContent>
+
+        <TabsContent value="preferences">
+          <ThemesTab />
         </TabsContent>
       </Tabs>
     </div>

@@ -1,4 +1,5 @@
 import { ThemeProvider } from "@/components/theme-provider";
+import ThemeScript from "@/components/theme-script";
 import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -64,6 +65,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
