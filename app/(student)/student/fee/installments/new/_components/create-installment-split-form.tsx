@@ -49,7 +49,9 @@ export function CreateInstallmentSplitForm({
   };
 
   const form = useForm<CreateInstallmentSplitRequestSchemaType>({
-    resolver: zodResolver(createInstallmentSplitRequestSchema),
+    resolver: zodResolver(
+      createInstallmentSplitRequestSchema(splitContext.remainingAmount)
+    ),
     defaultValues,
     mode: "onChange",
   });

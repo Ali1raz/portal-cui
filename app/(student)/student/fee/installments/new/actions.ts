@@ -28,15 +28,6 @@ export async function createInstallmentSplitRequest(
       };
     }
 
-    const validated = createInstallmentSplitRequestSchema.safeParse(values);
-
-    if (!validated.success) {
-      return {
-        status: "error",
-        message: "Invalid form data.",
-      };
-    }
-
     const student = await prisma.student.findFirst({
       where: {
         userId: session.user.id,
@@ -64,6 +55,17 @@ export async function createInstallmentSplitRequest(
       };
     }
 
+    const validated = createInstallmentSplitRequestSchema(
+      feeSplitContext.remainingAmount
+    ).safeParse(values);
+
+    if (!validated.success) {
+      return {
+        status: "error",
+        message: "Invalid form data.",
+      };
+    }
+
     const splitAmount = validated.data.splitAmount;
     const remainingAmount = feeSplitContext.remainingAmount;
 
@@ -74,29 +76,12 @@ export async function createInstallmentSplitRequest(
       };
     }
 
-    if (splitAmount >= remainingAmount) {
-      return {
-        status: "error",
-        message: "Split amount must be less than the remaining fee.",
-      };
-    }
-
     const secondInstallmentAmount = remainingAmount - splitAmount;
-
-    if (secondInstallmentAmount <= 0) {
-      return {
-        status: "error",
-        message:
-          "Remaining amount for second installment must be greater than 0.",
-      };
-    }
 
     // Check total installments limit
     const totalInstallments = await prisma.studentFeeInstallment.count({
       where: { studentSemesterFeeId: feeSplitContext.studentSemesterFeeId },
     });
-
-    console.log("Total installments for this semester fee:", totalInstallments);
 
     if (totalInstallments >= 3) {
       return {
