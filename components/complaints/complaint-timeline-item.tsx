@@ -1,10 +1,5 @@
 import { formatDate } from "@/lib/utils";
-import {
-  IconUser,
-  IconBuilding,
-  IconPoint,
-  IconArrowRight,
-} from "@tabler/icons-react";
+import { IconUser, IconPoint, IconArrowRight } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { ACTION_CONFIG, ACTOR_LABEL } from "./complaint-constants";
 import {
@@ -84,10 +79,6 @@ export function ComplaintTimelineItem({
                 — {review.batchAdvisor.user.name}
               </span>
             )}
-          </span>
-          <span className="flex items-center gap-1">
-            <IconBuilding size={11} />
-            {review.department}
           </span>
         </div>
 

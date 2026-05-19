@@ -14,18 +14,13 @@ import {
 import { GeneralImage } from "@/components/general/general-image";
 import { UserImage } from "@/components/user/user-image";
 import { formatDate } from "@/lib/utils";
-import {
-  IconArrowLeft,
-  IconClockHour4,
-  IconPaperclip,
-  IconEdit,
-} from "@tabler/icons-react";
+import { IconArrowLeft, IconPaperclip, IconEdit } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
 import { STATUS_CONFIG } from "@/components/complaints/complaint-constants";
 import { ComplaintStatusBanner } from "@/components/complaints/complaint-status-banner";
 import { ComplaintTimelineItem } from "@/components/complaints/complaint-timeline-item";
-import { ArrowRight } from "lucide-react";
+import { Calendar, Check } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Complaint Details",
@@ -56,20 +51,20 @@ export default async function HodComplaintDetailsPage(
             All Complaints
           </Link>
         </Button>
-        <div className="space-y-4">
+        <div className="space-y-4 flex flex-col sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <h1 className="text-2xl font-bold tracking-tight leading-tight">
               {details.title}
             </h1>
             <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-              <IconClockHour4 size={13} />
+              <Calendar className="size-4" />
               Submitted {formatDate(details.createdAt)}
             </p>
           </div>
           {canReview && (
             <Button size="sm" asChild>
               <Link href={`/hod/complaints/${id}/update-status`}>
-                <IconEdit size={14} className="mr-1.5" />
+                <IconEdit className="size-4" />
                 Review Complaint
               </Link>
             </Button>
@@ -166,7 +161,7 @@ export default async function HodComplaintDetailsPage(
         </section>
 
         {/* ── Right: Sidebar ── */}
-        <section>
+        <section className="space-y-4">
           {/* Student info */}
           <Card>
             <CardHeader>
@@ -209,7 +204,7 @@ export default async function HodComplaintDetailsPage(
                 {details.assignments.map((a) => (
                   <div key={a.id} className="space-y-1">
                     <div className="flex items-center gap-1.5 text-xs font-medium">
-                      <ArrowRight />
+                      <Check />
                       <span className="rounded bg-muted px-1.5 py-0.5 font-mono">
                         {a.toDepartment}
                       </span>

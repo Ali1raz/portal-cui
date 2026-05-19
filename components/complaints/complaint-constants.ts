@@ -46,7 +46,7 @@ export const STATUS_CONFIG: Record<
     description: "The Batch Advisor requested more details before proceeding.",
   },
   HOD_PENDING: {
-    label: "Escalated to HOD",
+    label: "HOD Pending",
     color:
       "bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:ring-blue-800",
     dot: "bg-blue-400 animate-pulse",

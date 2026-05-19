@@ -39,6 +39,23 @@ export async function studentGetComplaintDetails({ id }: { id: string }) {
       // targetDepartment: true,
       createdAt: true,
       imageKey: true,
+      reviews: {
+        where: {
+          toStatus: {
+            in: ["BA_REJECTED", "HOD_REJECTED", "BA_REVIEW_REQUESTED"],
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: {
+          id: true,
+          actorRole: true,
+          remarks: true,
+          fromStatus: true,
+          toStatus: true,
+          createdAt: true,
+        },
+      },
     },
   });
 

@@ -4,12 +4,7 @@ import { studentGetComplaintDetails } from "@/app/data/student/get-complaint-det
 import { GeneralImage } from "@/components/general/general-image";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
-import {
-  IconArrowLeft,
-  IconEdit,
-  IconPaperclip,
-  IconClockHour4,
-} from "@tabler/icons-react";
+import { IconArrowLeft, IconEdit, IconPaperclip } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import {
   Card,
@@ -23,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { STATUS_CONFIG } from "@/components/complaints/complaint-constants";
 import { ComplaintStatusBanner } from "@/components/complaints/complaint-status-banner";
 import { ALREADY_REVIEWED_COMPLAINT_STATUS } from "@/lib/data/utils";
+import { Calendar } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Complaint Details",
@@ -53,20 +49,20 @@ export default async function ComplaintDetailsPage(
           All Complaints
         </Link>
       </Button>
-      <div className="space-y-4">
+      <div className="space-y-4 flex flex-col sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <h1 className="text-2xl font-bold tracking-tight leading-tight">
             {details.title}
           </h1>
           <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-            <IconClockHour4 size={13} />
+            <Calendar className="size-4" />
             Submitted {formatDate(details.createdAt)}
           </p>
         </div>
         {!alreadyReviewed && (
-          <Button size="sm" asChild>
+          <Button className="w-fit" asChild>
             <Link href={`/student/complaints/${id}/edit`}>
-              <IconEdit size={14} className="mr-1.5" />
+              <IconEdit className="size-4" />
               Edit Complaint
             </Link>
           </Button>
@@ -74,7 +70,10 @@ export default async function ComplaintDetailsPage(
       </div>
 
       {/* ── Status banner ── */}
-      <ComplaintStatusBanner status={details.status} />
+      <ComplaintStatusBanner
+        status={details.status}
+        descriptionOverride={details.reviews[0].remarks}
+      />
 
       {/* ── Main grid ── */}
       <div className="grid gap-6">

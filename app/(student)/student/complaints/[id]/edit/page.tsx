@@ -19,7 +19,7 @@ export default async function EditComplaintPage(
   );
 
   return (
-    <div className="px-4 md:px-6 max-w-6xl w-full">
+    <div className="px-4 md:px-6 max-w-6xl w-full mb-8">
       <div className="my-4">
         <h1 className="text-lg font-semibold">Update Complaint</h1>
         <p className="text-muted-foreground text-sm">
