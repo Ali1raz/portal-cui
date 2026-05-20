@@ -170,7 +170,7 @@ export function AdminLeaveRequestsChartClient({
             <ChartLegend content={<ChartLegendContent />} />
             <Bar
               dataKey="leaveRequests"
-              fill="var(--color-leaveRequests)"
+              fill="var(--chart-1)"
               radius={[8, 8, 0, 0]}
             />
           </BarChart>

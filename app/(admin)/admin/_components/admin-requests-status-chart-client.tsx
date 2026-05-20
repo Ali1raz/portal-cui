@@ -67,13 +67,13 @@ export function AdminRequestsStatusChartClient({
             <Bar
               dataKey="approved"
               stackId="a"
-              fill="var(--color-approved)"
+              fill="var(--chart-1)"
               radius={[0, 0, 4, 4]}
             />
             <Bar
               dataKey="unresolved"
               stackId="a"
-              fill="var(--color-unresolved)"
+              fill="var(--chart-2)"
               radius={[4, 4, 0, 0]}
             />
           </BarChart>
