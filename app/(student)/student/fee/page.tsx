@@ -42,15 +42,16 @@ export default async function FeePage() {
   const voucherByInstallmentId = new Map(
     data.voucherDataList.map((voucher) => [voucher.voucherId, voucher])
   );
+  const semesterLabel = data.semesterLabel;
 
   return (
     <div className="@container/main p-4 md:p-6 space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Fee Details</h2>
-          {data.semesterLabel && (
+          {semesterLabel && (
             <p className="text-muted-foreground text-sm mt-1">
-              {data.semesterLabel}
+              {semesterLabel}
             </p>
           )}
         </div>

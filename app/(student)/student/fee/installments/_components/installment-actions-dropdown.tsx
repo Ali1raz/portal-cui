@@ -88,6 +88,7 @@ export function InstallmentActionsDropdown({
       printedAt: new Date().toISOString(),
       institutionName: voucher.institutionName ?? voucherData.institutionName,
       student: voucher.student ?? voucherData.student,
+      semesterLabel: voucher.semesterLabel ?? voucherData.semesterLabel,
     };
 
     setPrintData(dataForPdf);

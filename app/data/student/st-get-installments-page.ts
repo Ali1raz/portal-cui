@@ -57,6 +57,7 @@ export interface StudentFeeInstallmentsPageData {
     image: string | null;
     registrationNo: string;
   };
+  semesterLabel?: string;
   feeInstallments: FeeInstallmentForPage[];
   displayedInstallments: StudentInstallmentForPage[];
   installmentSplitRequests: StudentInstallmentSplitRequestForPage[];
@@ -100,6 +101,15 @@ export async function studentGetInstallmentsPageData(): Promise<StudentFeeInstal
       id: true,
       semesterFee: {
         select: {
+          semester: {
+            select: {
+              semester: true,
+              year: true,
+              batch: true,
+              program: true,
+              department: true,
+            },
+          },
           feeInstallments: {
             orderBy: { installmentNo: "asc" },
             select: {
@@ -239,6 +249,9 @@ export async function studentGetInstallmentsPageData(): Promise<StudentFeeInstal
       image: student.user.image,
       registrationNo: student.registrationNo,
     },
+    semesterLabel: record.semesterFee?.semester
+      ? `Sem ${record.semesterFee.semester.semester}-${record.semesterFee.semester.batch}${String(record.semesterFee.semester.year).slice(-2)}-${record.semesterFee.semester.program}${record.semesterFee.semester.department}`
+      : undefined,
     feeInstallments,
     displayedInstallments,
     installmentSplitRequests,

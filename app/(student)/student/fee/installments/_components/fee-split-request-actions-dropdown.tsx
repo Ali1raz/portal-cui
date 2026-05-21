@@ -99,6 +99,7 @@ export function FeeSplitRequestActionsDropdown({
       institutionName:
         result.voucher.institutionName ?? voucherData.institutionName,
       student: result.voucher.student ?? voucherData.student,
+      semesterLabel: result.voucher.semesterLabel ?? voucherData.semesterLabel,
     };
 
     setPrintData(dataForPdf);

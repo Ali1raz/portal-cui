@@ -6,7 +6,7 @@ import { protect } from "@/lib/arcjet-protect";
 import { errorMessage } from "@/lib/error-message";
 import prisma from "@/lib/prisma";
 import type { ApiResponseType } from "@/lib/types";
-import type { VoucherData } from "@/app/data/student/st-get-fee";
+import { VoucherData } from "../_components/fee-voucher";
 
 export async function markStudentInstallmentAsPaid(
   installmentId: string
@@ -411,6 +411,7 @@ export async function generateVoucher(
         installmentNo: existing.studentFeeInstallment.orderNo,
         amount: Number(existing.amount),
         dueDate: existing.dueDate.toISOString(),
+        expiryDate: existing.expiryDate?.toISOString(),
         printedAt: new Date().toISOString(),
         institutionName: undefined,
         student: {
@@ -494,6 +495,7 @@ export async function generateVoucher(
         installmentNo: voucher.studentFeeInstallment.orderNo,
         amount: Number(voucher.amount),
         dueDate: voucher.dueDate.toISOString(),
+        expiryDate: voucher.expiryDate?.toISOString(),
         printedAt: new Date().toISOString(),
         institutionName: undefined,
         student: {

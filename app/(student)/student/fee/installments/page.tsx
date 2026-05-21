@@ -13,7 +13,6 @@ import { formatFeeAmount, formatFeeDate } from "@/lib/utils/fee-format";
 import { IconCreditCard } from "@tabler/icons-react";
 import { InstallmentActionsDropdown } from "./_components/installment-actions-dropdown";
 import { FeeSplitRequestActionsDropdown } from "./_components/fee-split-request-actions-dropdown";
-import type { VoucherData } from "@/app/data/student/st-get-fee";
 import { SITE_INFO } from "@/lib/data/SITE";
 import {
   studentCanEditSplitRequest,
@@ -27,6 +26,7 @@ import {
 } from "@/components/fee/installment-status-config";
 import { SplitRequestStatusBadge } from "@/components/fee/split-request-status-badge";
 import { FineDisplay } from "@/components/fee/fine-display";
+import { VoucherData } from "../_components/fee-voucher";
 
 function getInstallmentStatus(
   dueDate: Date | string,
@@ -57,7 +57,8 @@ export default async function Installments() {
     );
   }
 
-  const studentInfo = data.student;
+  const semesterLabel = data.semesterLabel;
+  const feePageData = data;
 
   function createVoucherData(params: {
     voucherId: string;
@@ -72,7 +73,8 @@ export default async function Installments() {
       dueDate: params.dueDate.toISOString(),
       printedAt: today.toISOString(),
       institutionName: SITE_INFO.institution_name,
-      student: studentInfo,
+      student: feePageData.student,
+      semesterLabel,
     };
   }
 
