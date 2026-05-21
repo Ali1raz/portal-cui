@@ -259,7 +259,7 @@ export function FeeVoucherTemplate({ id, data }: FeeVoucherTemplateProps) {
               </TableRow>
               <TableRow>
                 <TableCell className="px-2 py-1.5 bg-gray-50 font-mono text-[10px] text-gray-600 uppercase font-semibold">
-                  Expires On
+                  Expires after
                 </TableCell>
                 <TableCell className="px-2 py-1.5 font-mono text-[11px] font-semibold">
                   {formatDate(data.expiryDate ?? data.dueDate)}
