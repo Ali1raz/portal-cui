@@ -45,6 +45,11 @@ function formatDate(date: string): string {
   return formatFeeDate(date, "long");
 }
 
+function getChallanSeq(voucherId: string): string {
+  const lastToken = voucherId.split("-").at(-1) ?? voucherId;
+  return lastToken.toUpperCase();
+}
+
 function VoucherLayout({
   id,
   heading,
@@ -124,7 +129,7 @@ function ChallanCopyCard({
               Challan #
             </TableCell>
             <TableCell className="px-2 py-1.5 font-mono text-[11px] font-bold">
-              {voucherId.slice(0, 8).toUpperCase()}
+              {getChallanSeq(voucherId)}
             </TableCell>
           </TableRow>
           <TableRow>

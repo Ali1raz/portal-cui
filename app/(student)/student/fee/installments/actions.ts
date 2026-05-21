@@ -6,6 +6,7 @@ import { protect } from "@/lib/arcjet-protect";
 import { errorMessage } from "@/lib/error-message";
 import prisma from "@/lib/prisma";
 import type { ApiResponseType } from "@/lib/types";
+import type { VoucherData } from "@/app/data/student/st-get-fee";
 
 export async function markStudentInstallmentAsPaid(
   installmentId: string
@@ -304,6 +305,216 @@ export async function markInstallmentRequestAsPaid(
     return {
       status: "error",
       message: errorMessage(error, "Failed to update installment status."),
+    };
+  }
+}
+
+export async function generateVoucher(
+  installmentId: string
+): Promise<ApiResponseType | (ApiResponseType & { voucher: VoucherData })> {
+  try {
+    const session = await requireSession();
+
+    const deniedMessage = await protect(session.user.id);
+    if (deniedMessage) {
+      return { status: "error", message: deniedMessage };
+    }
+
+    // load student from session — student.id used server-side only
+    const student = await prisma.student.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+
+    if (!student) {
+      return { status: "error", message: "Student profile not found." };
+    }
+
+    // load installment and verify ownership
+    const installment = await prisma.studentFeeInstallment.findFirst({
+      where: { id: installmentId, studentId: student.id },
+      select: {
+        id: true,
+        status: true,
+        amount: true,
+        dueDate: true,
+        orderNo: true,
+      },
+    });
+
+    if (!installment) {
+      return { status: "error", message: "Installment not found." };
+    }
+
+    // Block if already paid
+    if (installment.status === "PAID") {
+      return {
+        status: "error",
+        message: "Installment already paid. Voucher cannot be issued.",
+      };
+    }
+
+    // Compute PKT (Asia/Karachi, UTC+5) startOfToday in UTC and endOfToday in UTC
+    const PKT_OFFSET_MS = 5 * 60 * 60 * 1000; // +5 hours
+    const now = new Date();
+    const pktNow = new Date(now.getTime() + PKT_OFFSET_MS);
+    const localYear = pktNow.getUTCFullYear();
+
+    const pktYear = pktNow.getUTCFullYear();
+    const pktMonth = pktNow.getUTCMonth();
+    const pktDate = pktNow.getUTCDate();
+
+    const startOfTodayUtc = new Date(
+      Date.UTC(pktYear, pktMonth, pktDate, 0, 0, 0, 0) - PKT_OFFSET_MS
+    );
+    const endOfTodayUtc = new Date(
+      Date.UTC(pktYear, pktMonth, pktDate, 23, 59, 59, 999) - PKT_OFFSET_MS
+    );
+
+    const all = await prisma.feeVoucher.findMany({
+      where: {
+        studentFeeInstallmentId: installment.id,
+      },
+    });
+
+    console.log("Existing vouchers for installment:", all.length);
+
+    // Idempotency check — if ACTIVE voucher exists for today, return it
+    const existing = await prisma.feeVoucher.findFirst({
+      where: {
+        studentFeeInstallmentId: installment.id,
+        status: "ACTIVE",
+        expiryDate: { gte: startOfTodayUtc },
+      },
+      include: {
+        studentFeeInstallment: {
+          select: {
+            orderNo: true,
+            student: {
+              select: {
+                registrationNo: true,
+                user: { select: { name: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (
+      existing &&
+      Number(existing.amount) === Number(installment.amount) &&
+      existing.dueDate.getTime() === installment.dueDate.getTime()
+    ) {
+      const mapped: VoucherData = {
+        voucherId: existing.voucherNo,
+        installmentNo: existing.studentFeeInstallment.orderNo,
+        amount: Number(existing.amount),
+        dueDate: existing.dueDate.toISOString(),
+        printedAt: new Date().toISOString(),
+        institutionName: undefined,
+        student: {
+          registrationNo: existing.studentFeeInstallment.student.registrationNo,
+          name: existing.studentFeeInstallment.student.user.name,
+        },
+      };
+
+      console.log(
+        `Existing active voucher found for installment ${existing.voucherNo} - ${existing.expiryDate}.`
+      );
+
+      return {
+        status: "success",
+        voucher: mapped,
+        message: "Existing voucher returned.",
+      };
+    }
+
+    if (existing) {
+      console.log(
+        `Found stale active voucher ${existing.voucherNo} for installment ${installment.id}. Regenerating with updated amount/due date.`
+      );
+    }
+
+    // Create voucher inside transaction: expire old ACTIVE ones, bump counter, create new voucher
+    const result = await prisma.$transaction(async (tx) => {
+      console.log("No active voucher found. Generating new voucher...");
+      // expire any lingering active vouchers for this installment
+      await tx.feeVoucher.updateMany({
+        where: {
+          studentFeeInstallmentId: installment.id,
+          status: "ACTIVE",
+        },
+        data: {
+          status: "EXPIRED",
+          expiredAt: new Date(),
+        },
+      });
+
+      // bump or create counter row safely
+      const counter = await tx.feeVoucherCounter.upsert({
+        where: { id: 1 },
+        update: { seq: { increment: 1 } },
+        create: { id: 1, seq: 1 },
+      });
+
+      console.log("Counter after increment:", counter.seq);
+
+      const seq = String(counter.seq);
+      const voucherNo = `${localYear}${seq.padStart(6, "0")}`;
+      console.log("Generated voucher number:", voucherNo);
+
+      const voucher = await tx.feeVoucher.create({
+        data: {
+          voucherNo,
+          studentFeeInstallmentId: installment.id,
+          studentId: student.id,
+          amount: installment.amount,
+          dueDate: installment.dueDate,
+          expiryDate: endOfTodayUtc,
+          status: "ACTIVE",
+        },
+        include: {
+          studentFeeInstallment: {
+            select: {
+              orderNo: true,
+              student: {
+                select: {
+                  registrationNo: true,
+                  user: { select: { name: true } },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const mapped: VoucherData = {
+        voucherId: voucher.voucherNo,
+        installmentNo: voucher.studentFeeInstallment.orderNo,
+        amount: Number(voucher.amount),
+        dueDate: voucher.dueDate.toISOString(),
+        printedAt: new Date().toISOString(),
+        institutionName: undefined,
+        student: {
+          registrationNo: voucher.studentFeeInstallment.student.registrationNo,
+          name: voucher.studentFeeInstallment.student.user.name,
+        },
+      };
+
+      return mapped;
+    });
+
+    return {
+      status: "success",
+      voucher: result,
+      message: "Voucher generated.",
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      message: errorMessage(error, "Failed to generate voucher."),
     };
   }
 }

@@ -144,6 +144,7 @@ model Student {
   studentFeeInstallments   StudentFeeInstallment[]
   installmentSplitRequests InstallmentSplitRequest[]
   studentSemesterFees      StudentSemesterFee[]
+  feeVouchers              FeeVoucher[]
 
   @@map("student")
 }
@@ -924,6 +925,7 @@ model StudentFeeInstallment {
 
   studentSemesterFee   StudentSemesterFee? @relation(fields: [studentSemesterFeeId], references: [id], onDelete: Cascade)
   studentSemesterFeeId String?
+  feeVouchers          FeeVoucher[]
 
   @@unique([studentSemesterFeeId, orderNo])
   @@index([studentId]) // student's fee page
@@ -1011,4 +1013,48 @@ enum SplitRequestStatus {
   HOD_REJECTED
   APPROVED
   REJECTED
+}
+
+// ---------
+// voucher
+
+enum VoucherStatus {
+  ACTIVE // generated, not yet used or expired
+  USED // payment confirmed
+  EXPIRED // past expiryDate and status was still ACTIVE
+}
+
+model FeeVoucher {
+  id String @id @default(uuid())
+
+  voucherNo String @unique // e.g. "2024000042" — formatted serial
+
+  studentFeeInstallmentId String
+  studentFeeInstallment   StudentFeeInstallment @relation(fields: [studentFeeInstallmentId], references: [id], onDelete: Cascade)
+  studentId               String
+  student                 Student               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  amount     Decimal  @db.Decimal(10, 2)
+  dueDate    DateTime // copied from StudentFeeInstallment.dueDate at voucher generation time
+  expiryDate DateTime // end of generation day (23:59:59) — voucher valid today only
+
+  status    VoucherStatus @default(ACTIVE)
+  usedAt    DateTime? // set when status → USED
+  expiredAt DateTime? // set when status → EXPIRED (by cron/inngest)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentFeeInstallmentId, status, expiryDate]) // idempotency check
+  @@index([status, expiryDate]) // expiry sweep query
+  @@index([studentId, status]) // per-student voucher listing
+  @@index([voucherNo]) // lookup by voucher number at payment desk
+  @@map("fee_voucher")
+}
+
+model FeeVoucherCounter {
+  id  Int    @id @default(1) // single-row table
+  seq BigInt @default(0)
+
+  @@map("fee_voucher_counter")
 }

@@ -19,6 +19,7 @@ import {
   studentCanEditSplitRequest,
   studentCanDeleteSplitRequest,
   studentCanMarkPaidSplitRequest,
+  studentCanPrintSplitRequest,
 } from "./installment-split-request-constants";
 import {
   INSTALLMENT_STATUS_CONFIG,
@@ -298,7 +299,11 @@ export default async function Installments() {
                       <TableCell>
                         <FeeSplitRequestActionsDropdown
                           requestId={request.id}
+                          installmentId={request.studentFeeInstallmentId}
                           canMarkPaid={studentCanMarkPaidSplitRequest(
+                            request.status
+                          )}
+                          canPrintVoucher={studentCanPrintSplitRequest(
                             request.status
                           )}
                           voucherData={createVoucherData({

@@ -30,3 +30,12 @@ export const SPLIT_REQUEST_MARK_PAID_STATUSES: SplitRequestStatus[] = [
 export function studentCanMarkPaidSplitRequest(status: SplitRequestStatus) {
   return SPLIT_REQUEST_MARK_PAID_STATUSES.includes(status);
 }
+
+export const SPLIT_REQUEST_PRINTABLE_STATUSES: SplitRequestStatus[] = [
+  "HOD_APPROVED",
+  "APPROVED",
+];
+
+export function studentCanPrintSplitRequest(status: SplitRequestStatus) {
+  return SPLIT_REQUEST_PRINTABLE_STATUSES.includes(status);
+}

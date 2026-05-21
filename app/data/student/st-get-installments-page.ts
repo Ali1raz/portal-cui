@@ -13,6 +13,7 @@ import type {
 
 export interface StudentInstallmentSplitRequestForPage {
   id: string;
+  studentFeeInstallmentId: string;
   status: SplitRequestStatus;
   requestedAmount: number;
   preferredDueDate: Date;
@@ -210,6 +211,7 @@ export async function studentGetInstallmentsPageData(): Promise<StudentFeeInstal
         installmentSplitRequests: inst.installmentSplitRequests.map(
           (request) => ({
             id: request.id,
+            studentFeeInstallmentId: inst.id,
             status: request.status as SplitRequestStatus,
             requestedAmount: Number(request.requestedAmount),
             preferredDueDate: request.preferredDueDate,
@@ -222,6 +224,7 @@ export async function studentGetInstallmentsPageData(): Promise<StudentFeeInstal
   const installmentSplitRequests = record.installments.flatMap((inst) =>
     inst.installmentSplitRequests.map((request) => ({
       id: request.id,
+      studentFeeInstallmentId: inst.id,
       status: request.status,
       requestedAmount: Number(request.requestedAmount),
       preferredDueDate: request.preferredDueDate,
