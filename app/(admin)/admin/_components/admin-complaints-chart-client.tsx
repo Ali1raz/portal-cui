@@ -34,7 +34,7 @@ import {
 const chartConfig = {
   complaints: {
     label: "Complaints",
-    color: "var(--chart-2)",
+    color: "var(--chart-1)",
   },
 } satisfies ChartConfig;
 

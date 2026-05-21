@@ -19,17 +19,17 @@ interface FeeVoucherTemplateProps {
   id: string;
   data: VoucherData;
 }
-
 export interface VoucherData {
   voucherId: string;
   installmentNo: number;
   amount: number;
   dueDate: string;
+  expiryDate?: string;
   printedAt?: string;
   institutionName?: string;
   student?: FeeStudentInfo;
+  semesterLabel?: string;
 }
-
 interface FullFeeVoucherTemplateProps {
   id: string;
   data: FullFeeVoucherData;
@@ -43,6 +43,12 @@ function formatAmount(amount: number): string {
 
 function formatDate(date: string): string {
   return formatFeeDate(date, "long");
+}
+
+function getChallanSeq(voucherId: string): string {
+  // Extract trailing digits (sequence) if present, otherwise fallback to full id
+  const m = String(voucherId).match(/(\d+)$/);
+  return (m ? m[1] : voucherId).toUpperCase();
 }
 
 function VoucherLayout({
@@ -90,6 +96,7 @@ function ChallanCopyCard({
   feeRows,
   totalLabel,
   totalAmount,
+  showFullId,
 }: {
   copyType: ChallanCopyType;
   institutionName: string;
@@ -100,6 +107,7 @@ function ChallanCopyCard({
   feeRows: React.ReactNode;
   totalLabel: string;
   totalAmount: number;
+  showFullId?: boolean;
 }) {
   return (
     <div className="bg-white border-2 border-black shadow-[4px_4px_0_#1a1a1a] overflow-hidden voucher-sans">
@@ -124,7 +132,7 @@ function ChallanCopyCard({
               Challan #
             </TableCell>
             <TableCell className="px-2 py-1.5 font-mono text-[11px] font-bold">
-              {voucherId.slice(0, 8).toUpperCase()}
+              {showFullId ? voucherId : getChallanSeq(voucherId)}
             </TableCell>
           </TableRow>
           <TableRow>
@@ -205,6 +213,7 @@ export function FeeVoucherTemplate({ id, data }: FeeVoucherTemplateProps) {
     printedAt,
     institutionName = SITE_INFO.institution_name,
     student,
+    semesterLabel,
   } = data;
 
   return (
@@ -226,6 +235,14 @@ export function FeeVoucherTemplate({ id, data }: FeeVoucherTemplateProps) {
             <>
               <TableRow>
                 <TableCell className="px-2 py-1.5 bg-gray-50 font-mono text-[10px] text-gray-600 uppercase font-semibold">
+                  Semester
+                </TableCell>
+                <TableCell className="px-2 py-1.5 font-mono text-[11px] font-semibold">
+                  {semesterLabel || "N/A"}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="px-2 py-1.5 bg-gray-50 font-mono text-[10px] text-gray-600 uppercase font-semibold">
                   Installment
                 </TableCell>
                 <TableCell className="px-2 py-1.5 font-mono text-[11px] font-semibold">
@@ -238,6 +255,14 @@ export function FeeVoucherTemplate({ id, data }: FeeVoucherTemplateProps) {
                 </TableCell>
                 <TableCell className="px-2 py-1.5 font-mono text-[11px] font-semibold">
                   {formatDate(dueDate)}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="px-2 py-1.5 bg-gray-50 font-mono text-[10px] text-gray-600 uppercase font-semibold">
+                  Expires after
+                </TableCell>
+                <TableCell className="px-2 py-1.5 font-mono text-[11px] font-semibold">
+                  {formatDate(data.expiryDate ?? data.dueDate)}
                 </TableCell>
               </TableRow>
             </>
@@ -267,7 +292,6 @@ export function FullFeeVoucherTemplate({
   const {
     voucherId,
     totalAmount,
-    installments,
     printedAt,
     institutionName = SITE_INFO.institution_name,
     student,
@@ -293,34 +317,29 @@ export function FullFeeVoucherTemplate({
             <>
               <TableRow>
                 <TableCell className="px-2 py-1.5 bg-gray-50 font-mono text-[10px] text-gray-600 uppercase font-semibold">
-                  Program / Session
+                  Semester
                 </TableCell>
                 <TableCell className="px-2 py-1.5 font-mono text-[11px] font-semibold">
                   {semesterLabel || "N/A"}
                 </TableCell>
               </TableRow>
-              <TableRow>
-                <TableCell className="px-2 py-1.5 bg-gray-50 font-mono text-[10px] text-gray-600 uppercase font-semibold">
-                  Installments
-                </TableCell>
-                <TableCell className="px-2 py-1.5 font-mono text-[11px] font-semibold">
-                  {installments.length}
-                </TableCell>
-              </TableRow>
             </>
           }
-          feeRows={installments.map((installment) => (
-            <TableRow key={installment.voucherId}>
+          // For full voucher we don't show per-installment rows; show summary instead
+          feeRows={
+            <TableRow>
               <TableCell className="p-2 text-[11px]">
-                Installment #{installment.installmentNo} (
-                {formatDate(installment.dueDate)})
+                Full Fee ({semesterLabel || "N/A"})
+                <div className="text-[10px] text-gray-600">
+                  Printed On: {formatDate(printedAt ?? "")}
+                </div>
               </TableCell>
               <TableCell className="p-2 text-right font-mono text-[11px] font-semibold">
-                {formatAmount(installment.amount)}
+                {formatAmount(totalAmount)}
               </TableCell>
             </TableRow>
-          ))}
-          totalLabel={`Total Fee upto ${formatDate(printedAt ?? installments[0]?.dueDate ?? "")}`}
+          }
+          totalLabel={`Total Fee`}
           totalAmount={totalAmount}
         />
       ))}

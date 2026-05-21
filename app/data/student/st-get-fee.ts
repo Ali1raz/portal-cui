@@ -6,6 +6,7 @@ import prisma from "@/lib/prisma";
 import { requireSession } from "../session/require-session";
 import { FinePolicyType, calculateFine } from "@/lib/utils/fine-calculation";
 import { SITE_INFO } from "@/lib/data/SITE";
+import { VoucherData } from "@/app/(student)/student/fee/_components/fee-voucher";
 
 export type InstallmentStatus = "paid" | "overdue" | "upcoming" | "near";
 
@@ -13,16 +14,6 @@ export interface FeeStudentInfo {
   name: string;
   image?: string | null;
   registrationNo: string;
-}
-
-export interface VoucherData {
-  voucherId: string;
-  installmentNo: number;
-  amount: number;
-  dueDate: string;
-  printedAt?: string;
-  institutionName?: string;
-  student?: FeeStudentInfo;
 }
 
 export interface FullFeeVoucherData {
@@ -270,6 +261,9 @@ export async function studentGetFeeDetails() {
       image: student.user.image,
       registrationNo: student.registrationNo,
     },
+    semesterLabel: data.semesterFee?.semester
+      ? `Sem ${data.semesterFee.semester.semester}-${data.semesterFee.semester.batch}${String(data.semesterFee.semester.year).slice(-2)}-${data.semesterFee.semester.program}${data.semesterFee.semester.department}`
+      : undefined,
   }));
 
   // Filter unpaid installments for full fee voucher
@@ -280,8 +274,39 @@ export async function studentGetFeeDetails() {
     return displayedInst?.status === "UNPAID";
   });
 
+  const activeFeeVouchers = await prisma.feeVoucher.findMany({
+    where: {
+      studentId: student.id,
+      status: "ACTIVE",
+    },
+    select: {
+      studentFeeInstallmentId: true,
+      voucherNo: true,
+      createdAt: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const voucherNoByInstallmentId = new Map<string, string>();
+
+  for (const voucher of activeFeeVouchers) {
+    if (!voucherNoByInstallmentId.has(voucher.studentFeeInstallmentId)) {
+      voucherNoByInstallmentId.set(
+        voucher.studentFeeInstallmentId,
+        voucher.voucherNo
+      );
+    }
+  }
+
+  const fullFeeVoucherSourceId = unpaidInstallments[0]?.voucherId;
+  const fullFeeVoucherNo = fullFeeVoucherSourceId
+    ? voucherNoByInstallmentId.get(fullFeeVoucherSourceId)
+    : undefined;
+
   const fullFeeVoucherData: FullFeeVoucherData = {
-    voucherId: data.id,
+    voucherId: fullFeeVoucherNo ?? data.id,
     totalAmount: remainingAmount,
     printedAt: new Date().toISOString(),
     institutionName: SITE_INFO.institution_name,
@@ -292,7 +317,7 @@ export async function studentGetFeeDetails() {
       registrationNo: student.registrationNo,
     },
     semesterLabel: data.semesterFee?.semester
-      ? `Sem ${data.semesterFee.semester.semester} - ${data.semesterFee.semester.batch}${String(data.semesterFee.semester.year).slice(-2)} - ${data.semesterFee.semester.program}${data.semesterFee.semester.department}`
+      ? `Sem ${data.semesterFee.semester.semester}-${data.semesterFee.semester.batch}${String(data.semesterFee.semester.year).slice(-2)}-${data.semesterFee.semester.program}${data.semesterFee.semester.department}`
       : undefined,
   };
 
@@ -329,7 +354,7 @@ export async function studentGetFeeDetails() {
       voucherDataList,
       fullFeeVoucherData,
       semesterLabel: data.semesterFee?.semester
-        ? `Sem ${data.semesterFee.semester.semester} - ${data.semesterFee.semester.batch}${String(data.semesterFee.semester.year).slice(-2)} - ${data.semesterFee.semester.program}${data.semesterFee.semester.department}`
+        ? `Sem ${data.semesterFee.semester.semester}-${data.semesterFee.semester.batch}${String(data.semesterFee.semester.year).slice(-2)}-${data.semesterFee.semester.program}${data.semesterFee.semester.department}`
         : undefined,
       splitRequests: data.splitRequests,
     },

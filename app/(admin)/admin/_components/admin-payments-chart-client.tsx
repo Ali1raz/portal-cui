@@ -35,7 +35,7 @@ import { formatFineAmount } from "@/lib/utils/fine-calculation";
 const chartConfig = {
   payments: {
     label: "Payments",
-    color: "var(--chart-2)",
+    color: "var(--chart-1)",
   },
 } satisfies ChartConfig;
 
@@ -170,7 +170,7 @@ export function AdminPaymentsChartClient({
               }
             />
             <ChartLegend content={<ChartLegendContent />} />
-            <Bar dataKey="amount" fill="var(--chart-3)" radius={[8, 8, 0, 0]} />
+            <Bar dataKey="amount" fill="var(--chart-1)" radius={[8, 8, 0, 0]} />
           </BarChart>
         </ChartContainer>
       </CardContent>

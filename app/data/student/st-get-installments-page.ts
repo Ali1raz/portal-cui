@@ -13,6 +13,7 @@ import type {
 
 export interface StudentInstallmentSplitRequestForPage {
   id: string;
+  studentFeeInstallmentId: string;
   status: SplitRequestStatus;
   requestedAmount: number;
   preferredDueDate: Date;
@@ -56,6 +57,7 @@ export interface StudentFeeInstallmentsPageData {
     image: string | null;
     registrationNo: string;
   };
+  semesterLabel?: string;
   feeInstallments: FeeInstallmentForPage[];
   displayedInstallments: StudentInstallmentForPage[];
   installmentSplitRequests: StudentInstallmentSplitRequestForPage[];
@@ -99,6 +101,15 @@ export async function studentGetInstallmentsPageData(): Promise<StudentFeeInstal
       id: true,
       semesterFee: {
         select: {
+          semester: {
+            select: {
+              semester: true,
+              year: true,
+              batch: true,
+              program: true,
+              department: true,
+            },
+          },
           feeInstallments: {
             orderBy: { installmentNo: "asc" },
             select: {
@@ -210,6 +221,7 @@ export async function studentGetInstallmentsPageData(): Promise<StudentFeeInstal
         installmentSplitRequests: inst.installmentSplitRequests.map(
           (request) => ({
             id: request.id,
+            studentFeeInstallmentId: inst.id,
             status: request.status as SplitRequestStatus,
             requestedAmount: Number(request.requestedAmount),
             preferredDueDate: request.preferredDueDate,
@@ -222,6 +234,7 @@ export async function studentGetInstallmentsPageData(): Promise<StudentFeeInstal
   const installmentSplitRequests = record.installments.flatMap((inst) =>
     inst.installmentSplitRequests.map((request) => ({
       id: request.id,
+      studentFeeInstallmentId: inst.id,
       status: request.status,
       requestedAmount: Number(request.requestedAmount),
       preferredDueDate: request.preferredDueDate,
@@ -236,6 +249,9 @@ export async function studentGetInstallmentsPageData(): Promise<StudentFeeInstal
       image: student.user.image,
       registrationNo: student.registrationNo,
     },
+    semesterLabel: record.semesterFee?.semester
+      ? `Sem ${record.semesterFee.semester.semester}-${record.semesterFee.semester.batch}${String(record.semesterFee.semester.year).slice(-2)}-${record.semesterFee.semester.program}${record.semesterFee.semester.department}`
+      : undefined,
     feeInstallments,
     displayedInstallments,
     installmentSplitRequests,

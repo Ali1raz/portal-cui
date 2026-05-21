@@ -25,7 +25,7 @@ export function PrintFullFeeVoucherButton({
     try {
       await saveAsPdf(containerRef.current, {
         filename: `full-fee-voucher-${totalFeeId.slice(0, 6)}`,
-        format: "letter",
+        format: "a4",
         orientation: "portrait",
         scale: 2,
         padding: 8,

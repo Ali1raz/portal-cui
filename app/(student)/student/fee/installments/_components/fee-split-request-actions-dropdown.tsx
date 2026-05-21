@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   deleteInstallmentSplitRequest,
+  generateVoucher,
   markInstallmentRequestAsPaid,
 } from "../actions";
 import { FeeVoucherTemplate, VoucherData } from "../../_components/fee-voucher";
@@ -38,6 +39,7 @@ import { useState, useRef, useTransition } from "react";
 
 export function FeeSplitRequestActionsDropdown({
   requestId,
+  installmentId,
   canDelete,
   canMarkPaid,
   canEdit,
@@ -46,6 +48,7 @@ export function FeeSplitRequestActionsDropdown({
   filename,
 }: {
   requestId: string;
+  installmentId?: string;
   canDelete: boolean;
   canMarkPaid: boolean;
   canEdit: boolean;
@@ -58,8 +61,49 @@ export function FeeSplitRequestActionsDropdown({
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isMarkPaidOpen, setIsMarkPaidOpen] = useState(false);
   const voucherRef = useRef<HTMLDivElement>(null);
+  const [printData, setPrintData] = useState<VoucherData | null>(null);
 
   async function handlePrintVoucher() {
+    if (!installmentId) {
+      toast.error("Missing installment details.");
+      return;
+    }
+
+    const { data: result, error } = await tryCatch(
+      generateVoucher(installmentId)
+    );
+
+    if (error) {
+      toast.error("Something bad happened. Please try again.");
+      return;
+    }
+
+    if (!result) {
+      toast.error("Could not prepare voucher for printing.");
+      return;
+    }
+
+    if (result.status === "error") {
+      toast.error(result.message);
+      return;
+    }
+
+    if (!("voucher" in result)) {
+      toast.error("Could not prepare voucher for printing.");
+      return;
+    }
+
+    const dataForPdf: VoucherData = {
+      ...result.voucher,
+      printedAt: new Date().toISOString(),
+      institutionName:
+        result.voucher.institutionName ?? voucherData.institutionName,
+      student: result.voucher.student ?? voucherData.student,
+      semesterLabel: result.voucher.semesterLabel ?? voucherData.semesterLabel,
+    };
+
+    setPrintData(dataForPdf);
+
     if (!voucherRef.current) {
       toast.error("Could not prepare voucher for printing.");
       return;
@@ -69,7 +113,7 @@ export function FeeSplitRequestActionsDropdown({
 
     try {
       await saveAsPdf(voucherRef.current, {
-        filename: `${safeFilename}-installment-${voucherData.installmentNo}`,
+        filename: `${safeFilename}-installment-${dataForPdf.installmentNo}`,
         format: "a4",
         orientation: "portrait",
         scale: 2,
@@ -280,7 +324,7 @@ export function FeeSplitRequestActionsDropdown({
         <div ref={voucherRef}>
           <FeeVoucherTemplate
             id={`voucher-hidden-${voucherData.voucherId}-${voucherData.installmentNo}`}
-            data={voucherData}
+            data={printData ?? voucherData}
           />
         </div>
       </div>
