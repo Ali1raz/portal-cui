@@ -340,6 +340,10 @@
     @apply bg-background text-foreground;
   }
 
+  ::selection {
+    @apply bg-primary text-primary-foreground;
+  }
+
   ::-webkit-scrollbar {
     width: 5px;
   }
