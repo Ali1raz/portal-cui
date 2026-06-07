@@ -7,10 +7,12 @@ import { errorMessage } from "@/lib/error-message";
 import { LRAction, LeaveStatus } from "@/lib/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { ApiResponseType } from "@/lib/types";
+import { SendEmail } from "@/app/actions/send-email";
 import {
   baUpdateLeaveRequestStatusSchema,
   type BaUpdateLeaveRequestStatusInput,
 } from "./schemas";
+import { env } from "@/lib/env";
 
 const BA_REVIEWABLE_STATUSES: LeaveStatus[] = ["PENDING", "REVIEW_REQUESTED"];
 
@@ -81,6 +83,7 @@ export async function baUpdateLeaveRequestStatus(
       select: {
         id: true,
         status: true,
+        student: { select: { user: { select: { email: true, name: true } } } },
       },
     });
 
@@ -128,6 +131,30 @@ export async function baUpdateLeaveRequestStatus(
         },
       }),
     ]);
+
+    const studentEmail = leaveRequest.student.user.email;
+    const studentName = leaveRequest.student.user.name;
+    if (studentEmail) {
+      if (parsed.status === "REVIEW_REQUESTED") {
+        await SendEmail({
+          to: studentEmail,
+          subject: "Leave request: more information requested",
+          meta: {
+            description: `Dear ${studentName}, the batch advisor has requested more information for your leave request. Remarks: ${parsed.remarks}`,
+            link: `${env.NEXT_PUBLIC_BETTER_AUTH_URL}/student/past-leave-requests/${parsed.leaveRequestId}`,
+          },
+        });
+      } else if (parsed.status === "REJECTED") {
+        await SendEmail({
+          to: studentEmail,
+          subject: "Leave request: rejected",
+          meta: {
+            description: `Dear ${studentName}, your leave request has been rejected by the batch advisor. Remarks: ${parsed.remarks ?? "(none)"}`,
+            link: `${env.NEXT_PUBLIC_BETTER_AUTH_URL}/student/past-leave-requests/${parsed.leaveRequestId}`,
+          },
+        });
+      }
+    }
 
     return {
       status: "success",

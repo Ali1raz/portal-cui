@@ -5,12 +5,14 @@ import { requireSession } from "@/app/data/session/require-session";
 import { protect } from "@/lib/arcjet-protect";
 import { errorMessage } from "@/lib/error-message";
 import prisma from "@/lib/prisma";
+import { SendEmail } from "@/app/actions/send-email";
 import { ApiResponseType } from "@/lib/types";
 import {
   BaUpdateComplaintStatusInput,
   baUpdateComplaintStatusSchema,
 } from "./schemas";
 import { ALREADY_REVIEWED_COMPLAINT_STATUS } from "@/lib/data/utils";
+import { env } from "@/lib/env";
 
 export async function baUpdateComplaintStatus(
   data: BaUpdateComplaintStatusInput
@@ -63,6 +65,8 @@ export async function baUpdateComplaintStatus(
       },
       select: {
         status: true,
+        title: true,
+        student: { select: { user: { select: { email: true, name: true } } } },
       },
     });
 
@@ -95,6 +99,32 @@ export async function baUpdateComplaintStatus(
         },
       }),
     ]);
+
+    // Notify student when BA asks for more info or rejects the complaint
+
+    const studentEmail = complaint.student.user.email;
+    const studentName = complaint.student.user.name;
+    if (studentEmail) {
+      if (parsed.status === "BA_REVIEW_REQUESTED") {
+        await SendEmail({
+          to: studentEmail,
+          subject: "Complaint: more information requested",
+          meta: {
+            description: `Dear ${studentName}, the batch advisor has asked for more information about your complaint \"${complaint.title}\". Please update and resubmit. Remarks: ${parsed.remarks}`,
+            link: `${env.NEXT_PUBLIC_BETTER_AUTH_URL}/student/complaints/${parsed.complaintId}`,
+          },
+        });
+      } else if (parsed.status === "BA_REJECTED") {
+        await SendEmail({
+          to: studentEmail,
+          subject: "Complaint: rejected",
+          meta: {
+            description: `Dear ${studentName}, your complaint \"${complaint.title}\" has been rejected by the batch advisor. Remarks: ${parsed.remarks}`,
+            link: `${env.NEXT_PUBLIC_BETTER_AUTH_URL}/student/complaints/${parsed.complaintId}`,
+          },
+        });
+      }
+    }
 
     return {
       status: "success",
