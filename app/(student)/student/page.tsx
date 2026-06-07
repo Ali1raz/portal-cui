@@ -3,8 +3,8 @@ import { getStudentSubjects } from "@/app/data/student/get-student-subjects";
 import { SubjectCard } from "./_components/subject-card";
 import { studentGetSubjectsToEnroll } from "@/app/data/student/get-subject-to-enroll";
 import { SubjectsToEnrollTable } from "./_components/subjects-to-enroll-table";
-import { studentGetEnrollemntLastDate } from "@/app/data/student/get-enrollment-last-date";
-import { format } from "date-fns";
+import { getStudentBanners } from "@/app/data/student/get-student-banners-data";
+import StudentBanner from "./_components/student-banner";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -13,20 +13,20 @@ export const metadata: Metadata = {
 };
 
 export default async function StudentPage() {
-  const [subjects, subj, date] = await Promise.all([
+  const [subjects, subj, banners] = await Promise.all([
     getStudentSubjects(),
     studentGetSubjectsToEnroll(),
-    studentGetEnrollemntLastDate(),
+    getStudentBanners(),
   ]);
 
   return (
     <>
-      {date && (
-        <div className="w-full py-1 bg-orange-200 text-orange-900 text-sm flex items-center justify-center gap-2 max-sm:text-[10px]">
-          <span>Last date to enroll:</span>
-          <span>{format(date, "LLL dd uuuu - EEEE")}</span>
-        </div>
-      )}
+      {banners.map((b) => (
+        <StudentBanner
+          key={b.type === "enrollment" ? "enrollment" : `${b.type}-${b.id}`}
+          banner={b}
+        />
+      ))}
       <section className="@container/main max-w-7xl">
         <div className="space-y-4 p-4">
           <h1>Welcome back! Here is your academic overview.</h1>
