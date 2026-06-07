@@ -30,6 +30,18 @@ export async function getStudentLeaveRequestDetails({ id }: { id: string }) {
       createdAt: true,
       updatedAt: true,
       _count: { select: { reviews: true } },
+      reviews: {
+        take: 1,
+        orderBy: {
+          createdAt: "desc",
+        },
+        where: {
+          action: {
+            in: ["BA_REJECTED", "BA_REVIEW_REQUESTED", "HOD_REJECTED"],
+          },
+        },
+        select: { remarks: true },
+      },
       offering: {
         select: {
           id: true,

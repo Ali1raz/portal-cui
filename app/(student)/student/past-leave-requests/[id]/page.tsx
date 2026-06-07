@@ -70,7 +70,10 @@ export default async function LeaveRequestDetailsPage(
         )}
       </div>
 
-      <LeaveRequestStatusBanner status={details.status} />
+      <LeaveRequestStatusBanner
+        status={details.status}
+        descriptionOverride={details.reviews[0]?.remarks || undefined}
+      />
 
       {/* ── Main grid ── */}
       <div className="grid gap-6">
