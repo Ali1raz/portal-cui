@@ -17,6 +17,7 @@ import { NavMain } from "./nav-main";
 import { Role } from "@/lib/generated/prisma/enums";
 import Image from "next/image";
 import { NavSecondary } from "./nav-secondary";
+import { AdminReportingNav } from "./admin-reporting-nav";
 
 export function AppSidebar({
   user,
@@ -43,9 +44,10 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain role={user.role as Role} />
-        {user.role === Role.PROFESSOR && isBA && (
+        {user.role === Role.ADMIN ? <AdminReportingNav /> : null}
+        {user.role === Role.PROFESSOR && isBA ? (
           <NavSecondary className="mt-auto" />
-        )}
+        ) : null}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

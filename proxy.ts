@@ -56,11 +56,11 @@ const aj = arcjet({
         "CATEGORY:SEARCH_ENGINE", // Google, Bing, etc
         "CATEGORY:MONITOR",
         "CATEGORY:PREVIEW",
-        "STRIPE_WEBHOOK",
         // Uncomment to allow these other common bot categories
         // See the full list at https://arcjet.com/bot-list
         "CATEGORY:MONITOR", // Uptime monitoring services
         "CATEGORY:PREVIEW", // Link previews e.g. Slack, Discord
+        "VERCEL_MONITOR_PREVIEW", // Vercel's bot for monitoring and previewing sites
       ],
     }),
   ],
