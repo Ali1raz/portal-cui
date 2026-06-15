@@ -3,7 +3,11 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconCalendar, IconCheckupList } from "@tabler/icons-react";
+import {
+  IconAlertTriangle,
+  IconCalendar,
+  IconCheckupList,
+} from "@tabler/icons-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -21,6 +25,11 @@ import {
 } from "@/components/ui/sidebar";
 
 const adminReportingLinks = [
+  {
+    title: "Complaints",
+    href: "/admin/reporting/complaints",
+    icon: IconAlertTriangle,
+  },
   {
     title: "Leave Requests",
     href: "/admin/reporting/leave-requests",

@@ -5,6 +5,7 @@ import {
   getAdminReportingLeaveRequestSemesters,
   getAdminReportingLeaveRequests,
 } from "@/app/data/admin/get-reporting-leave-requests";
+import { DownloadLeaveReportButton } from "./download-leave-report-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -20,24 +21,35 @@ import { ReportingLeaveRequestsTable } from "./_components/reporting-leave-reque
 
 export const metadata: Metadata = {
   title: "Leave Requests Reporting",
-  description: "View leave requests across all departments with filters.",
+  description: "View leave requests across all departments.",
 };
 
 export default async function ReportingLeaveRequestsPage(
   props: PageProps<"/admin/reporting/leave-requests">
 ) {
+  const searchParams = await props.searchParams;
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col gap-2">
-        <div className="flex flex-col gap-4 md:gap-6">
-          <h1 className="mb-2 text-2xl font-bold">Leave Requests Reporting</h1>
-          <p className="text-muted-foreground">
-            View leave requests across all departments.
-          </p>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="mb-2 text-2xl font-bold">
+                Leave Requests Reporting
+              </h1>
+              <p className="text-muted-foreground">
+                View leave requests across all departments.
+              </p>
+            </div>
+            <div>
+              <DownloadLeaveReportButton searchParams={searchParams} />
+            </div>
+          </div>
 
           <div className="my-2 max-w-7xl">
             <Suspense fallback={<ReportingLeaveRequestsTableSkeleton />}>
-              <ReportingLeaveRequestsList searchParams={props.searchParams} />
+              <ReportingLeaveRequestsList searchParams={searchParams} />
             </Suspense>
           </div>
         </div>
@@ -49,10 +61,10 @@ export default async function ReportingLeaveRequestsPage(
 async function ReportingLeaveRequestsList({
   searchParams,
 }: {
-  searchParams: PageProps<"/admin/reporting/leave-requests">["searchParams"];
+  searchParams: Record<string, string | string[] | undefined>;
 }) {
   const parsedParams: ReportingLeaveRequestSearchParams =
-    await reportingLeaveRequestSearchParamsCache.parse(searchParams);
+    reportingLeaveRequestSearchParamsCache.parse(searchParams);
 
   const [{ leaveRequests, totalCount }, semesters] = await Promise.all([
     getAdminReportingLeaveRequests(parsedParams),

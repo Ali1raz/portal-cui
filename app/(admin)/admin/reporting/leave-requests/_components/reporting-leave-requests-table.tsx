@@ -122,7 +122,6 @@ export function ReportingLeaveRequestsTable({
     queryState.sortBy !== "createdAt" ||
     queryState.sortDir !== "desc" ||
     queryState.query.length > 0 ||
-    queryState.studentName.length > 0 ||
     queryState.requestNo.length > 0 ||
     queryState.semesterId !== null ||
     queryState.status !== null ||
@@ -288,8 +287,8 @@ export function ReportingLeaveRequestsTable({
           </Label>
           <Input
             id="lr-search"
-            className="max-w-72"
-            placeholder="Search by subject, reason, or reg no"
+            className="max-w-96"
+            placeholder="Search by student, registration, subject, or reason"
             value={queryState.query}
             onChange={(event) => {
               const nextValue = event.target.value;
@@ -297,50 +296,6 @@ export function ReportingLeaveRequestsTable({
               startTransition(() => {
                 void setQueryState({
                   query: nextValue.trim().length > 0 ? nextValue : null,
-                  page: 1,
-                });
-              });
-            }}
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="lr-student-name" className="sr-only">
-            Search student name
-          </Label>
-          <Input
-            id="lr-student-name"
-            className="max-w-60"
-            placeholder="Filter by student name"
-            value={queryState.studentName}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-
-              startTransition(() => {
-                void setQueryState({
-                  studentName: nextValue.trim().length > 0 ? nextValue : null,
-                  page: 1,
-                });
-              });
-            }}
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="lr-request-no" className="sr-only">
-            Search request no
-          </Label>
-          <Input
-            id="lr-request-no"
-            className="max-w-44"
-            placeholder="Request no"
-            value={queryState.requestNo}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-
-              startTransition(() => {
-                void setQueryState({
-                  requestNo: nextValue.trim().length > 0 ? nextValue : null,
                   page: 1,
                 });
               });
@@ -447,7 +402,7 @@ export function ReportingLeaveRequestsTable({
           </Button>
         ) : null}
 
-        <div className="my-4 rounded-md border w-full">
+        <div className="my-2 rounded-md border w-full">
           <DndContext
             id={tableId}
             collisionDetection={closestCenter}

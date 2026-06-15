@@ -102,7 +102,7 @@ export const roles = {
     subject: ["create", "get", "list", "update", "delete"],
     semesters: ["create", "list", "get", "update", "delete"],
     subjectOfferings: ["list", "get", "update", "delete", "create"],
-    complaints: [],
+    complaints: ["list", "get"],
     applications: [],
     announcements: ["create", "list", "get", "update", "delete"],
     fee: [],
