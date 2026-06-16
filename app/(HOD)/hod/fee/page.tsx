@@ -7,8 +7,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { HodFeeSplitRequestsTable } from "./_components/fee-split-requests-table";
 import { hodFeeSplitSearchParamsCache } from "./fee-split-requests-search-params";
-import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
 
 export default async function HodFeePage({
   searchParams,
@@ -26,13 +24,6 @@ export default async function HodFeePage({
             Review installment split requests from your department.
           </p>
         </div>
-
-        <Link
-          href="/hod/fee/edit"
-          className={buttonVariants({ size: "sm", className: "w-fit" })}
-        >
-          Edit installments
-        </Link>
 
         <Suspense fallback={<FeeSplitRequestsTableSkeleton />}>
           <FeeSplitRequestsWrapper params={parsedParams} />

@@ -148,11 +148,6 @@ export function getNavLinks({
         icon: IconCreditCard,
       },
       {
-        title: "Manage Fee Installments",
-        href: "/hod/fee/edit",
-        icon: IconCreditCard,
-      },
-      {
         title: "Leave Requests",
         href: "/hod/leave-requests",
         icon: IconCalendar,

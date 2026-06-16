@@ -167,7 +167,7 @@ export const roles = {
     applications: [],
     announcements: ["create", "list", "get", "update", "delete"],
     fee: ["update", "view"],
-    installments: ["view", "list", "update"],
+    installments: ["view", "list"],
   }),
   USER: access.newRole({
     userProfiles: ["view"],
