@@ -19,7 +19,10 @@ export async function accountantCreateAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "accountant:announcement:create",
+      max: 15,
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -130,7 +133,10 @@ export async function accountantUpdateAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "accountant:announcement:update",
+      max: 15,
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -236,7 +242,11 @@ export async function accountantDeleteAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "accountant:announcement:delete",
+      max: 15,
+      window: "10m",
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -301,7 +311,11 @@ export async function accountantBulkDeleteAnnouncements(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "accountant:announcement:bulk_delete",
+      max: 15,
+      window: "10m",
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -378,7 +392,10 @@ export async function accountantBulkUpdateAnnouncementStatus(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "accountant:announcement:bulk_update_status",
+      max: 15,
+    });
     if (deniedMessage) {
       return {
         status: "error",

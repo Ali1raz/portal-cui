@@ -13,7 +13,9 @@ export async function sendLeaveRequest(
 ): Promise<ApiResponseType> {
   const session = await requireSession();
 
-  const deniedMessage = await protect(session.user.id);
+  const deniedMessage = await protect(session.user.id, {
+    action: "student:leave_request:create",
+  });
   if (deniedMessage) {
     return {
       status: "error",

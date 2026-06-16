@@ -21,7 +21,10 @@ export async function accountantUpdateFeeStatus(
     const session = await requireSession();
 
     const [deniedMessage, can] = await Promise.all([
-      protect(session.user.id),
+      protect(session.user.id, {
+        action: "accountant:fee:update_status",
+        max: 15,
+      }),
       requirePermission({
         fee: ["update"],
       }),
@@ -114,7 +117,10 @@ export async function accountantCreateSemesterFee(
       return { status: "error", message: "Invalid form data!" };
     }
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "accountant:semester_fee:create",
+      max: 15,
+    });
     if (deniedMessage) {
       return {
         status: "error",

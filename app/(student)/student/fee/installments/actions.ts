@@ -14,7 +14,9 @@ export async function markStudentInstallmentAsPaid(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "student:installment:mark_paid",
+    });
     if (deniedMessage) {
       return { status: "error", message: deniedMessage };
     }
@@ -118,7 +120,9 @@ export async function deleteInstallmentSplitRequest(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "student:installment_split_request:delete",
+    });
     if (deniedMessage) {
       return { status: "error", message: deniedMessage };
     }
@@ -201,7 +205,9 @@ export async function markInstallmentRequestAsPaid(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "student:installment_split_request:delete",
+    });
     if (deniedMessage) {
       return { status: "error", message: deniedMessage };
     }

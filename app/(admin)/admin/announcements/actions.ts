@@ -17,7 +17,11 @@ export async function adminCreateAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "admin:announcement:create",
+      max: 20,
+      window: "10m",
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -128,7 +132,11 @@ export async function adminUpdateAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "admin:announcement:update",
+      max: 20,
+      window: "10m",
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -240,7 +248,11 @@ export async function adminDeleteAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "admin:announcement:delete",
+      max: 20,
+      window: "10m",
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -293,7 +305,11 @@ export async function adminBulkDeleteAnnouncements(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "admin:announcement:bulk_delete",
+      max: 20,
+      window: "10m",
+    });
     if (deniedMessage) {
       return {
         status: "error",

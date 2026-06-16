@@ -37,7 +37,10 @@ export async function hodReviewSplitRequest(
     const session = await requireSession();
 
     const [deniedMessage, can] = await Promise.all([
-      protect(session.user.id),
+      protect(session.user.id, {
+        action: "hod:fee_split_request:update",
+        max: 15,
+      }),
       requirePermission({ fee: ["update"] }),
     ]);
 

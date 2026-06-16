@@ -26,7 +26,10 @@ export async function setUserRole(
 ): Promise<ApiResponseType> {
   const session = await requireSession();
 
-  const deniedMessage = await protect(session.user.id);
+  const deniedMessage = await protect(session.user.id, {
+    action: "admin:user:set-role",
+    max: 20,
+  });
   if (deniedMessage) {
     return {
       status: "error",
@@ -259,7 +262,10 @@ export async function setProfessorDepartment(
 ): Promise<ApiResponseType> {
   const session = await requireSession();
 
-  const deniedMessage = await protect(session.user.id);
+  const deniedMessage = await protect(session.user.id, {
+    action: "admin:professor:set-department",
+    max: 20,
+  });
   if (deniedMessage) {
     return {
       status: "error",
@@ -318,7 +324,10 @@ export async function makeProfessorBatchAdvisor(
 ): Promise<ApiResponseType> {
   const session = await requireSession();
 
-  const deniedMessage = await protect(session.user.id);
+  const deniedMessage = await protect(session.user.id, {
+    action: "admin:professor:make-batch-advisor",
+    max: 20,
+  });
   if (deniedMessage) {
     return {
       status: "error",

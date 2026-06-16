@@ -14,7 +14,10 @@ export async function createSemester(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "admin:semester:create",
+      max: 20,
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -101,7 +104,10 @@ export async function updateSemester(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "admin:semester:update",
+      max: 20,
+    });
     if (deniedMessage) {
       return {
         status: "error",

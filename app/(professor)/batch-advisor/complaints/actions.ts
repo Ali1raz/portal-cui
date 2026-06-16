@@ -20,7 +20,10 @@ export async function baUpdateComplaintStatus(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "batch_advisor:complaint:update_status",
+      max: 15,
+    });
     if (deniedMessage) {
       return {
         status: "error",

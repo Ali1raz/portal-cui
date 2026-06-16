@@ -32,7 +32,10 @@ export async function baUpdateLeaveRequestStatus(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "batch_advisor:leave_request:update_status",
+      max: 15,
+    });
     if (deniedMessage) {
       return {
         status: "error",

@@ -42,7 +42,9 @@ export async function markAttendance({
     }
     const session = await requireProfessorSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "professor:attendance:mark",
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -197,7 +199,9 @@ export async function updateAttendance({
     }
     const session = await requireProfessorSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "professor:attendance:mark",
+    });
     if (deniedMessage) {
       return {
         status: "error",

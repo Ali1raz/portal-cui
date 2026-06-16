@@ -13,7 +13,9 @@ export async function updateProfileAction(
 ): Promise<ApiResponseType> {
   const { user } = await requireSession();
 
-  const deniedMessage = await protect(user.id);
+  const deniedMessage = await protect(user.id, {
+    action: "user:profile:update",
+  });
   if (deniedMessage) {
     return {
       status: "error",

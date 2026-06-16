@@ -15,7 +15,9 @@ export async function bulkUpdateLeaveRequestStatus(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "hod:leave_request:bulk_update_status",
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -71,7 +73,10 @@ export async function updateStatus(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "hod:leave_request:update_status",
+      max: 15,
+    });
     if (deniedMessage) {
       return {
         status: "error",

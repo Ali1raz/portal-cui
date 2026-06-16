@@ -17,7 +17,9 @@ export async function DeleteLeaveRequest(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "student:leave_request:delete",
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -94,7 +96,9 @@ export async function updateLeaveRequest(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "student:leave_request:update",
+    });
     if (deniedMessage) {
       return {
         status: "error",

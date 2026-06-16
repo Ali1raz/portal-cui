@@ -36,7 +36,9 @@ export async function updateMyApplication(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "user:application:update",
+    });
     if (deniedMessage) {
       return {
         status: "error",

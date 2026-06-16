@@ -16,7 +16,9 @@ export async function hodCreateAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "hod:announcement:create",
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -124,7 +126,10 @@ export async function hodUpdateAnnouncement(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "hod:announcement:update",
+      max: 15,
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -289,6 +294,18 @@ export async function hodBulkDeleteAnnouncements(
       };
     }
 
+    const deniedMessage = await protect(session.user.id, {
+      action: "hod:announcement:bulk_delete",
+      max: 20,
+      window: "10m",
+    });
+    if (deniedMessage) {
+      return {
+        status: "error",
+        message: deniedMessage,
+      };
+    }
+
     if (!ids || ids.length === 0) {
       return {
         status: "error",
@@ -347,7 +364,10 @@ export async function hodBulkUpdateAnnouncementStatus(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "hod:announcement:bulk_update_status",
+      max: 15,
+    });
     if (deniedMessage) {
       return {
         status: "error",

@@ -22,7 +22,9 @@ export async function enrollCourse(
   try {
     const session = await requireStudentSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "student:course:enroll",
+    });
     if (deniedMessage) {
       return {
         status: "error",
@@ -224,7 +226,9 @@ export async function dropCourse(offeringId: string): Promise<ApiResponseType> {
   try {
     const session = await requireStudentSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "student:course:drop",
+    });
     if (deniedMessage) {
       return {
         status: "error",

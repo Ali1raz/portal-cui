@@ -14,7 +14,9 @@ export async function setUserRole(
 ): Promise<ApiResponseType> {
   const session = await requireSession();
 
-  const deniedMessage = await protect(session.user.id);
+  const deniedMessage = await protect(session.user.id, {
+    action: "director:user:set-role",
+  });
   if (deniedMessage) {
     return {
       status: "error",

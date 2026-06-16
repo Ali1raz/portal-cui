@@ -23,7 +23,9 @@ export async function updateComplaintStatus(
   try {
     const session = await requireSession();
 
-    const deniedMessage = await protect(session.user.id);
+    const deniedMessage = await protect(session.user.id, {
+      action: "hod:complaint:update",
+    });
     if (deniedMessage) {
       return {
         status: "error",

@@ -26,7 +26,9 @@ export async function submitApplication(
 ): Promise<ApiResponseType> {
   const session = await requireSession();
 
-  const deniedMessage = await protect(session.user.id);
+  const deniedMessage = await protect(session.user.id, {
+    action: "user:application:create",
+  });
   if (deniedMessage) {
     return {
       status: "error",
