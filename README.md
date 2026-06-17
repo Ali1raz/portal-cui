@@ -93,3 +93,109 @@ This is a feature extension for the existing COMSATS student portal. The base sy
 | URL state       | nuqs                    |
 | Background jobs | Inngest                 |
 | Email           | Nodemailer              |
+
+---
+
+## Getting started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v20 or later)
+- [pnpm](https://pnpm.io/) (v9 or later)
+- [PostgreSQL](https://www.postgresql.org/) (v15 or later)
+- [Bun](https://bun.sh/) (used by the database seed script)
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Ali1raz/portal-cui.git
+cd portal-cui
+```
+
+### 2. Install dependencies
+
+```bash
+pnpm install
+```
+
+> This also runs `postinstall` which generates the Prisma client automatically.
+
+### 3. Configure environment variables
+
+Copy the example env file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and update the following:
+
+| Variable                      | Description                                           |
+| ----------------------------- | ----------------------------------------------------- |
+| `DATABASE_URL`                | PostgreSQL connection string                          |
+| `BETTER_AUTH_SECRET`          | Secret key for better-auth (generate a random string) |
+| `NEXT_PUBLIC_BETTER_AUTH_URL` | Base URL of your app (e.g. `http://localhost:3000`)   |
+| `DIRECTOR_EMAILS`             | Semicolon-separated director email addresses          |
+| `ADMIN_EMAILS`                | Semicolon-separated admin email addresses             |
+| `NODEMAILER_USER`             | Gmail address used for sending emails                 |
+| `NODEMAILER_APP_PASSWORD`     | Google app password for the email above               |
+| `NEXT_PUBLIC_S3_BUCKET_NAME`  | S3-compatible bucket name                             |
+| `AWS_ACCESS_KEY_ID`           | AWS / S3 access key                                   |
+| `AWS_SECRET_ACCESS_KEY`       | AWS / S3 secret key                                   |
+| `AWS_ENDPOINT_URL_S3`         | S3 endpoint URL                                       |
+| `AWS_ENDPOINT_URL_IAM`        | IAM endpoint URL                                      |
+| `AWS_REGION`                  | AWS region (default: `auto`)                          |
+| `ARCJET_KEY`                  | Arcjet API key from the Arcjet dashboard              |
+| `ARCJET_ENV`                  | `development` or `production`                         |
+
+### 4. Set up the database
+
+Create a PostgreSQL database, then push the schema and seed it:
+
+```bash
+# Push the Prisma schema to your database
+pnpm db:push
+
+# Seed the database with initial data
+pnpm db:seed
+```
+
+> Alternatively, use `pnpm db:migrate` to apply migrations instead of `db:push`.
+
+### 5. Run the development server
+
+```bash
+pnpm dev
+```
+
+The app will be available at [http://localhost:3000](http://localhost:3000).
+
+### 6. Run Inngest (background jobs)
+
+In a separate terminal:
+
+```bash
+pnpm inngest:dev
+```
+
+---
+
+## Available scripts
+
+| Command             | Description                       |
+| ------------------- | --------------------------------- |
+| `pnpm dev`          | Start the Next.js dev server      |
+| `pnpm build`        | Production build                  |
+| `pnpm start`        | Start the production server       |
+| `pnpm lint`         | Run ESLint                        |
+| `pnpm lint:fix`     | Run ESLint with auto-fix          |
+| `pnpm format`       | Check formatting with Prettier    |
+| `pnpm format:write` | Fix formatting with Prettier      |
+| `pnpm db:migrate`   | Run Prisma migrations             |
+| `pnpm db:generate`  | Generate Prisma client            |
+| `pnpm db:push`      | Push Prisma schema to database    |
+| `pnpm db:sync`      | Push schema and regenerate client |
+| `pnpm db:seed`      | Seed the database                 |
+| `pnpm db:studio`    | Open Prisma Studio                |
+| `pnpm test`         | Run tests (Vitest)                |
+| `pnpm test:watch`   | Run tests in watch mode           |
