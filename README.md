@@ -182,20 +182,38 @@ pnpm inngest:dev
 
 ## Available scripts
 
-| Command             | Description                       |
-| ------------------- | --------------------------------- |
-| `pnpm dev`          | Start the Next.js dev server      |
-| `pnpm build`        | Production build                  |
-| `pnpm start`        | Start the production server       |
-| `pnpm lint`         | Run ESLint                        |
-| `pnpm lint:fix`     | Run ESLint with auto-fix          |
-| `pnpm format`       | Check formatting with Prettier    |
-| `pnpm format:write` | Fix formatting with Prettier      |
-| `pnpm db:migrate`   | Run Prisma migrations             |
-| `pnpm db:generate`  | Generate Prisma client            |
-| `pnpm db:push`      | Push Prisma schema to database    |
-| `pnpm db:sync`      | Push schema and regenerate client |
-| `pnpm db:seed`      | Seed the database                 |
-| `pnpm db:studio`    | Open Prisma Studio                |
-| `pnpm test`         | Run tests (Vitest)                |
-| `pnpm test:watch`   | Run tests in watch mode           |
+### Development
+
+| Command            | Description                                                                       |
+| ------------------ | --------------------------------------------------------------------------------- |
+| `pnpm dev`         | Start the Next.js dev server on `localhost:3000` with hot-reload                  |
+| `pnpm inngest:dev` | Start the Inngest dev server to process background jobs (e.g. emails, schedulers) |
+| `pnpm build`       | Create an optimized production build and generate the Prisma client               |
+| `pnpm start`       | Serve the production build locally — run `pnpm build` first                       |
+
+### Code quality
+
+| Command             | Description                                                          |
+| ------------------- | -------------------------------------------------------------------- |
+| `pnpm lint`         | Run ESLint to catch code issues and enforce Next.js best practices   |
+| `pnpm lint:fix`     | Run ESLint and auto-fix fixable issues                               |
+| `pnpm format`       | Check if files match Prettier formatting rules without changing them |
+| `pnpm format:write` | Auto-format all files with Prettier                                  |
+
+### Database
+
+| Command            | Description                                                                                   |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| `pnpm db:migrate`  | Create and apply a new Prisma migration from schema changes — use during development          |
+| `pnpm db:push`     | Push the Prisma schema directly to the database without creating a migration file             |
+| `pnpm db:generate` | Regenerate the Prisma client after schema changes — also runs automatically on `pnpm install` |
+| `pnpm db:sync`     | Shortcut that runs `db:push` then `db:generate` in sequence                                   |
+| `pnpm db:seed`     | Populate the database with initial data (directors, HODs, professors, subjects) via Bun       |
+| `pnpm db:studio`   | Open Prisma Studio, a visual editor for browsing and editing database records                 |
+
+### Testing
+
+| Command           | Description                                       |
+| ----------------- | ------------------------------------------------- |
+| `pnpm test`       | Run the full test suite once using Vitest         |
+| `pnpm test:watch` | Run tests in watch mode — re-runs on file changes |
