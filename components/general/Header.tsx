@@ -35,6 +35,7 @@ export const HeroHeader = () => {
     { name: "Features", href: "#features", role: undefined },
     { name: "Team", href: "#team", role: undefined },
     { name: "About", href: "/about", role: undefined },
+    { name: "Apply", href: "/apply", role: undefined },
   ];
 
   return (
