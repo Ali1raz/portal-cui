@@ -157,7 +157,7 @@ export function ReportingLeaveRequestsTable({
       accessorFn: (row) => row.offering.department,
       cell: ({ row }) => (
         <div className="text-sm font-medium">
-          {row.original.offering.department}
+          {row.original.student.department}
         </div>
       ),
     },
