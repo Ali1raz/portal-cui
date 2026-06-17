@@ -93,3 +93,127 @@ This is a feature extension for the existing COMSATS student portal. The base sy
 | URL state       | nuqs                    |
 | Background jobs | Inngest                 |
 | Email           | Nodemailer              |
+
+---
+
+## Getting started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v20 or later)
+- [pnpm](https://pnpm.io/) (v9 or later)
+- [PostgreSQL](https://www.postgresql.org/) (v15 or later)
+- [Bun](https://bun.sh/) (used by the database seed script)
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Ali1raz/portal-cui.git
+cd portal-cui
+```
+
+### 2. Install dependencies
+
+```bash
+pnpm install
+```
+
+> This also runs `postinstall` which generates the Prisma client automatically.
+
+### 3. Configure environment variables
+
+Copy the example env file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and update the following:
+
+| Variable                      | Description                                           |
+| ----------------------------- | ----------------------------------------------------- |
+| `DATABASE_URL`                | PostgreSQL connection string                          |
+| `BETTER_AUTH_SECRET`          | Secret key for better-auth (generate a random string) |
+| `NEXT_PUBLIC_BETTER_AUTH_URL` | Base URL of your app (e.g. `http://localhost:3000`)   |
+| `DIRECTOR_EMAILS`             | Semicolon-separated director email addresses          |
+| `ADMIN_EMAILS`                | Semicolon-separated admin email addresses             |
+| `NODEMAILER_USER`             | Gmail address used for sending emails                 |
+| `NODEMAILER_APP_PASSWORD`     | Google app password for the email above               |
+| `NEXT_PUBLIC_S3_BUCKET_NAME`  | S3-compatible bucket name                             |
+| `AWS_ACCESS_KEY_ID`           | AWS / S3 access key                                   |
+| `AWS_SECRET_ACCESS_KEY`       | AWS / S3 secret key                                   |
+| `AWS_ENDPOINT_URL_S3`         | S3 endpoint URL                                       |
+| `AWS_ENDPOINT_URL_IAM`        | IAM endpoint URL                                      |
+| `AWS_REGION`                  | AWS region (default: `auto`)                          |
+| `ARCJET_KEY`                  | Arcjet API key from the Arcjet dashboard              |
+| `ARCJET_ENV`                  | `development` or `production`                         |
+
+### 4. Set up the database
+
+Create a PostgreSQL database, then push the schema and seed it:
+
+```bash
+# Push the Prisma schema to your database
+pnpm db:push
+
+# Seed the database with initial data
+pnpm db:seed
+```
+
+> Alternatively, use `pnpm db:migrate` to apply migrations instead of `db:push`.
+
+### 5. Run the development server
+
+```bash
+pnpm dev
+```
+
+The app will be available at [http://localhost:3000](http://localhost:3000).
+
+### 6. Run Inngest (background jobs)
+
+In a separate terminal:
+
+```bash
+pnpm inngest:dev
+```
+
+---
+
+## Available scripts
+
+### Development
+
+| Command            | Description                                                                       |
+| ------------------ | --------------------------------------------------------------------------------- |
+| `pnpm dev`         | Start the Next.js dev server on `localhost:3000` with hot-reload                  |
+| `pnpm inngest:dev` | Start the Inngest dev server to process background jobs (e.g. emails, schedulers) |
+| `pnpm build`       | Create an optimized production build and generate the Prisma client               |
+| `pnpm start`       | Serve the production build locally — run `pnpm build` first                       |
+
+### Code quality
+
+| Command             | Description                                                          |
+| ------------------- | -------------------------------------------------------------------- |
+| `pnpm lint`         | Run ESLint to catch code issues and enforce Next.js best practices   |
+| `pnpm lint:fix`     | Run ESLint and auto-fix fixable issues                               |
+| `pnpm format`       | Check if files match Prettier formatting rules without changing them |
+| `pnpm format:write` | Auto-format all files with Prettier                                  |
+
+### Database
+
+| Command            | Description                                                                                   |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| `pnpm db:migrate`  | Create and apply a new Prisma migration from schema changes — use during development          |
+| `pnpm db:push`     | Push the Prisma schema directly to the database without creating a migration file             |
+| `pnpm db:generate` | Regenerate the Prisma client after schema changes — also runs automatically on `pnpm install` |
+| `pnpm db:sync`     | Shortcut that runs `db:push` then `db:generate` in sequence                                   |
+| `pnpm db:seed`     | Populate the database with initial data (directors, HODs, professors, subjects) via Bun       |
+| `pnpm db:studio`   | Open Prisma Studio, a visual editor for browsing and editing database records                 |
+
+### Testing
+
+| Command           | Description                                       |
+| ----------------- | ------------------------------------------------- |
+| `pnpm test`       | Run the full test suite once using Vitest         |
+| `pnpm test:watch` | Run tests in watch mode — re-runs on file changes |
