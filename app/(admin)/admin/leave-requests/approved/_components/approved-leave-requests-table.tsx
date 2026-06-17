@@ -52,6 +52,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatDate } from "@/lib/utils";
 import { useQueryStates } from "nuqs";
 import { approvedLeaveRequestSearchParamsParsers } from "../approved-leave-request-search-params";
@@ -60,6 +61,7 @@ import { APP } from "@/lib/data/utils";
 import { TableDateRangeFilter } from "@/components/general/table-date-range-filter";
 import { MarkAsLeaveDialog } from "./mark-as-leave-dialog";
 import { AttendanceStatusBadge } from "./attendance-status-badge";
+import { ApprovedLeaveRequestsBulkActions } from "./approved-leave-requests-bulk-actions";
 
 export function AdminApprovedLeaveRequestsTable({
   requests,
@@ -70,6 +72,7 @@ export function AdminApprovedLeaveRequestsTable({
 }) {
   "use no memo";
   const [isPending, startTransition] = useTransition();
+  const [rowSelection, setRowSelection] = useState({});
   const [queryState, setQueryState] = useQueryStates(
     approvedLeaveRequestSearchParamsParsers,
     {
@@ -99,6 +102,73 @@ export function AdminApprovedLeaveRequestsTable({
   };
 
   const columns: ColumnDef<GetApprovedLeaveRequestsType>[] = [
+    {
+      id: "select",
+      header: ({ table }) => {
+        const isAllSelected = table.getIsAllPageRowsSelected();
+        const isSomeSelected = table.getIsSomePageRowsSelected();
+        return (
+          <div className="flex items-center gap-3 me-2">
+            <Checkbox
+              size="sm"
+              aria-label="Select all"
+              checked={
+                isAllSelected
+                  ? true
+                  : isSomeSelected && !isAllSelected
+                    ? "indeterminate"
+                    : false
+              }
+              onCheckedChange={(value) => {
+                startTransition(() => {
+                  if (value === true) {
+                    // Select all visible rows
+                    const allRowIds = table
+                      .getRowModel()
+                      .rows.map((row) => row.id)
+                      .reduce(
+                        (acc, id) => {
+                          acc[id] = true;
+                          return acc;
+                        },
+                        {} as Record<string, boolean>
+                      );
+                    setRowSelection(allRowIds);
+                  } else {
+                    // Deselect all rows
+                    setRowSelection({});
+                  }
+                });
+              }}
+            />
+            <span className="text-muted-foreground text-sm">Sr. No</span>
+          </div>
+        );
+      },
+      cell: ({ row }) => {
+        const toggleHandler = row.getToggleSelectedHandler();
+        return (
+          <div className="flex items-center gap-2">
+            <Checkbox
+              size="sm"
+              aria-label="Select row"
+              checked={row.getIsSelected()}
+              disabled={!row.getCanSelect()}
+              onCheckedChange={(value) => {
+                const syntheticEvent = {
+                  target: { checked: !!value },
+                } as unknown as React.ChangeEvent<HTMLInputElement>;
+                toggleHandler(syntheticEvent);
+              }}
+            />
+            <span className="text-muted-foreground text-sm">
+              {row.index + 1}
+            </span>
+          </div>
+        );
+      },
+      enableSorting: false,
+    },
     {
       id: "student",
       header: "Student",
@@ -205,6 +275,8 @@ export function AdminApprovedLeaveRequestsTable({
     columns,
     columnResizeMode: "onChange",
     getCoreRowModel: getCoreRowModel(),
+    enableRowSelection: true,
+    onRowSelectionChange: setRowSelection,
     onSortingChange: (updater) => {
       const nextSorting =
         typeof updater === "function" ? updater(sorting) : updater;
@@ -236,11 +308,13 @@ export function AdminApprovedLeaveRequestsTable({
     state: {
       sorting,
       pagination,
+      rowSelection,
     },
     enableSortingRemoval: false,
     manualPagination: true,
     manualSorting: true,
     rowCount: totalCount,
+    getRowId: (row) => row.id,
   });
 
   return (
@@ -338,6 +412,18 @@ export function AdminApprovedLeaveRequestsTable({
           </Button>
         ) : null}
 
+        {Object.keys(rowSelection).length > 0 ? (
+          <div className="my-2">
+            <ApprovedLeaveRequestsBulkActions
+              selectedIds={Object.keys(rowSelection)}
+              requests={requests.filter((r) =>
+                Object.keys(rowSelection).includes(r.id)
+              )}
+              onSuccess={() => setRowSelection({})}
+            />
+          </div>
+        ) : null}
+
         {/* Table */}
         <div className="rounded-md border my-4">
           <Table>
@@ -388,6 +474,7 @@ export function AdminApprovedLeaveRequestsTable({
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
+                    className="group"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
