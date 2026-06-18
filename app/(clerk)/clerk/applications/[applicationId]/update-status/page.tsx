@@ -4,7 +4,7 @@ import { IconArrowLeft } from "@tabler/icons-react";
 
 import { getClerkApplicationDetails } from "@/app/data/clerk/get-clerk-application-details";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { ClerkApplicationUpdateStatusForm } from "./_components/clerk-application-update-status-form";
 import { CLERK_APPLICATION_REVIEWABLE_STATUSES } from "@/lib/data/utils";
@@ -57,7 +57,6 @@ export default async function ClerkUpdateApplicationStatusPage(
 
       <Card>
         <CardHeader className="border-b">
-          <CardTitle className="text-lg">{details.fullName}</CardTitle>
           <p className="text-sm text-muted-foreground">
             Applied for {details.preferredDepartment} on{" "}
             {formatDate(details.submittedAt || details.createdAt)}

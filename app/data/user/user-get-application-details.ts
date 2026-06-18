@@ -26,7 +26,6 @@ export async function userGetApplicationDetails(applicationId: string) {
       id: true,
       status: true,
       attemptNo: true,
-      fullName: true,
       dateOfBirth: true,
       gender: true,
       address: true,

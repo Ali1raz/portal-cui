@@ -313,7 +313,6 @@ model StudentApplication {
   semesterId String?
   semester   Semester? @relation(fields: [semesterId], references: [id], onDelete: Cascade)
 
-  fullName            String
   dateOfBirth         DateTime
   gender              Gender
   address             String

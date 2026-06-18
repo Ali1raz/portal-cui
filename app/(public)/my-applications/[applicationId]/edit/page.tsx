@@ -4,7 +4,7 @@ import { IconArrowLeft } from "@tabler/icons-react";
 
 import { userGetApplicationDetails } from "@/app/data/user/user-get-application-details";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { EditMyApplicationForm } from "./_components/edit-my-application-form";
 import { MY_APPLICATION_EDITABLE_STATUSES } from "../../my-application-constants";
@@ -66,7 +66,6 @@ export default async function EditMyApplicationPage(
 
       <Card>
         <CardHeader className="border-b">
-          <CardTitle className="text-lg">{details.fullName}</CardTitle>
           <p className="text-sm text-muted-foreground">
             Applied for {details.preferredDepartment} on{" "}
             {formatDate(details.submittedAt || details.createdAt)}

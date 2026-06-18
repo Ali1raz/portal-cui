@@ -147,12 +147,6 @@ async function MyApplicationDetailsContent({
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      Full Name
-                    </p>
-                    <p className="font-medium">{details.fullName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
                       Gender
                     </p>
                     <p className="font-medium">{details.gender}</p>

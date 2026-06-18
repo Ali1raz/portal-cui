@@ -24,7 +24,6 @@ export async function getClerkApplicationDetails(applicationId: string) {
           email: true,
         },
       },
-      fullName: true,
       dateOfBirth: true,
       gender: true,
       address: true,

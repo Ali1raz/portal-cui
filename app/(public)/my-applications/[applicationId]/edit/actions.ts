@@ -98,7 +98,6 @@ export async function updateMyApplication(
       prisma.studentApplication.update({
         where: { id: application.id },
         data: {
-          fullName: parsed.data.values.fullName,
           dateOfBirth: parsed.data.values.dateOfBirth,
           gender: parsed.data.values.gender,
           address: parsed.data.values.address,

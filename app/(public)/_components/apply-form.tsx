@@ -47,7 +47,6 @@ export function ApplyForm({ department, id }: iAppProps) {
       dateOfBirth: savedForm.dateOfBirth
         ? new Date(savedForm.dateOfBirth)
         : undefined,
-      fullName: savedForm.fullName ?? "",
       gender: savedForm.gender ?? "MALE",
       phoneNo: savedForm.phoneNo ?? "",
       preferredDepartment: savedForm.preferredDepartment ?? department ?? "BA",
@@ -103,23 +102,6 @@ export function ApplyForm({ department, id }: iAppProps) {
       >
         <FieldGroup>
           <div className="grid gap-4 md:grid-cols-2">
-            <Controller
-              control={form.control}
-              name="fullName"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="apply-form-fullName">
-                    Full Name
-                  </FieldLabel>
-                  <Input
-                    id="apply-form-fullName"
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
-                  <FieldError errors={[fieldState.error]} />
-                </Field>
-              )}
-            />
             <Controller
               control={form.control}
               name="gender"

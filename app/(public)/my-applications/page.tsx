@@ -64,7 +64,7 @@ async function MyApplicationsList() {
                 <h1>Department {app.preferredDepartment}</h1>
                 <Badge>{app.status}</Badge>
               </div>
-              <p>Reviews: {app._count.applicationReviews}</p>
+
               <div className="flex items-center justify-between mt-4">
                 <p className="text-sm text-muted-foreground ">
                   Submitted at: {formatDate(app.submittedAt || app.createdAt)}

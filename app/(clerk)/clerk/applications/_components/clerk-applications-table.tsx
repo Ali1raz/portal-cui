@@ -170,13 +170,7 @@ export function ClerkApplicationsTable({
       enableSorting: false,
       enableHiding: false,
     },
-    {
-      id: "fullName",
-      header: "Name",
-      accessorFn: (row) => row.fullName,
-      cell: ({ row }) => row.original.fullName,
-      sortUndefined: "last",
-    },
+
     {
       id: "submittedAt",
       header: "Submitted At",

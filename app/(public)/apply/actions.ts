@@ -156,7 +156,6 @@ export async function submitApplication(
           address: validated.data.address,
           city: validated.data.city,
           dateOfBirth: validated.data.dateOfBirth,
-          fullName: validated.data.fullName,
           gender: validated.data.gender,
           phoneNo: validated.data.phoneNo,
           percentage: validated.data.previousPercentage,

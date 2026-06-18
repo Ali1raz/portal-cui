@@ -5,7 +5,6 @@ const currentYear = new Date().getFullYear();
 
 export const applyFormSchema = z.object({
   semesterId: z.string().min(1, { message: "Please select a department." }),
-  fullName: z.string().min(3, { message: "Full name is required." }),
   dateOfBirth: z.date({ message: "Date of birth is required." }),
   gender: z.enum(Gender, {
     message: "Please select a gender.",

@@ -45,7 +45,6 @@ export function EditMyApplicationForm({
   const form = useForm<UpdateMyApplicationInput>({
     resolver: zodResolver(updateMyApplicationSchema),
     defaultValues: {
-      fullName: application.fullName,
       dateOfBirth: application.dateOfBirth,
       gender: application.gender,
       address: application.address,
@@ -85,22 +84,6 @@ export function EditMyApplicationForm({
     <form id="edit-my-application-form" onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
         <div className="grid gap-4 md:grid-cols-2">
-          <Controller
-            control={form.control}
-            name="fullName"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="edit-app-fullName">Full Name</FieldLabel>
-                <Input
-                  id="edit-app-fullName"
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-                <FieldError errors={[fieldState.error]} />
-              </Field>
-            )}
-          />
-
           <Controller
             control={form.control}
             name="gender"

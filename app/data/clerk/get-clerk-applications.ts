@@ -84,11 +84,7 @@ export async function getClerkApplications({
   const where: Prisma.StudentApplicationWhereInput = {
     ...(status ? { status } : {}),
     ...(department ? { preferredDepartment: department } : {}),
-    ...(trimmedQuery
-      ? {
-          OR: [{ fullName: { contains: trimmedQuery, mode: "insensitive" } }],
-        }
-      : {}),
+    ...(trimmedQuery ? {} : {}),
     ...(submittedDateRangeFilter ?? {}),
   };
 
@@ -101,18 +97,16 @@ export async function getClerkApplications({
         ];
 
   const orderBy: Prisma.StudentApplicationOrderByWithRelationInput[] =
-    sortBy === "fullName"
-      ? [{ fullName: direction }]
-      : sortBy === "preferredDepartment"
-        ? [{ preferredDepartment: direction }]
-        : sortBy === "status"
-          ? [{ status: direction }]
-          : sortBy === "submittedAt"
-            ? submittedAtOrderBy
-            : [
-                { submittedAt: { sort: "desc", nulls: "last" } },
-                { createdAt: "desc" },
-              ];
+    sortBy === "preferredDepartment"
+      ? [{ preferredDepartment: direction }]
+      : sortBy === "status"
+        ? [{ status: direction }]
+        : sortBy === "submittedAt"
+          ? submittedAtOrderBy
+          : [
+              { submittedAt: { sort: "desc", nulls: "last" } },
+              { createdAt: "desc" },
+            ];
 
   const [applications, totalCount] = await Promise.all([
     prisma.studentApplication.findMany({
@@ -122,7 +116,6 @@ export async function getClerkApplications({
       orderBy,
       select: {
         id: true,
-        fullName: true,
         preferredDepartment: true,
         status: true,
         submittedAt: true,
