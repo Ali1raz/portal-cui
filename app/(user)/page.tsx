@@ -16,7 +16,7 @@ export default function Page() {
             tracked.
           </h2>
           <p className="mt-4 max-w-3xl text-sm text-muted-foreground">
-            Built on top of{" "}
+            Built for{" "}
             <span className="text-primary font-bold">COMSATS&apos;s</span>{" "}
             existing portal, this system brings structured workflows to the four
             things that were always handled informally — leave approvals,
