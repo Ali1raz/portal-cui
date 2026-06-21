@@ -8,7 +8,7 @@ import { FinePolicyType, calculateFine } from "@/lib/utils/fine-calculation";
 import { SITE_INFO } from "@/lib/data/SITE";
 import { VoucherData } from "@/app/(student)/student/fee/_components/fee-voucher";
 
-export type InstallmentStatus = "paid" | "overdue" | "upcoming" | "near";
+type InstallmentStatus = "paid" | "overdue" | "upcoming" | "near";
 
 export interface FeeStudentInfo {
   name: string;
