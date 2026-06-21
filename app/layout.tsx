@@ -35,7 +35,7 @@ export const metadata: Metadata = {
       url: SITE_INFO.url,
     },
     {
-      name: "Ali Raza",
+      name: "Syed Ahmar Hussain",
       url: SITE_INFO.url,
     },
   ],
