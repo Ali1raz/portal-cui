@@ -12,14 +12,14 @@ export default function Page() {
       <section className="md:mt-44 mt-28 p-4">
         <div className="sm:text-center text-left max-w-4xl sm:mx-auto">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Your university, finally organized. From submission to resolution —
-            tracked.
+            Your university, finally organized. From submission to resolution
+            all tracked.
           </h2>
           <p className="mt-4 max-w-3xl text-sm text-muted-foreground">
             Built for{" "}
             <span className="text-primary font-bold">COMSATS&apos;s</span>{" "}
             existing portal, this system brings structured workflows to the four
-            things that were always handled informally — leave approvals,
+            things that were always handled informally leave approvals,
             institutional announcements, fee installment splits and student
             complaints — with full audit trails and zero dropped handoffs.
           </p>
@@ -28,13 +28,18 @@ export default function Page() {
 
       <div className="relative aspect-video overflow-hidden rounded-lg select-none mt-8">
         <Image
-          src="/images/student-dashboard.png"
+          src="/images/student-dashbaord-dark.png"
           alt="Student Dashboard"
           fill
-          className="object-contain"
-          quality={100}
+          className="object-contain px-8 hidden dark:block"
           priority
-          sizes="(max-width: 768px) 100vw, 1200px"
+        />
+        <Image
+          src="/images/student-dashbaord-light.png"
+          alt="Student Dashboard"
+          fill
+          className="object-contain px-8 dark:hidden block"
+          priority
         />
       </div>
 
