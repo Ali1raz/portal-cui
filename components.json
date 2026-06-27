@@ -30,6 +30,7 @@
     "@manifest": "https://ui.manifest.build/r/{name}.json",
     "@kibo-ui": "https://www.kibo-ui.com/r/{name}.json",
     "@efferd": "https://efferd.com/r/{name}.json",
-    "@shadcnblocks": "https://shadcnblocks.com/r/{name}.json"
+    "@shadcnblocks": "https://shadcnblocks.com/r/{name}.json",
+    "@ai-elements": "https://ai-sdk.dev/elements/api/registry/{name}.json"
   }
 }
