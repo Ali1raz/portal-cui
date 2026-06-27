@@ -21,7 +21,7 @@ export default function Page() {
             existing portal, this system brings structured workflows to the four
             things that were always handled informally leave approvals,
             institutional announcements, fee installment splits and student
-            complaints — with full audit trails and zero dropped handoffs.
+            complaints with full audit trails and zero dropped handoffs.
           </p>
         </div>
       </section>
@@ -31,14 +31,14 @@ export default function Page() {
           src="/images/student-dashbaord-dark.png"
           alt="Student Dashboard"
           fill
-          className="object-contain px-8 hidden dark:block"
+          className="object-contain md:px-8 hidden dark:block"
           priority
         />
         <Image
           src="/images/student-dashbaord-light.png"
           alt="Student Dashboard"
           fill
-          className="object-contain px-8 dark:hidden block"
+          className="object-contain md:px-8 dark:hidden block"
           priority
         />
       </div>
