@@ -1,6 +1,6 @@
 # COMSATS University Portal
 
-This is a feature extension for the existing COMSATS student portal. The base system handles enrollment, grades, and timetables well enough. What it doesn't have: structured leave requests, announcements that actually reach the right people, flexible fee installments, or any way for students to raise complaints through proper channels. These modules cover that.
+This is a feature extension for the existing COMSATS student portal. Read more about this project [here](https://portal-cui-docs.vercel.app/).
 
 ---
 
