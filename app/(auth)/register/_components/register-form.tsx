@@ -13,7 +13,6 @@ import { Loader2 } from "lucide-react";
 import { Controller } from "react-hook-form";
 import { registerSchema, RegisterSchemaType } from "@/lib/schema";
 import { useRouter, useSearchParams } from "next/navigation";
-import { tryCatch } from "@/hooks/tryCatch";
 import { toast } from "sonner";
 import { useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,7 +20,7 @@ import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { Route } from "next";
 import { authClient } from "@/lib/auth-client";
-import { PasswordInput } from "../../../../components/general/password-input";
+import { PasswordInput } from "@/components/general/password-input";
 
 /// Register form with account creation and redirect to success page.
 export function RegisterForm({
@@ -45,28 +44,26 @@ export function RegisterForm({
 
   function onSubmit(values: RegisterSchemaType) {
     startEmailTransition(async () => {
-      const { error } = await tryCatch(
-        authClient.signUp.email({
-          name: values.name,
-          email: values.email,
-          password: values.password,
-          callbackURL: callbackUrl || "/",
-          image: `https://avatar.vercel.sh/${values.email.split("@")[0]}`,
-          fetchOptions: {
-            onError: (ctx) => {
-              toast.error(ctx.error.message);
-            },
-            onSuccess: () => {
-              toast.success(
-                "Registeration successful! Please check your email for verification link."
-              );
-            },
+      const { error } = await authClient.signUp.email({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        callbackURL: callbackUrl || "/",
+        image: `https://avatar.vercel.sh/${values.email.split("@")[0]}`,
+        fetchOptions: {
+          onError: (ctx) => {
+            toast.error(ctx.error.message);
+            return;
           },
-        })
-      );
+          onSuccess: () => {
+            toast.success(
+              "Registration successful! Please check your email for verification link."
+            );
+          },
+        },
+      });
 
       if (error) {
-        toast.error("Something bad happened");
         return;
       }
 
