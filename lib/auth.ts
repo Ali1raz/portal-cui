@@ -1,5 +1,6 @@
 import { SendEmail } from "@/app/actions/send-email";
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { Role } from "./generated/prisma/enums";
@@ -8,6 +9,7 @@ import prisma from "./prisma";
 import { admin, username } from "better-auth/plugins";
 import { roles } from "./permissions";
 import { env } from "@/lib/env";
+import { createAuthMiddleware } from "better-auth/api";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -21,6 +23,36 @@ export const auth = betterAuth({
     ],
     fallback: "localhost:3000",
     protocol: env.NODE_ENV === "development" ? "http" : "https",
+  },
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      // Only check on sign-up
+      if (ctx.path !== "/sign-up/email") {
+        return;
+      }
+
+      const email = ctx.body?.email as string;
+      if (!email) {
+        throw new APIError("BAD_REQUEST", {
+          message: "Email is required",
+        });
+      }
+
+      const domain = email.split("@")[1]?.toLowerCase();
+
+      if (!domain) {
+        throw new APIError("BAD_REQUEST", {
+          message: "Invalid email format",
+        });
+      }
+
+      if (!["proton.me", "gmail.com"].includes(domain)) {
+        throw new APIError("BAD_REQUEST", {
+          message:
+            "We only support ProtonMail and Gmail for sign-ups. Please use a valid email address.",
+        });
+      }
+    }),
   },
 
   emailAndPassword: {
