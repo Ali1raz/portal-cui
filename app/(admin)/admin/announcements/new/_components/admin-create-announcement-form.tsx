@@ -29,6 +29,7 @@ import {
   Department,
 } from "@/lib/generated/prisma/enums";
 import { FormDateField } from "@/components/general/form-calendar";
+import { formatDate } from "@/lib/utils";
 import { tryCatch } from "@/hooks/tryCatch";
 import Uploader from "@/components/uploader";
 import {
@@ -96,7 +97,11 @@ export function AdminCreateAnnoucenmentForm() {
       if (result.status === "error") {
         toast.error(result.message);
       } else if (result.status === "success") {
-        toast.success(result.message);
+        toast.success(
+          values.status === "SCHEDULED" && values.scheduledFor
+            ? `Announcement scheduled for ${formatDate(values.scheduledFor)}`
+            : result.message
+        );
         setResetKey((prev) => prev + 1);
         form.reset();
       }
