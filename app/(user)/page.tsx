@@ -1,4 +1,5 @@
 import { Features } from "@/components/features-12";
+import { FaqsSection } from "@/components/general/faqs";
 import FooterSection from "@/components/general/footer";
 import { HeroHeader } from "@/components/general/Header";
 import { Integrations } from "@/components/integrations";
@@ -47,6 +48,9 @@ export default function Page() {
       <Team />
       <div className="place-content-center p-4">
         <Integrations />
+      </div>
+      <div className="px-4">
+        <FaqsSection />
       </div>
       <FooterSection />
     </main>

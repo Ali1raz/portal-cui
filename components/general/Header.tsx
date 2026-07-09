@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
+import { ExternalLink, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
@@ -13,6 +13,7 @@ import { getDashboardLinkForRole } from "@/components/sidebar/navlinks";
 import { Role } from "@/lib/generated/prisma/enums";
 import { Route } from "next";
 import { useScroll } from "@/hooks/use-scroll";
+import { SITE_INFO } from "@/lib/data/SITE";
 
 type MenuItem = {
   name: string;
@@ -69,7 +70,7 @@ export const HeroHeader = () => {
             </div>
 
             <div className="absolute inset-0 m-auto hidden size-fit lg:block">
-              <ul className="flex gap-8 text-sm">
+              <ul className="flex gap-4 text-sm">
                 {menuItems.map((item, index) => (
                   <li key={index}>
                     <Link
@@ -84,6 +85,15 @@ export const HeroHeader = () => {
                     </Link>
                   </li>
                 ))}
+                <a
+                  className="text-muted-foreground hover:text-accent-foreground flex items-center gap-1"
+                  href={SITE_INFO.docs}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Docs
+                  <ExternalLink className="size-3" />
+                </a>
               </ul>
             </div>
 
@@ -104,6 +114,15 @@ export const HeroHeader = () => {
                       </Link>
                     </li>
                   ))}
+                  <a
+                    className="text-muted-foreground hover:text-accent-foreground flex items-center gap-1"
+                    href={SITE_INFO.docs}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Docs
+                    <ExternalLink className="size-3" />
+                  </a>
                 </ul>
               </div>
               <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">

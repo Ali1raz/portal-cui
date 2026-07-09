@@ -6,6 +6,7 @@ import { Route } from "next";
 import { Button } from "../ui/button";
 import { socialLinks } from "../footer";
 import { ThemeToggle } from "../theme-toggle";
+import { SITE_INFO } from "@/lib/data/SITE";
 
 const links = [
   {
@@ -60,6 +61,10 @@ const links = [
       {
         title: "Admissions",
         href: "/admissions",
+      },
+      {
+        title: "Docs",
+        href: SITE_INFO.docs,
       },
     ],
   },
