@@ -106,7 +106,7 @@ export async function adminCreateAnnouncement(
 
       return {
         status: "success",
-        message: `Announcement scheduled for ${scheduledFor.toLocaleString()}`,
+        message: "Announcement scheduled successfully.",
       };
     }
 

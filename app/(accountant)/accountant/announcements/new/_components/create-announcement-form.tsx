@@ -39,7 +39,7 @@ import {
 } from "../../schema";
 import { Loader2 } from "lucide-react";
 import { accountantCreateAnnouncement } from "../../actions";
-import { formatEnumLabel } from "@/lib/utils";
+import { formatDate, formatEnumLabel } from "@/lib/utils";
 
 /// Form for accountants to create fee announcements with audience targeting.
 export function AccountantCreateAnnouncementForm() {
@@ -101,7 +101,11 @@ export function AccountantCreateAnnouncementForm() {
       if (result.status === "error") {
         toast.error(result.message);
       } else if (result.status === "success") {
-        toast.success(result.message);
+        toast.success(
+          values.status === "SCHEDULED" && values.scheduledFor
+            ? `Announcement scheduled for ${formatDate(values.scheduledFor)}`
+            : result.message
+        );
         setResetKey((prev) => prev + 1);
         form.reset();
       }

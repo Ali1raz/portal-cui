@@ -103,7 +103,7 @@ export async function hodCreateAnnouncement(
 
       return {
         status: "success",
-        message: `Announcement scheduled for ${scheduledFor.toLocaleString()}`,
+        message: "Announcement scheduled successfully.",
       };
     }
 
